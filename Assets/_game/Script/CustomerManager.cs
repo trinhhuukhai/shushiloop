@@ -49,7 +49,13 @@ public class CustomerManager : MonoBehaviour
 
     public event Action<int, int> OnProgressChanged;
     public event Action OnAllCustomersCompleted;
+    [Header("Khách hoàn thành")]
+    [SerializeField] private float completedDelay = 0.8f;
 
+    private readonly HashSet<Customer> finishingCustomers =
+        new HashSet<Customer>();
+
+    private readonly object completedDelayId = new object();
     public void Init(List<CustomerOrderData> customerOrders)
     {
         string error = ValidateData(customerOrders);
@@ -163,20 +169,37 @@ public class CustomerManager : MonoBehaviour
     {
         int seatIndex = FindSeatIndex(customer);
 
-        if (seatIndex < 0)
+        if (seatIndex < 0 || !finishingCustomers.Add(customer))
             return;
 
-        activeCustomers[seatIndex] = null;
-        CompletedCustomers++;
+        // Khách đã nhận đủ món, nhưng vẫn giữ ở ghế trong lúc chờ.
+        // Customer.completed đã chặn nhận thêm Food.
+        customer.OnCompleted -= HandleCustomerCompleted;
 
-        RemoveCustomer(customer);
+        DOVirtual.DelayedCall(
+            Mathf.Max(0f, completedDelay),
+            () =>
+            {
+                if (customer == null ||
+                    !finishingCustomers.Remove(customer))
+                {
+                    return;
+                }
 
-        MoveNextCustomerToSeat(seatIndex);
+                activeCustomers[seatIndex] = null;
+                CompletedCustomers++;
 
-        NotifyProgress();
+                RemoveCustomer(customer);
+                MoveNextCustomerToSeat(seatIndex);
 
-        if (AllCustomersCompleted)
-            OnAllCustomersCompleted?.Invoke();
+                NotifyProgress();
+
+                if (AllCustomersCompleted)
+                    OnAllCustomersCompleted?.Invoke();
+            },
+            false // Dùng thời gian game, dừng khi Time.timeScale = 0.
+        )
+        .SetId(completedDelayId);
     }
 
     private void MoveNextCustomerToSeat(int seatIndex)
@@ -296,7 +319,8 @@ public class CustomerManager : MonoBehaviour
 
     public void ClearCustomers()
     {
-        DOTween.Kill(moveTweenId);
+        DOTween.Kill(completedDelayId);
+        finishingCustomers.Clear();
 
         for (int i = 0; i < activeCustomers.Length; i++)
         {
@@ -319,5 +343,6 @@ public class CustomerManager : MonoBehaviour
     private void OnDestroy()
     {
         DOTween.Kill(moveTweenId);
+        DOTween.Kill(completedDelayId);
     }
 }
