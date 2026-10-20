@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13d15152b00bf8346a5a306d9c9e3341, type: 3}
+  m_Name: SushiLevel
+  m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
+  number: 1
+  levelName: 
+  hint: 
+  beltSlots: 14
+  loopsPerSecond: 0.08
+  numberColumns: 4
+  boardSeed: 1
+  shuffleFoods: 1
+  customers: []
+  modifiers: []
