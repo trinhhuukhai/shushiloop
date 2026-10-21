@@ -16,9 +16,31 @@ MonoBehaviour:
   levelName: 
   hint: 
   beltSlots: 14
-  loopsPerSecond: 0.08
+  loopsPerSecond: 0.05
   numberColumns: 4
   boardSeed: 1
   shuffleFoods: 1
-  customers: []
+  customers:
+  - orders:
+    - typeFood: 1
+      amount: 1
+    - typeFood: 2
+      amount: 1
+  - orders:
+    - typeFood: 2
+      amount: 1
+    - typeFood: 3
+      amount: 1
+  - orders:
+    - typeFood: 3
+      amount: 1
+    - typeFood: 1
+      amount: 1
+  - orders:
+    - typeFood: 1
+      amount: 1
+    - typeFood: 2
+      amount: 1
+    - typeFood: 3
+      amount: 1
   modifiers: []
