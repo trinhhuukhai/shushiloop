@@ -8,7 +8,7 @@ public class FoodQueue : MonoBehaviour
     public int columnIndex;
     public PoolType foodType;
     [SerializeField] private List<FoodShushi> foods = new List<FoodShushi>();
-    [SerializeField] private float rowSpace = 1.2f;
+    [SerializeField] private float rowSpace = 1.3f;
     [SerializeField] private float moveDuration = 0.28f;
     [Header("Hiệu ứng khay rỗng")]
     [SerializeField, Min(0)] private float emptyTraySlideDistance = 0.24f;

@@ -18,3 +18,11 @@ MonoBehaviour:
   frozenTile: {fileID: 21300000, guid: 1d3ab207f58152af2cb765707ea1f146, type: 3}
   linkedTile: {fileID: 21300000, guid: 7c2dfccf5816201cd6386a7b0438b9fb, type: 3}
   rigidTray: {fileID: 21300000, guid: e30ea8977fef38f215adcadb730bb4ba, type: 3}
+  boardTile: {fileID: -1403730195, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+  plate: {fileID: -1272579404, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+  orderCard: {fileID: 708245321, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+  conveyor: {fileID: 1809157389, guid: cd3a011aec8c9884fb6bd799808e0150, type: 3}
+  customerAvatars:
+  - {fileID: 87560130, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
+  - {fileID: -534975809, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
+  - {fileID: 312702338, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}

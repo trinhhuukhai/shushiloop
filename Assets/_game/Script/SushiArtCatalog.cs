@@ -11,6 +11,13 @@ public sealed class SushiArtCatalog : ScriptableObject
     public Sprite linkedTile;
     public Sprite rigidTray;
 
+    [Header("World sprites — separate from Canvas UI")]
+    public Sprite boardTile;
+    public Sprite plate;
+    public Sprite orderCard;
+    public Sprite conveyor;
+    public Sprite[] customerAvatars = new Sprite[0];
+
     private static SushiArtCatalog instance;
     public static SushiArtCatalog Default
     {

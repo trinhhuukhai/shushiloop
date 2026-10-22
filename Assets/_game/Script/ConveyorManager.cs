@@ -25,6 +25,7 @@ public class ConveyorManager : MonoBehaviour
     private bool isRunning;
     private bool doubleSpeed;
     private LineRenderer track;
+    private Transform trackVisuals;
 
     [Header("Food nhảy lên")]
     [SerializeField, Min(0.1f)] private float jumpDuration = 0.42f;
@@ -106,6 +107,15 @@ public class ConveyorManager : MonoBehaviour
             Transform slot = Instantiate(slotPrefab, slotRoot);
             slot.name = "Slot_" + i;
             slot.gameObject.SetActive(true);
+            Sprite plate = SushiArtCatalog.Default != null ? SushiArtCatalog.Default.plate : null;
+            SpriteRenderer plateRenderer = slot.GetComponent<SpriteRenderer>();
+            if (plate != null && plateRenderer != null)
+            {
+                // Keep the slot at unit scale; only the plate visual is resized.
+                plateRenderer.enabled = false;
+                var visual = SushiWorldVisual.Panel(slot, "Ceramic plate", 0);
+                SushiWorldVisual.FitSprite(visual, plate, new Vector2(1.03f, 0.82f));
+            }
             slots.Add(slot);
         }
 
@@ -542,25 +552,47 @@ public class ConveyorManager : MonoBehaviour
 
     private void RefreshTrack()
     {
-        if (track == null)
+        if (trackVisuals != null) Destroy(trackVisuals.gameObject);
+        trackVisuals = new GameObject("Conveyor world sprites").transform;
+        trackVisuals.SetParent(transform, false);
+        Sprite artwork = SushiArtCatalog.Default != null ? SushiArtCatalog.Default.conveyor : null;
+        if (artwork != null)
         {
-            track = new GameObject("Conveyor track").AddComponent<LineRenderer>();
-            track.transform.SetParent(transform, false);
-            track.material = SushiWorldVisual.LineMaterial;
-            track.useWorldSpace = true;
-            track.loop = true;
-            track.sortingOrder = -2;
-            track.startWidth = track.endWidth = 0.85f;
-            track.startColor = track.endColor = new Color(0.12f, 0.15f, 0.17f);
+            var frame = SushiWorldVisual.Panel(trackVisuals, "Conveyor frame sprite", -16);
+            frame.transform.position = new Vector3(spline.center.x, spline.center.y - 0.18f, positionZ);
+            SushiWorldVisual.FitSprite(frame, artwork, spline.halfSize * 2f + new Vector2(1.28f, 1.28f));
+            return;
         }
-        track.gameObject.SetActive(true);
+        TrackLayer("Frame shadow", 1.26f, new Color(0.27f, 0.16f, 0.10f), -15, -0.10f);
+        TrackLayer("Maple frame", 1.22f, new Color(0.78f, 0.60f, 0.39f), -14);
+        TrackLayer("Ivory rim", 1.11f, new Color(0.99f, 0.90f, 0.72f), -13);
+        TrackLayer("Inner steel edge", 0.98f, new Color(0.35f, 0.43f, 0.46f), -12);
+        track = TrackLayer("Slate conveyor belt", 0.90f, new Color(0.48f, 0.57f, 0.60f), -11);
+        var well = SushiWorldVisual.Panel(trackVisuals, "Counter center", -16);
+        well.transform.position = new Vector3(spline.center.x, spline.center.y, positionZ);
+        well.transform.localScale = new Vector3(spline.halfSize.x * 2f - 0.5f, spline.halfSize.y * 2f - 0.5f, 1);
+        well.color = new Color(0.34f, 0.16f, 0.085f);
+    }
+
+    private LineRenderer TrackLayer(string name, float width, Color color, int order, float offsetY = 0)
+    {
+        var line = new GameObject(name).AddComponent<LineRenderer>();
+        line.transform.SetParent(trackVisuals, false);
+        line.sharedMaterial = SushiWorldVisual.LineMaterial;
+        line.useWorldSpace = true;
+        line.loop = true;
+        line.numCornerVertices = 4;
+        line.sortingOrder = order;
+        line.startWidth = line.endWidth = width;
+        line.startColor = line.endColor = color;
         const int segments = 192;
-        track.positionCount = segments;
+        line.positionCount = segments;
         for (int i = 0; i < segments; i++)
         {
             Vector2 point = spline.AtDistance((float)i / segments);
-            track.SetPosition(i, new Vector3(point.x, point.y, positionZ));
+            line.SetPosition(i, new Vector3(point.x, point.y + offsetY, positionZ));
         }
+        return line;
     }
 
     private void BuildDeliveryPoints()

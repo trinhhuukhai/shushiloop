@@ -1,0 +1,1291 @@
+fileFormatVersion: 2
+guid: 342fdae13844f7649a8bcf4472ec9a6a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3317633808069067258
+    second: DishesAtlas_0
+  - first:
+      213: 5216443691444732613
+    second: DishesAtlas_1
+  - first:
+      213: 177377304611613435
+    second: DishesAtlas_2
+  - first:
+      213: -7852006192617284051
+    second: DishesAtlas_3
+  - first:
+      213: 6651413481226376850
+    second: DishesAtlas_4
+  - first:
+      213: 4159568346903122469
+    second: DishesAtlas_5
+  - first:
+      213: -7992960757512477429
+    second: DishesAtlas_6
+  - first:
+      213: 9084437644878569300
+    second: DishesAtlas_7
+  - first:
+      213: -7139195360403534923
+    second: DishesAtlas_8
+  - first:
+      213: 8657121425043260990
+    second: DishesAtlas_9
+  - first:
+      213: -6071386877073967832
+    second: DishesAtlas_10
+  - first:
+      213: -2122890576582284330
+    second: DishesAtlas_11
+  - first:
+      213: -8131665286298219600
+    second: DishesAtlas_12
+  - first:
+      213: -7650916289508369282
+    second: DishesAtlas_13
+  - first:
+      213: -8907619505522810073
+    second: DishesAtlas_14
+  - first:
+      213: -4207853220628662503
+    second: DishesAtlas_15
+  - first:
+      213: 4404081659695161870
+    second: DishesAtlas_16
+  - first:
+      213: 6229501923843004914
+    second: DishesAtlas_17
+  - first:
+      213: -7071540625246400782
+    second: DishesAtlas_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 256
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: NigiriTuna
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 1044
+        width: 155
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 39807f843eaeb4a47b13e9196c68d848
+      internalID: -1554847663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriSalmon
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 1044
+        width: 154
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f2c8a32ea97a8dd45a3adb141da6879b
+      internalID: 1574922193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriFlounder
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 1043
+        width: 153
+        height: 129
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b281bf5af8e9485488d3d3e9218d65f1
+      internalID: 1041894938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriMackerel
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 1045
+        width: 155
+        height: 124
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0283e54e7eade9c4abb1620f801dee6f
+      internalID: 1075924645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriShrimp
+      rect:
+        serializedVersion: 2
+        x: 630
+        y: 1025
+        width: 156
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9b511b99a88fff4ca6a16a5987ffeb2
+      internalID: 390314688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriOctopus
+      rect:
+        serializedVersion: 2
+        x: 786
+        y: 1037
+        width: 154
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 497c55088368dcb449778e3a0bce5709
+      internalID: -747397240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriAvocado
+      rect:
+        serializedVersion: 2
+        x: 942
+        y: 1046
+        width: 151
+        height: 126
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9036c9ab9db6c44e81dfd7b59b0f4bc
+      internalID: -305845849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriEgg
+      rect:
+        serializedVersion: 2
+        x: 1096
+        y: 1042
+        width: 148
+        height: 134
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4d96da263fd89d49bedf3ec0f846402
+      internalID: 75381487
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriMayonnaise
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 839
+        width: 155
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 38d44dde897b0494c8e87c3021939fcf
+      internalID: 1560693793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriOrangeRoe
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 843
+        width: 151
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b919585d3818744aaefe1009763cd18
+      internalID: -812641125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriBlackRoe
+      rect:
+        serializedVersion: 2
+        x: 322
+        y: 842
+        width: 150
+        height: 144
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4bd4f683e3f0d294084a5a33208ceb92
+      internalID: 1537147048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: NigiriGreenRoe
+      rect:
+        serializedVersion: 2
+        x: 476
+        y: 843
+        width: 151
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b56bccf9926d194ca01bba1a7e3579a
+      internalID: 2121756005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiTuna
+      rect:
+        serializedVersion: 2
+        x: 638
+        y: 835
+        width: 134
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e44273c390c26d4fa3b22e2a291db0f
+      internalID: -800982310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiSalmon
+      rect:
+        serializedVersion: 2
+        x: 794
+        y: 835
+        width: 134
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f022c61d83d20904683cc189f581d520
+      internalID: 1286444346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiFlounder
+      rect:
+        serializedVersion: 2
+        x: 951
+        y: 835
+        width: 133
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e07dbe96523c87d42956e4b7f7f7370f
+      internalID: 1955234014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiMackerel
+      rect:
+        serializedVersion: 2
+        x: 1107
+        y: 835
+        width: 134
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9d21ae07d32c274583ca0d100d8ab27
+      internalID: -1245668236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiShrimp
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 642
+        width: 134
+        height: 148
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c9f83ad632336f4eb917655616bf05d
+      internalID: 1044427603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiOctopus
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 642
+        width: 135
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0358151727f0d23429d022dd8fd64c11
+      internalID: -1560467184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiAvocado
+      rect:
+        serializedVersion: 2
+        x: 330
+        y: 642
+        width: 134
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a702c02d3ec7a034b9f28950ea141707
+      internalID: 267637856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MakiEgg
+      rect:
+        serializedVersion: 2
+        x: 486
+        y: 641
+        width: 133
+        height: 149
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f57b71558b65284088157cb7f5b5fd8
+      internalID: -1058089783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanTuna
+      rect:
+        serializedVersion: 2
+        x: 637
+        y: 633
+        width: 145
+        height: 162
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70654c231815c1640869a437a95ef736
+      internalID: -1773491088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanSalmon
+      rect:
+        serializedVersion: 2
+        x: 790
+        y: 634
+        width: 147
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06f52613d8d041a4eb6b97474bfd14af
+      internalID: 324365183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanFlounder
+      rect:
+        serializedVersion: 2
+        x: 947
+        y: 633
+        width: 148
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd89091513908e64a9b67ffc1fc23c40
+      internalID: 1554092603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanMackerel
+      rect:
+        serializedVersion: 2
+        x: 1106
+        y: 633
+        width: 143
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ae828bc6d26f134eb54304aacc9bba1
+      internalID: -101691504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanShrimp
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 436
+        width: 145
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46b19075df1c23140b32d6179a690b25
+      internalID: 959587464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanOctopus
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 436
+        width: 145
+        height: 161
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7be47ce7692265b4f994f3d71ec75cc2
+      internalID: 2091019151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanAvocado
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 437
+        width: 145
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c637b29a7a447949a05ce3b21b39653
+      internalID: 2080442165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanEgg
+      rect:
+        serializedVersion: 2
+        x: 483
+        y: 438
+        width: 144
+        height: 160
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9b81ce993f957542a9a9229e2c036f1
+      internalID: -1398746887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanOrangeRoe
+      rect:
+        serializedVersion: 2
+        x: 637
+        y: 437
+        width: 142
+        height: 156
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b1f1f356b6339d469e3d99914b6db34
+      internalID: -1563027775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanBlackRoe
+      rect:
+        serializedVersion: 2
+        x: 790
+        y: 436
+        width: 144
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ca2ad5576629fb46a47c537849bf553
+      internalID: 1302265888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GunkanGreenRoe
+      rect:
+        serializedVersion: 2
+        x: 947
+        y: 436
+        width: 142
+        height: 155
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8814df18a0875d943b3a976e87f621f5
+      internalID: 623658701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiTunaSalmon
+      rect:
+        serializedVersion: 2
+        x: 1094
+        y: 447
+        width: 155
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c57541043ccf9541b6f328603a9af63
+      internalID: -1176319863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiTunaFlounder
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 263
+        width: 154
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0578f2b21e0ce7543b3f7aa941ebef90
+      internalID: 1526330018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiTunaMackerel
+      rect:
+        serializedVersion: 2
+        x: 162
+        y: 262
+        width: 153
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfdb52ae16974d9498b526246b180ce0
+      internalID: -151679189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiTunaShrimp
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 261
+        width: 153
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9bb5b4014193d554fa1be2a55ac88e36
+      internalID: -1731010737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiTunaOctopus
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 261
+        width: 154
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4f1131f86add8b4ba114059e1c3190a
+      internalID: 217407723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiSalmonFlounder
+      rect:
+        serializedVersion: 2
+        x: 629
+        y: 261
+        width: 153
+        height: 135
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd12f23004184aa408b545d97ef6b519
+      internalID: 1102755436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiSalmonMackerel
+      rect:
+        serializedVersion: 2
+        x: 782
+        y: 261
+        width: 155
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88927fdc063ab7840bc2f205068ab458
+      internalID: 1533395480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiSalmonShrimp
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 261
+        width: 156
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 220dad48d59c4c94f970a683bd74f629
+      internalID: 863609231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiSalmonOctopus
+      rect:
+        serializedVersion: 2
+        x: 1097
+        y: 263
+        width: 153
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fad8430b38137244f90c3e5b2543f267
+      internalID: -153129183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiFlounderMackerel
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 72
+        width: 155
+        height: 142
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 33899419119c8a546a68da4540b7a460
+      internalID: -922552372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiFlounderShrimp
+      rect:
+        serializedVersion: 2
+        x: 162
+        y: 72
+        width: 154
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b15cb120e2c1a1c45814cde19ea36382
+      internalID: 1836227121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiFlounderOctopus
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 72
+        width: 155
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7120a018f429656489c36d8783c33d9f
+      internalID: -443640156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiMackerelShrimp
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 72
+        width: 153
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa4761804250c684296ac47678de1c57
+      internalID: 1531353131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiMackerelOctopus
+      rect:
+        serializedVersion: 2
+        x: 627
+        y: 71
+        width: 154
+        height: 139
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a7525ea79a9fc6e4382d4deef2496bb9
+      internalID: -452465149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SashimiShrimpOctopus
+      rect:
+        serializedVersion: 2
+        x: 781
+        y: 71
+        width: 159
+        height: 141
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 89ca37e10f70fc943b9a6978bdd1755f
+      internalID: -890172924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GreenTea
+      rect:
+        serializedVersion: 2
+        x: 957
+        y: 59
+        width: 127
+        height: 188
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 70f32a90e2e7cf54d845848d61a6ce53
+      internalID: 1152947290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IcedGreenTea
+      rect:
+        serializedVersion: 2
+        x: 1115
+        y: 54
+        width: 119
+        height: 174
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50122371fd6fdd74e94443aeb0f325b5
+      internalID: -997638605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: afcc98b75d185734f89416915cc00a69
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      GreenTea: 1152947290
+      GunkanAvocado: 2080442165
+      GunkanBlackRoe: 1302265888
+      GunkanEgg: -1398746887
+      GunkanFlounder: 1554092603
+      GunkanGreenRoe: 623658701
+      GunkanMackerel: -101691504
+      GunkanOctopus: 2091019151
+      GunkanOrangeRoe: -1563027775
+      GunkanSalmon: 324365183
+      GunkanShrimp: 959587464
+      GunkanTuna: -1773491088
+      IcedGreenTea: -997638605
+      MakiAvocado: 267637856
+      MakiEgg: -1058089783
+      MakiFlounder: 1955234014
+      MakiMackerel: -1245668236
+      MakiOctopus: -1560467184
+      MakiSalmon: 1286444346
+      MakiShrimp: 1044427603
+      MakiTuna: -800982310
+      NigiriAvocado: -305845849
+      NigiriBlackRoe: 1537147048
+      NigiriEgg: 75381487
+      NigiriFlounder: 1041894938
+      NigiriGreenRoe: 2121756005
+      NigiriMackerel: 1075924645
+      NigiriMayonnaise: 1560693793
+      NigiriOctopus: -747397240
+      NigiriOrangeRoe: -812641125
+      NigiriSalmon: 1574922193
+      NigiriShrimp: 390314688
+      NigiriTuna: -1554847663
+      SashimiFlounderMackerel: -922552372
+      SashimiFlounderOctopus: -443640156
+      SashimiFlounderShrimp: 1836227121
+      SashimiMackerelOctopus: -452465149
+      SashimiMackerelShrimp: 1531353131
+      SashimiSalmonFlounder: 1102755436
+      SashimiSalmonMackerel: 1533395480
+      SashimiSalmonOctopus: -153129183
+      SashimiSalmonShrimp: 863609231
+      SashimiShrimpOctopus: -890172924
+      SashimiTunaFlounder: 1526330018
+      SashimiTunaMackerel: -151679189
+      SashimiTunaOctopus: 217407723
+      SashimiTunaSalmon: -1176319863
+      SashimiTunaShrimp: -1731010737
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: sushi-refresh-v1
+  assetBundleName: 
+  assetBundleVariant: 

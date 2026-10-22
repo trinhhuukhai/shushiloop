@@ -146,7 +146,7 @@ public class FoodShushi : GameUnit
         if (sprite == null) return;
         if (foodRenderer.transform == transform) return;
         Bounds bounds = foodRenderer.sprite.bounds;
-        float scale = 1f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y));
+        float scale = 1.05f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y));
         foodRenderer.transform.localScale = Vector3.one * scale;
         foodRenderer.transform.localPosition = -bounds.center * scale;
     }
@@ -228,7 +228,7 @@ public class FoodShushi : GameUnit
         quantityLabel.transform.localPosition = iceLayers > 0 ? new Vector3(-0.28f, 0.32f, -0.1f) :
             new Vector3(0.32f, -0.4f, -0.1f);
         tileBackground.gameObject.SetActive(visible && onBoard);
-        quantityLabel.gameObject.SetActive(visible && onBoard && !hidden && amount > 0);
+        quantityLabel.gameObject.SetActive(visible && onBoard && !hidden && amount > 1);
         bool showCover = visible && (hidden || (onBoard && iceLayers > 0));
         cover.gameObject.SetActive(showCover);
         SushiArtCatalog catalog = SushiArtCatalog.Default;

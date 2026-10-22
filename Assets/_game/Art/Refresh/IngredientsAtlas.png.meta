@@ -1,0 +1,813 @@
+fileFormatVersion: 2
+guid: 8d7f4a39fafa48941a8ae1e5a7886091
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8580468011510338185
+    second: IngredientsAtlas_0
+  - first:
+      213: -6355393587177116503
+    second: IngredientsAtlas_1
+  - first:
+      213: -3751645326869877203
+    second: IngredientsAtlas_2
+  - first:
+      213: 1409357018509567294
+    second: IngredientsAtlas_3
+  - first:
+      213: -282727753361989192
+    second: IngredientsAtlas_4
+  - first:
+      213: -4523788570172720433
+    second: IngredientsAtlas_5
+  - first:
+      213: 7033386072620052099
+    second: IngredientsAtlas_6
+  - first:
+      213: -6526066703307571055
+    second: IngredientsAtlas_7
+  - first:
+      213: 3480105469021695504
+    second: IngredientsAtlas_8
+  - first:
+      213: -8803456446612512939
+    second: IngredientsAtlas_9
+  - first:
+      213: -1160488232051450446
+    second: IngredientsAtlas_10
+  - first:
+      213: 5518824806208929269
+    second: IngredientsAtlas_11
+  - first:
+      213: 7246381670761471929
+    second: IngredientsAtlas_12
+  - first:
+      213: -5233535028173797686
+    second: IngredientsAtlas_13
+  - first:
+      213: 3329196385457690747
+    second: IngredientsAtlas_14
+  - first:
+      213: 1335076457975882212
+    second: IngredientsAtlas_15
+  - first:
+      213: -8210736510073654243
+    second: IngredientsAtlas_16
+  - first:
+      213: -2125170535193863361
+    second: IngredientsAtlas_17
+  - first:
+      213: 8307458344251119064
+    second: IngredientsAtlas_18
+  - first:
+      213: 2936136849805008297
+    second: IngredientsAtlas_19
+  - first:
+      213: 8299276021726318287
+    second: IngredientsAtlas_20
+  - first:
+      213: 2083206724342836756
+    second: IngredientsAtlas_21
+  - first:
+      213: -4546317907047974260
+    second: IngredientsAtlas_22
+  - first:
+      213: 8536186006890010554
+    second: IngredientsAtlas_23
+  - first:
+      213: -387226335386936769
+    second: IngredientsAtlas_24
+  - first:
+      213: -3106297840006896260
+    second: IngredientsAtlas_25
+  - first:
+      213: -6381341166260613334
+    second: IngredientsAtlas_26
+  - first:
+      213: 7006863565953007879
+    second: IngredientsAtlas_27
+  - first:
+      213: 9179689047000095009
+    second: IngredientsAtlas_28
+  - first:
+      213: -4820975024255878194
+    second: IngredientsAtlas_29
+  - first:
+      213: 7265710555967574963
+    second: IngredientsAtlas_30
+  - first:
+      213: -8466542995683876965
+    second: IngredientsAtlas_31
+  - first:
+      213: -7805878866664157197
+    second: IngredientsAtlas_32
+  - first:
+      213: 7706147880068405198
+    second: IngredientsAtlas_33
+  - first:
+      213: 7104507865164856818
+    second: IngredientsAtlas_34
+  - first:
+      213: -3939437502927571646
+    second: IngredientsAtlas_35
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 256
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SushiRice
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 996
+        width: 226
+        height: 205
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ecaa258285f23f4a95fa7551fd39976
+      internalID: -2126293879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shrimp
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 997
+        width: 220
+        height: 202
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfbac3f79a1ecd94ba34f8a1c0895e1c
+      internalID: -1515303282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Egg
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 1004
+        width: 233
+        height: 196
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6eb2629c413e6f9408b3b082b5d071a2
+      internalID: -1799984367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sesame
+      rect:
+        serializedVersion: 2
+        x: 772
+        y: 1008
+        width: 210
+        height: 158
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d633b07e34e7d4479f57c8c9b944da8
+      internalID: 1672217460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Salmon
+      rect:
+        serializedVersion: 2
+        x: 1010
+        y: 999
+        width: 220
+        height: 203
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 587534262b271dd478e6658238b916a6
+      internalID: 1187285651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CrabStick
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 758
+        width: 228
+        height: 210
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2cc8c8800f81ae9458d14e31db825043
+      internalID: -1491601850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Cucumber
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 772
+        width: 229
+        height: 193
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a5ec76c3d8fe4849a9784fa48d59028
+      internalID: -879040377
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Octopus
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 751
+        width: 229
+        height: 216
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ecf28dfe03e7f34281bdcfc8cb93820
+      internalID: 464932745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FishRoe
+      rect:
+        serializedVersion: 2
+        x: 770
+        y: 767
+        width: 226
+        height: 184
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f04f366abfd30c74190fea435ad416ec
+      internalID: 2129861392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tuna
+      rect:
+        serializedVersion: 2
+        x: 1019
+        y: 761
+        width: 219
+        height: 210
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 432e7f21666898149a0a6a4773c3e951
+      internalID: 64751200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrilledEel
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 519
+        width: 239
+        height: 208
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a786c13076127914199c4a42c9abc671
+      internalID: -1089023012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Flounder
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 530
+        width: 234
+        height: 193
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0909f21afe2c9b14da0c55a21e0bc85e
+      internalID: -1556643097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mackerel
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 527
+        width: 236
+        height: 197
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 311d10f4e7c96e94985eebe0a355d3ff
+      internalID: -83717258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Avocado
+      rect:
+        serializedVersion: 2
+        x: 777
+        y: 511
+        width: 213
+        height: 231
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b28e725bcaf553e46bca4325c08a1170
+      internalID: -1382213807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Mayonnaise
+      rect:
+        serializedVersion: 2
+        x: 1027
+        y: 534
+        width: 203
+        height: 179
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 398bb16d8f9d0314e9431d874c202c91
+      internalID: -1671613059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BlackFishRoe
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 301
+        width: 211
+        height: 176
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32b207bf485328e498908bf7210ee180
+      internalID: -1468867580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GreenFishRoe
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 296
+        width: 219
+        height: 192
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 979b2ef3f6a99c94a8d9f0fb171e8e97
+      internalID: 164074841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Seaweed
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 286
+        width: 248
+        height: 212
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50726f6f6ee67684d80456f774962fc2
+      internalID: -1679295431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeaPot
+      rect:
+        serializedVersion: 2
+        x: 770
+        y: 289
+        width: 233
+        height: 196
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c0da7eb9fc21bf41888908b9c629507
+      internalID: 1377671820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: EmptyCup
+      rect:
+        serializedVersion: 2
+        x: 1040
+        y: 300
+        width: 175
+        height: 183
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2307e1d8760ce64b9cff90dbde4d387
+      internalID: -1102620110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: IceCube
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 57
+        width: 203
+        height: 204
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a46ad17b0dc737469a2b1c6ae6be8a5
+      internalID: 1248284065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Plate
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 59
+        width: 245
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab5841020b746fd4ebb1d5000a2d7e4e
+      internalID: -1272579404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BoardTile
+      rect:
+        serializedVersion: 2
+        x: 519
+        y: 60
+        width: 234
+        height: 217
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54faa2f4e0d33264781393f1914ce210
+      internalID: -1403730195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrderCard
+      rect:
+        serializedVersion: 2
+        x: 775
+        y: 66
+        width: 216
+        height: 207
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b4a217b855a4d142810d5e61ce2397b
+      internalID: 708245321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WoodPanel
+      rect:
+        serializedVersion: 2
+        x: 1019
+        y: 64
+        width: 213
+        height: 210
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 21752a6ca64a1f64ca35412e67a8db0e
+      internalID: 371552586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: b49c11835e45d074d9e2b435c3e7cda0
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Avocado: -1382213807
+      BlackFishRoe: -1468867580
+      BoardTile: -1403730195
+      CrabStick: -1491601850
+      Cucumber: -879040377
+      Egg: -1799984367
+      EmptyCup: -1102620110
+      FishRoe: 2129861392
+      Flounder: -1556643097
+      GreenFishRoe: 164074841
+      GrilledEel: -1089023012
+      IceCube: 1248284065
+      Mackerel: -83717258
+      Mayonnaise: -1671613059
+      Octopus: 464932745
+      OrderCard: 708245321
+      Plate: -1272579404
+      Salmon: 1187285651
+      Seaweed: -1679295431
+      Sesame: 1672217460
+      Shrimp: -1515303282
+      SushiRice: -2126293879
+      TeaPot: 1377671820
+      Tuna: 64751200
+      WoodPanel: 371552586
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: sushi-refresh-v1
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,575 @@
+{
+    "version":  1,
+    "coordinateOrigin":  "bottom-left",
+    "trimAlphaThreshold":  48,
+    "paddingPixels":  2,
+    "atlases":  [
+                    {
+                        "file":  "IngredientsAtlas.png",
+                        "width":  1254,
+                        "height":  1254,
+                        "sprites":  [
+                                        {
+                                            "name":  "SushiRice",
+                                            "x":  22,
+                                            "y":  996,
+                                            "width":  226,
+                                            "height":  205
+                                        },
+                                        {
+                                            "name":  "Shrimp",
+                                            "x":  279,
+                                            "y":  997,
+                                            "width":  220,
+                                            "height":  202
+                                        },
+                                        {
+                                            "name":  "Egg",
+                                            "x":  519,
+                                            "y":  1004,
+                                            "width":  233,
+                                            "height":  196
+                                        },
+                                        {
+                                            "name":  "Sesame",
+                                            "x":  772,
+                                            "y":  1008,
+                                            "width":  210,
+                                            "height":  158
+                                        },
+                                        {
+                                            "name":  "Salmon",
+                                            "x":  1010,
+                                            "y":  999,
+                                            "width":  220,
+                                            "height":  203
+                                        },
+                                        {
+                                            "name":  "CrabStick",
+                                            "x":  22,
+                                            "y":  758,
+                                            "width":  228,
+                                            "height":  210
+                                        },
+                                        {
+                                            "name":  "Cucumber",
+                                            "x":  272,
+                                            "y":  772,
+                                            "width":  229,
+                                            "height":  193
+                                        },
+                                        {
+                                            "name":  "Octopus",
+                                            "x":  523,
+                                            "y":  751,
+                                            "width":  229,
+                                            "height":  216
+                                        },
+                                        {
+                                            "name":  "FishRoe",
+                                            "x":  770,
+                                            "y":  767,
+                                            "width":  226,
+                                            "height":  184
+                                        },
+                                        {
+                                            "name":  "Tuna",
+                                            "x":  1019,
+                                            "y":  761,
+                                            "width":  219,
+                                            "height":  210
+                                        },
+                                        {
+                                            "name":  "GrilledEel",
+                                            "x":  20,
+                                            "y":  519,
+                                            "width":  239,
+                                            "height":  208
+                                        },
+                                        {
+                                            "name":  "Flounder",
+                                            "x":  265,
+                                            "y":  530,
+                                            "width":  234,
+                                            "height":  193
+                                        },
+                                        {
+                                            "name":  "Mackerel",
+                                            "x":  516,
+                                            "y":  527,
+                                            "width":  236,
+                                            "height":  197
+                                        },
+                                        {
+                                            "name":  "Avocado",
+                                            "x":  777,
+                                            "y":  511,
+                                            "width":  213,
+                                            "height":  231
+                                        },
+                                        {
+                                            "name":  "Mayonnaise",
+                                            "x":  1027,
+                                            "y":  534,
+                                            "width":  203,
+                                            "height":  179
+                                        },
+                                        {
+                                            "name":  "BlackFishRoe",
+                                            "x":  31,
+                                            "y":  301,
+                                            "width":  211,
+                                            "height":  176
+                                        },
+                                        {
+                                            "name":  "GreenFishRoe",
+                                            "x":  266,
+                                            "y":  296,
+                                            "width":  219,
+                                            "height":  192
+                                        },
+                                        {
+                                            "name":  "Seaweed",
+                                            "x":  504,
+                                            "y":  286,
+                                            "width":  248,
+                                            "height":  212
+                                        },
+                                        {
+                                            "name":  "TeaPot",
+                                            "x":  770,
+                                            "y":  289,
+                                            "width":  233,
+                                            "height":  196
+                                        },
+                                        {
+                                            "name":  "EmptyCup",
+                                            "x":  1040,
+                                            "y":  300,
+                                            "width":  175,
+                                            "height":  183
+                                        },
+                                        {
+                                            "name":  "IceCube",
+                                            "x":  34,
+                                            "y":  57,
+                                            "width":  203,
+                                            "height":  204
+                                        },
+                                        {
+                                            "name":  "Plate",
+                                            "x":  258,
+                                            "y":  59,
+                                            "width":  245,
+                                            "height":  213
+                                        },
+                                        {
+                                            "name":  "BoardTile",
+                                            "x":  519,
+                                            "y":  60,
+                                            "width":  234,
+                                            "height":  217
+                                        },
+                                        {
+                                            "name":  "OrderCard",
+                                            "x":  775,
+                                            "y":  66,
+                                            "width":  216,
+                                            "height":  207
+                                        },
+                                        {
+                                            "name":  "WoodPanel",
+                                            "x":  1019,
+                                            "y":  64,
+                                            "width":  213,
+                                            "height":  210
+                                        }
+                                    ]
+                    },
+                    {
+                        "file":  "DishesAtlas.png",
+                        "width":  1254,
+                        "height":  1254,
+                        "sprites":  [
+                                        {
+                                            "name":  "NigiriTuna",
+                                            "x":  9,
+                                            "y":  1044,
+                                            "width":  155,
+                                            "height":  128
+                                        },
+                                        {
+                                            "name":  "NigiriSalmon",
+                                            "x":  165,
+                                            "y":  1044,
+                                            "width":  154,
+                                            "height":  128
+                                        },
+                                        {
+                                            "name":  "NigiriFlounder",
+                                            "x":  319,
+                                            "y":  1043,
+                                            "width":  153,
+                                            "height":  129
+                                        },
+                                        {
+                                            "name":  "NigiriMackerel",
+                                            "x":  473,
+                                            "y":  1045,
+                                            "width":  155,
+                                            "height":  124
+                                        },
+                                        {
+                                            "name":  "NigiriShrimp",
+                                            "x":  630,
+                                            "y":  1025,
+                                            "width":  156,
+                                            "height":  150
+                                        },
+                                        {
+                                            "name":  "NigiriOctopus",
+                                            "x":  786,
+                                            "y":  1037,
+                                            "width":  154,
+                                            "height":  138
+                                        },
+                                        {
+                                            "name":  "NigiriAvocado",
+                                            "x":  942,
+                                            "y":  1046,
+                                            "width":  151,
+                                            "height":  126
+                                        },
+                                        {
+                                            "name":  "NigiriEgg",
+                                            "x":  1096,
+                                            "y":  1042,
+                                            "width":  148,
+                                            "height":  134
+                                        },
+                                        {
+                                            "name":  "NigiriMayonnaise",
+                                            "x":  10,
+                                            "y":  839,
+                                            "width":  155,
+                                            "height":  139
+                                        },
+                                        {
+                                            "name":  "NigiriOrangeRoe",
+                                            "x":  169,
+                                            "y":  843,
+                                            "width":  151,
+                                            "height":  141
+                                        },
+                                        {
+                                            "name":  "NigiriBlackRoe",
+                                            "x":  322,
+                                            "y":  842,
+                                            "width":  150,
+                                            "height":  144
+                                        },
+                                        {
+                                            "name":  "NigiriGreenRoe",
+                                            "x":  476,
+                                            "y":  843,
+                                            "width":  151,
+                                            "height":  142
+                                        },
+                                        {
+                                            "name":  "MakiTuna",
+                                            "x":  638,
+                                            "y":  835,
+                                            "width":  134,
+                                            "height":  147
+                                        },
+                                        {
+                                            "name":  "MakiSalmon",
+                                            "x":  794,
+                                            "y":  835,
+                                            "width":  134,
+                                            "height":  147
+                                        },
+                                        {
+                                            "name":  "MakiFlounder",
+                                            "x":  951,
+                                            "y":  835,
+                                            "width":  133,
+                                            "height":  147
+                                        },
+                                        {
+                                            "name":  "MakiMackerel",
+                                            "x":  1107,
+                                            "y":  835,
+                                            "width":  134,
+                                            "height":  147
+                                        },
+                                        {
+                                            "name":  "MakiShrimp",
+                                            "x":  14,
+                                            "y":  642,
+                                            "width":  134,
+                                            "height":  148
+                                        },
+                                        {
+                                            "name":  "MakiOctopus",
+                                            "x":  172,
+                                            "y":  642,
+                                            "width":  135,
+                                            "height":  147
+                                        },
+                                        {
+                                            "name":  "MakiAvocado",
+                                            "x":  330,
+                                            "y":  642,
+                                            "width":  134,
+                                            "height":  147
+                                        },
+                                        {
+                                            "name":  "MakiEgg",
+                                            "x":  486,
+                                            "y":  641,
+                                            "width":  133,
+                                            "height":  149
+                                        },
+                                        {
+                                            "name":  "GunkanTuna",
+                                            "x":  637,
+                                            "y":  633,
+                                            "width":  145,
+                                            "height":  162
+                                        },
+                                        {
+                                            "name":  "GunkanSalmon",
+                                            "x":  790,
+                                            "y":  634,
+                                            "width":  147,
+                                            "height":  161
+                                        },
+                                        {
+                                            "name":  "GunkanFlounder",
+                                            "x":  947,
+                                            "y":  633,
+                                            "width":  148,
+                                            "height":  160
+                                        },
+                                        {
+                                            "name":  "GunkanMackerel",
+                                            "x":  1106,
+                                            "y":  633,
+                                            "width":  143,
+                                            "height":  160
+                                        },
+                                        {
+                                            "name":  "GunkanShrimp",
+                                            "x":  12,
+                                            "y":  436,
+                                            "width":  145,
+                                            "height":  160
+                                        },
+                                        {
+                                            "name":  "GunkanOctopus",
+                                            "x":  169,
+                                            "y":  436,
+                                            "width":  145,
+                                            "height":  161
+                                        },
+                                        {
+                                            "name":  "GunkanAvocado",
+                                            "x":  326,
+                                            "y":  437,
+                                            "width":  145,
+                                            "height":  158
+                                        },
+                                        {
+                                            "name":  "GunkanEgg",
+                                            "x":  483,
+                                            "y":  438,
+                                            "width":  144,
+                                            "height":  160
+                                        },
+                                        {
+                                            "name":  "GunkanOrangeRoe",
+                                            "x":  637,
+                                            "y":  437,
+                                            "width":  142,
+                                            "height":  156
+                                        },
+                                        {
+                                            "name":  "GunkanBlackRoe",
+                                            "x":  790,
+                                            "y":  436,
+                                            "width":  144,
+                                            "height":  157
+                                        },
+                                        {
+                                            "name":  "GunkanGreenRoe",
+                                            "x":  947,
+                                            "y":  436,
+                                            "width":  142,
+                                            "height":  155
+                                        },
+                                        {
+                                            "name":  "SashimiTunaSalmon",
+                                            "x":  1094,
+                                            "y":  447,
+                                            "width":  155,
+                                            "height":  141
+                                        },
+                                        {
+                                            "name":  "SashimiTunaFlounder",
+                                            "x":  5,
+                                            "y":  263,
+                                            "width":  154,
+                                            "height":  140
+                                        },
+                                        {
+                                            "name":  "SashimiTunaMackerel",
+                                            "x":  162,
+                                            "y":  262,
+                                            "width":  153,
+                                            "height":  140
+                                        },
+                                        {
+                                            "name":  "SashimiTunaShrimp",
+                                            "x":  317,
+                                            "y":  261,
+                                            "width":  153,
+                                            "height":  140
+                                        },
+                                        {
+                                            "name":  "SashimiTunaOctopus",
+                                            "x":  472,
+                                            "y":  261,
+                                            "width":  154,
+                                            "height":  138
+                                        },
+                                        {
+                                            "name":  "SashimiSalmonFlounder",
+                                            "x":  629,
+                                            "y":  261,
+                                            "width":  153,
+                                            "height":  135
+                                        },
+                                        {
+                                            "name":  "SashimiSalmonMackerel",
+                                            "x":  782,
+                                            "y":  261,
+                                            "width":  155,
+                                            "height":  137
+                                        },
+                                        {
+                                            "name":  "SashimiSalmonShrimp",
+                                            "x":  938,
+                                            "y":  261,
+                                            "width":  156,
+                                            "height":  137
+                                        },
+                                        {
+                                            "name":  "SashimiSalmonOctopus",
+                                            "x":  1097,
+                                            "y":  263,
+                                            "width":  153,
+                                            "height":  137
+                                        },
+                                        {
+                                            "name":  "SashimiFlounderMackerel",
+                                            "x":  6,
+                                            "y":  72,
+                                            "width":  155,
+                                            "height":  142
+                                        },
+                                        {
+                                            "name":  "SashimiFlounderShrimp",
+                                            "x":  162,
+                                            "y":  72,
+                                            "width":  154,
+                                            "height":  140
+                                        },
+                                        {
+                                            "name":  "SashimiFlounderOctopus",
+                                            "x":  318,
+                                            "y":  72,
+                                            "width":  155,
+                                            "height":  137
+                                        },
+                                        {
+                                            "name":  "SashimiMackerelShrimp",
+                                            "x":  474,
+                                            "y":  72,
+                                            "width":  153,
+                                            "height":  140
+                                        },
+                                        {
+                                            "name":  "SashimiMackerelOctopus",
+                                            "x":  627,
+                                            "y":  71,
+                                            "width":  154,
+                                            "height":  139
+                                        },
+                                        {
+                                            "name":  "SashimiShrimpOctopus",
+                                            "x":  781,
+                                            "y":  71,
+                                            "width":  159,
+                                            "height":  141
+                                        },
+                                        {
+                                            "name":  "GreenTea",
+                                            "x":  957,
+                                            "y":  59,
+                                            "width":  127,
+                                            "height":  188
+                                        },
+                                        {
+                                            "name":  "IcedGreenTea",
+                                            "x":  1115,
+                                            "y":  54,
+                                            "width":  119,
+                                            "height":  174
+                                        }
+                                    ]
+                    },
+                    {
+                        "file":  "CharactersAtlas.png",
+                        "width":  2172,
+                        "height":  724,
+                        "sprites":  [
+                                        {
+                                            "name":  "CustomerSage",
+                                            "x":  61,
+                                            "y":  0,
+                                            "width":  663,
+                                            "height":  714
+                                        },
+                                        {
+                                            "name":  "CustomerBeret",
+                                            "x":  816,
+                                            "y":  0,
+                                            "width":  556,
+                                            "height":  707
+                                        },
+                                        {
+                                            "name":  "CustomerCoral",
+                                            "x":  1538,
+                                            "y":  0,
+                                            "width":  522,
+                                            "height":  708
+                                        }
+                                    ]
+                    },
+                    {
+                        "file":  "Conveyor.png",
+                        "width":  2172,
+                        "height":  724,
+                        "sprites":  [
+                                        {
+                                            "name":  "Conveyor",
+                                            "x":  35,
+                                            "y":  92,
+                                            "width":  2102,
+                                            "height":  576
+                                        }
+                                    ]
+                    }
+                ]
+}

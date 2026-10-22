@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 30167091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.65, z: 0}
+  m_LocalPosition: {x: 0, y: 6.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -175,7 +175,7 @@ Transform:
   m_GameObject: {fileID: 260535341}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.15, y: 4.45, z: 0}
+  m_LocalPosition: {x: -2.15, y: 4.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -285,7 +285,7 @@ Transform:
   m_GameObject: {fileID: 459772466}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4, y: 5.65, z: 0}
+  m_LocalPosition: {x: -1.4, y: 6.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -303,6 +303,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 990000001}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -372,7 +373,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.19, g: 0.105, b: 0.075, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -513,7 +514,7 @@ MonoBehaviour:
   tf: {fileID: 573110026}
   columnPrefab: {fileID: 8844278956157773473, guid: a6a06bd7ed984de44bc55582d8540175, type: 3}
   ingredientPrefab: {fileID: 9058026793491968228, guid: c92cfdb572e37f943341078dad17311d, type: 3}
-  columnWidth: 1.55
+  columnWidth: 1.5
   conveyorManager: {fileID: 924643153}
   trayHoldDuration: 0.2
 --- !u!4 &573110026
@@ -525,7 +526,7 @@ Transform:
   m_GameObject: {fileID: 573110024}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.72, z: 0}
+  m_LocalPosition: {x: 0, y: -1.45, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -556,7 +557,7 @@ Transform:
   m_GameObject: {fileID: 690448457}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.4, y: 5.65, z: 0}
+  m_LocalPosition: {x: 1.4, y: 6.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -591,9 +592,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fb62275bd98ccd4e930b5029102c430, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KaitenSpline
-  center: {x: 0, y: 0}
-  halfSize: {x: 3.4, y: 1}
-  cornerRadius: 1
+  center: {x: 0, y: 0.35}
+  halfSize: {x: 3.65, y: 1.1}
+  cornerRadius: 1.1
 --- !u!4 &900714858
 Transform:
   m_ObjectHideFlags: 0
@@ -758,7 +759,7 @@ MonoBehaviour:
   - {fileID: 30167092}
   - {fileID: 690448458}
   moveDuration: 0.35
-  waitingScale: 0.6
+  waitingScale: 0.4
   avatars:
   - {fileID: 275185416072073027, guid: 294b55c5809c081429749748fe3147c4, type: 3}
   dishArt: {fileID: 11400000, guid: 0fe45ee7bc5290a8eb10e4069406a361, type: 2}
@@ -793,6 +794,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1344788578}
   - component: {fileID: 1344788577}
+  - component: {fileID: 990000002}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -866,12 +868,40 @@ Transform:
   m_GameObject: {fileID: 1396798785}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.15, y: 4.45, z: 0}
+  m_LocalPosition: {x: 2.15, y: 4.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1285739046}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &990000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f416e14f012b40e47bdb924d32e7d65f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraControl
+  cam: {fileID: 519420031}
+  playfieldSize: {x: 9, y: 16}
+  playfieldCenter: {x: 0, y: 0}
+--- !u!114 &990000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1344788576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2e47f32de1d4d219c668a83b3437741, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SushiRestaurantView
+
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

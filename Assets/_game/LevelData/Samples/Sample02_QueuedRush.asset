@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Sample02_QueuedRush
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   number: 20
-  levelName: 'Khách vội trong hàng chờ'
-  hint: 'Khách thứ 3 có 45 giây; đồng hồ chỉ chạy khi khách đã ngồi.'
+  levelName: "Kh\xE1ch v\u1ED9i trong h\xE0ng ch\u1EDD"
+  hint: "Kh\xE1ch th\u1EE9 3 c\xF3 45 gi\xE2y; \u0111\u1ED3ng h\u1ED3 ch\u1EC9 ch\u1EA1y
+    khi kh\xE1ch \u0111\xE3 ng\u1ED3i."
   beltSlots: 12
   loopsPerSecond: 0.07
   numberColumns: 6

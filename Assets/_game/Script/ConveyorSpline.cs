@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class ConveyorSpline : MonoBehaviour
 {
-    public Vector2 center = new Vector2(0f, 0.5f);
-    public Vector2 halfSize = new Vector2(3.7f, 1.7f);
+    public Vector2 center = new Vector2(0f, 0.35f);
+    public Vector2 halfSize = new Vector2(3.65f, 1.1f);
     public float cornerRadius = 1f;
 
     private Vector2[] positions;
