@@ -1,173 +1,314 @@
-﻿using UnityEngine;
+using DG.Tweening;
+using TMPro;
+using UnityEngine;
 
+// Giữ các giá trị enum cũ để không làm mất dữ liệu prefab/level.
 public enum FoodState
 {
-    Normal,
-    HoiCham,
-    Ice,
-    Lock
+    Normal = 0,
+    HoiCham = 1, // hidden_tile
+    Ice = 2,     // frozen_tile
+    Lock = 3,    // linked_tile (lockId cũ là linkId)
+    RigidTray = 4
 }
-
-// cơm, tôm, trứng cuộn, hạt mè, cá hồi, thanh cua, dưa leo, bạch tuộc, trứng cá, cá ngừ, lươn nướng
-//public enum TypeFood
-//{
-
-//}
 
 public enum FoodLocation
 {
-    Board,
-    MovingToConveyor,
-    Conveyor,
-    MovingToCustomerPlate,
-    CustomerPlate
+    Board, MovingToConveyor, Conveyor, MovingToCustomerPlate, CustomerPlate
 }
 
 public class FoodShushi : GameUnit
 {
-    [Header("Thông tin món ăn")]
     [SerializeField] private FoodState foodState;
-
-    //[Header("Trạng thái đặc biệt")]
-    //[Min(0)]
-    //[SerializeField] private int iceLayers;
-    //[SerializeField] private int lockId;
-
-    [Header("Hiển thị")]
-    [Header("Hình ảnh món ăn")]
-    [SerializeField] private Sprite rawSprite;
-    [SerializeField] private Sprite cookedSprite;
     [SerializeField] private SpriteRenderer foodRenderer;
-    //[SerializeField] private GameObject questionMarkObject;
-    //[SerializeField] private GameObject iceObject;
-    //[SerializeField] private GameObject lockObject;
+    [SerializeField] private SushiIngredientArtLibrary ingredientArt;
+    [SerializeField] private FoodLocation foodLocation;
+    [SerializeField, Range(1, 3)] private int amount = 1;
+    [SerializeField] private int iceLayers;
+    [SerializeField] private int linkId;
+    [SerializeField] private int trayId;
+    [SerializeField] private bool hidden;
 
-    [Header("Vị trí hiện tại")]
-    [SerializeField] private FoodLocation foodLocation = FoodLocation.Board;
-    public FoodLocation Location => foodLocation;
+    private TextMeshPro quantityLabel;
+    private TextMeshPro stateLabel;
+    private SpriteRenderer cover;
+    private SpriteRenderer tileBackground;
+    private bool boardVisible = true;
+    private Tween revealTween;
+    private SpriteRenderer[] prefabRenderers;
 
+    private void Awake() { prefabRenderers = GetComponentsInChildren<SpriteRenderer>(true); }
 
+    private void OnEnable()
+    {
+        if (Type != PoolType.None) ApplyIngredientArt();
+    }
 
+#if UNITY_EDITOR
+    private void Reset()
+    {
+        if (Application.isPlaying) return;
+        if (poolType == PoolType.None) poolType = PoolType.SushiRice;
+        QueueEditorArtRefresh();
+    }
 
+    private void OnValidate() { QueueEditorArtRefresh(); }
+
+    private void QueueEditorArtRefresh()
+    {
+        // OnValidate có thể chạy khi import trên luồng phụ; đổi Sprite ở delayCall của Editor.
+        UnityEditor.EditorApplication.delayCall -= RefreshEditorArt;
+        UnityEditor.EditorApplication.delayCall += RefreshEditorArt;
+    }
+
+    private void RefreshEditorArt()
+    {
+        if (this == null || UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) return;
+        bool assignedReferences = false;
+        if (foodRenderer == null)
+        {
+            foodRenderer = GetComponentInChildren<SpriteRenderer>(true);
+            assignedReferences = foodRenderer != null;
+        }
+        if (ingredientArt == null)
+        {
+            ingredientArt = UnityEditor.AssetDatabase.LoadAssetAtPath<SushiIngredientArtLibrary>(
+                "Assets/_game/Art/Ingredients/SushiIngredientArt.asset");
+            assignedReferences |= ingredientArt != null;
+        }
+        if (assignedReferences) UnityEditor.EditorUtility.SetDirty(this);
+        if (foodRenderer == null || ingredientArt == null || Type == PoolType.None) return;
+        Sprite previous = foodRenderer.sprite;
+        Vector3 previousScale = foodRenderer.transform.localScale;
+        Vector3 previousPosition = foodRenderer.transform.localPosition;
+        Color previousColor = foodRenderer.color;
+        ApplyIngredientArt();
+        if (previous == foodRenderer.sprite && previousScale == foodRenderer.transform.localScale &&
+            previousPosition == foodRenderer.transform.localPosition && previousColor == foodRenderer.color) return;
+        UnityEditor.EditorUtility.SetDirty(foodRenderer);
+        UnityEditor.EditorUtility.SetDirty(foodRenderer.transform);
+        if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(foodRenderer))
+        {
+            UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(foodRenderer);
+            UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(foodRenderer.transform);
+        }
+    }
+#endif
+
+    public FoodQueue Owner { get; internal set; }
     public PoolType Type => poolType;
     public FoodState State => foodState;
-    //public int IceLayers => iceLayers;
-    //public int LockId => lockId;
+    public FoodLocation Location => foodLocation;
+    public int Amount => amount;
+    public int IceLayers => iceLayers;
+    public int LinkId => linkId;
+    public int TrayId => trayId;
+    public bool IsHidden => hidden;
+    public bool IsRevealing => revealTween != null && revealTween.IsActive();
+    public bool CanUseChopsticks => foodLocation == FoodLocation.Board &&
+        iceLayers == 0 && amount > 0 && !IsRevealing;
 
-    private void Awake()
-    {
-        RefreshVisual();
-    }
     public void SetupFromData(FoodData data)
     {
-        Setup(
-            data.typeFood,
-            rawSprite,
-            data.foodState
-        );
-    }
-    public void Setup(PoolType type, Sprite sprite, FoodState state = FoodState.Normal)
-    {
-        poolType = type;
-        foodState = state;
-        //iceLayers = state == FoodState.Ice? Mathf.Max(1, initialIceLayers) : 0;
-        //lockId = state == FoodState.Lock ? initialLockId : 0;
-
-        if (foodRenderer != null) foodRenderer.sprite = sprite;
-
+        transform.DOKill();
+        revealTween?.Kill();
+        revealTween = null;
+        foodLocation = FoodLocation.Board;
+        Owner = null;
+        poolType = data.typeFood;
+        amount = Mathf.Max(0, data.amount);
+        hidden = data.hidden || data.foodState == FoodState.HoiCham;
+        iceLayers = data.foodState == FoodState.Ice ? Mathf.Max(1, data.iceLayers) : Mathf.Max(0, data.iceLayers);
+        linkId = data.linkId > 0 ? data.linkId : data.lockId;
+        trayId = data.trayId;
+        boardVisible = true;
+        ApplyIngredientArt();
+        EnsureVisuals();
+        cover.transform.localScale = Vector3.one;
         RefreshVisual();
     }
 
-    // Chỉ kiểm tra trạng thái của Food.
-    // FoodQueue kiểm tra món đầu cột và băng chuyền còn chỗ.
+    public void Setup(PoolType type, FoodState state = FoodState.Normal)
+    {
+        SetupFromData(new FoodData { typeFood = type, foodState = state });
+    }
+
+    private void ApplyIngredientArt()
+    {
+        if (foodRenderer == null) foodRenderer = GetComponentInChildren<SpriteRenderer>(true);
+        if (foodRenderer == null) return;
+        if (ingredientArt == null && SushiArtCatalog.Default != null) ingredientArt = SushiArtCatalog.Default.ingredientImages;
+        Sprite sprite = ingredientArt != null ? ingredientArt.GetSprite(Type) : null;
+        if (sprite == null && SushiArtCatalog.Default != null) sprite = SushiArtCatalog.Default.GetIngredient(Type);
+        foodRenderer.sprite = sprite;
+        foodRenderer.sharedMaterial = SushiWorldVisual.SpriteMaterial;
+        foodRenderer.color = Color.white;
+        if (sprite == null) return;
+        if (foodRenderer.transform == transform) return;
+        Bounds bounds = foodRenderer.sprite.bounds;
+        float scale = 1f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y));
+        foodRenderer.transform.localScale = Vector3.one * scale;
+        foodRenderer.transform.localPosition = -bounds.center * scale;
+    }
+
     public bool CanPick()
     {
-        return foodLocation == FoodLocation.Board
-            && foodState == FoodState.Normal;
+        return foodLocation == FoodLocation.Board && !hidden && iceLayers == 0 &&
+            amount > 0 && !IsRevealing;
     }
 
     public void Reveal()
     {
-        if (foodState != FoodState.HoiCham) return;
-        foodState = FoodState.Normal;
-        RefreshVisual();
+        if (!hidden || IsRevealing) return;
+        revealTween = DOTween.Sequence()
+            .Append(cover.transform.DOScaleX(0f, 0.125f))
+            .AppendCallback(() => { hidden = false; RefreshVisual(); })
+            .AppendInterval(0.125f)
+            .OnComplete(() => { revealTween = null; cover.transform.localScale = Vector3.one; });
     }
 
     public void BreakIce(int damage = 1)
     {
-        if (foodState != FoodState.Ice || damage <= 0) return;
-        //iceLayers = Mathf.Max(0, iceLayers - damage);
-        //if (iceLayers == 0) foodState = FoodState.Normal;
+        if (damage <= 0 || iceLayers == 0) return;
+        iceLayers = Mathf.Max(0, iceLayers - damage);
+        if (iceLayers == 0) SushiWorldVisual.BurstIce(Owner != null ? Owner.Board?.transform : null, transform.position);
         RefreshVisual();
     }
 
     public void Unlock(int keyId)
     {
-        //if (foodState != FoodState.Lock || keyId != lockId)  return;
-        foodState = FoodState.Normal;
-        //lockId = 0;
+        if (linkId != keyId) return;
+        BreakLink();
+    }
+
+    public void BreakLink() { linkId = 0; RefreshVisual(); }
+    internal void SetAmount(int value) { amount = Mathf.Max(0, value); RefreshVisual(); }
+    internal void SetBoardVisible(bool value)
+    {
+        if (boardVisible == value) return;
+        boardVisible = value;
+        RefreshVisual();
+    }
+
+    internal void CopyBoardBase(Transform parent)
+    {
+        if (tileBackground == null) return;
+        GameObject view = Instantiate(tileBackground.gameObject, parent, true);
+        view.name = "Empty base";
+        view.SetActive(boardVisible);
+    }
+
+    private void EnsureVisuals()
+    {
+        if (quantityLabel != null) return;
+        int order = foodRenderer != null ? foodRenderer.sortingOrder + 3 : 4;
+        quantityLabel = SushiWorldVisual.Label(transform, "Quantity", new Vector3(0.32f, -0.4f, -0.1f), 2.6f, order);
+        tileBackground = SushiWorldVisual.BoardBase(transform);
+        stateLabel = SushiWorldVisual.Label(transform, "Element", new Vector3(0, 0, -0.2f), 3.5f, order + 1);
+        cover = SushiWorldVisual.Panel(transform, "Cover", order - 1);
         RefreshVisual();
     }
 
     private void RefreshVisual()
     {
-        bool isHidden = foodState == FoodState.HoiCham;
-
-        // Trong lúc bay từ board, vẫn giữ hình sống.
-        bool isCooked =
-            foodLocation == FoodLocation.Conveyor ||
-            foodLocation == FoodLocation.MovingToCustomerPlate ||
-            foodLocation == FoodLocation.CustomerPlate;
-
+        foodState = hidden ? FoodState.HoiCham : iceLayers > 0 ? FoodState.Ice :
+            linkId > 0 ? FoodState.Lock : trayId > 0 ? FoodState.RigidTray : FoodState.Normal;
+        bool onBoard = foodLocation == FoodLocation.Board;
+        bool visible = !onBoard || boardVisible;
+        if (prefabRenderers != null)
+            foreach (var renderer in prefabRenderers) renderer.enabled = visible;
         if (foodRenderer != null)
         {
-            foodRenderer.sprite = isCooked ? cookedSprite : rawSprite;
-            foodRenderer.enabled = !isHidden;
+            foodRenderer.enabled = visible && !hidden && amount > 0;
+            foodRenderer.sortingOrder = foodLocation == FoodLocation.MovingToCustomerPlate || foodLocation == FoodLocation.MovingToConveyor ? 30 :
+                foodLocation == FoodLocation.CustomerPlate ? 18 : 1;
         }
+        if (quantityLabel == null) return;
+        quantityLabel.text = "×" + amount;
+        quantityLabel.transform.localPosition = iceLayers > 0 ? new Vector3(-0.28f, 0.32f, -0.1f) :
+            new Vector3(0.32f, -0.4f, -0.1f);
+        tileBackground.gameObject.SetActive(visible && onBoard);
+        quantityLabel.gameObject.SetActive(visible && onBoard && !hidden && amount > 0);
+        bool showCover = visible && (hidden || (onBoard && iceLayers > 0));
+        cover.gameObject.SetActive(showCover);
+        SushiArtCatalog catalog = SushiArtCatalog.Default;
+        Sprite element = catalog != null ? (hidden ? catalog.hiddenTile : catalog.frozenTile) : null;
+        cover.sprite = element != null ? element : SushiWorldVisual.WhiteSprite;
+        cover.color = element != null ? Color.white : hidden ? new Color(0.68f, 0.37f, 0.14f) : new Color(0.3f, 0.8f, 1f, 0.55f);
+        stateLabel.text = hidden ? (element == null ? "?" : "") : iceLayers > 0 ? iceLayers.ToString() : "";
+        stateLabel.transform.localPosition = !hidden && element != null ? new Vector3(0.25f, -0.31f, -0.3f) : Vector3.back * 0.2f;
+        stateLabel.fontSize = !hidden && element != null ? 2.6f : 3.5f;
+        stateLabel.color = !hidden && element != null ? Color.white : new Color(0.2f, 0.1f, 0.04f);
+        stateLabel.gameObject.SetActive(showCover && stateLabel.text.Length > 0);
+    }
 
-        //if (questionMarkObject != null)
-        //    questionMarkObject.SetActive(isHidden);
+    public void RefreshArtwork()
+    {
+        ApplyIngredientArt();
+        if (quantityLabel != null) RefreshVisual();
+    }
 
-        //if (iceObject != null)
-        //    iceObject.SetActive(foodState == FoodState.Ice);
-
-        //if (lockObject != null)
-        //    lockObject.SetActive(foodState == FoodState.Lock);
+    internal void BeginConveyorMove(bool revealHidden)
+    {
+        Owner = null;
+        amount = 1;
+        hidden = revealHidden;
+        iceLayers = linkId = trayId = 0;
+        foodLocation = FoodLocation.MovingToConveyor;
+        RefreshVisual();
+        if (hidden) Reveal();
     }
 
     public bool TryMoveToConveyor()
     {
-        if (!CanPick()) return false;
-        foodLocation = FoodLocation.MovingToConveyor;
+        if (!CanPick() || linkId > 0 || trayId > 0 || amount != 1) return false;
+        BeginConveyorMove(false);
         return true;
     }
 
-    // Gọi khi animation bay lên băng chuyền hoàn tất.
     public void ArriveAtConveyor()
     {
         if (foodLocation != FoodLocation.MovingToConveyor) return;
         foodLocation = FoodLocation.Conveyor;
+        RefreshVisual();
     }
 
-    public bool TryMoveToCustomerPlate()
+    public bool TryMoveToCustomerPlate(bool allowPickupFlight = false)
     {
-        if (foodLocation != FoodLocation.Conveyor) return false;
+        if (foodLocation != FoodLocation.Conveyor && !(allowPickupFlight && foodLocation == FoodLocation.MovingToConveyor)) return false;
         foodLocation = FoodLocation.MovingToCustomerPlate;
+        RefreshVisual();
         return true;
     }
 
-    // Gọi khi animation bay tới đĩa khách hoàn tất.
     public void ArriveAtCustomerPlate()
     {
         if (foodLocation != FoodLocation.MovingToCustomerPlate) return;
         foodLocation = FoodLocation.CustomerPlate;
-    }
-
-    public void CancelMoveToCustomerPlate()
-    {
-        if (foodLocation != FoodLocation.MovingToCustomerPlate)  return;
-
-        foodLocation = FoodLocation.Conveyor;
         RefreshVisual();
     }
+
+    public void CancelMoveToCustomerPlate(FoodLocation previousLocation = FoodLocation.Conveyor)
+    {
+        if (foodLocation != FoodLocation.MovingToCustomerPlate) return;
+        foodLocation = previousLocation;
+        RefreshVisual();
+    }
+
+    internal void RevealForMagnet()
+    {
+        revealTween?.Kill();
+        revealTween = null;
+        hidden = false;
+        if (cover != null) cover.transform.localScale = Vector3.one;
+        RefreshVisual();
+    }
+
+    private void OnDisable()
+    {
+        transform.DOKill();
+        revealTween?.Kill();
+        revealTween = null;
+    }
+
 }

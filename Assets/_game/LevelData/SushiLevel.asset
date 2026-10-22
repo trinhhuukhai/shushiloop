@@ -20,27 +20,33 @@ MonoBehaviour:
   numberColumns: 4
   boardSeed: 1
   shuffleFoods: 1
+  maxIngredientsPerTile: 2
+  boardColumns: []
   customers:
-  - orders:
-    - typeFood: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 5
       amount: 1
-    - typeFood: 2
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 8
       amount: 1
-  - orders:
-    - typeFood: 2
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 8
       amount: 1
-    - typeFood: 3
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 5
       amount: 1
-  - orders:
-    - typeFood: 3
+    - dish: 8
       amount: 1
-    - typeFood: 1
-      amount: 1
-  - orders:
-    - typeFood: 1
-      amount: 1
-    - typeFood: 2
-      amount: 1
-    - typeFood: 3
-      amount: 1
+    orders: []
   modifiers: []

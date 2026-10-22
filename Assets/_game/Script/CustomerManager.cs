@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -19,11 +19,13 @@ public class CustomerManager : MonoBehaviour
 
     [Header("Di chuyển")]
     [SerializeField] private float moveDuration = 0.35f;
+    [SerializeField, Range(0.3f, 1f)] private float waitingScale = 0.6f;
 
     [Header("Avatar")]
     [SerializeField]
     private List<Sprite> avatars =
         new List<Sprite>();
+    [SerializeField] private SushiDishArtLibrary dishArt;
 
     // Chỉ chứa khách đã tới ghế và được phép nhận món.
     private readonly Customer[] activeCustomers = new Customer[2];
@@ -49,6 +51,27 @@ public class CustomerManager : MonoBehaviour
 
     public event Action<int, int> OnProgressChanged;
     public event Action OnAllCustomersCompleted;
+    public event Action<Customer> OnRushExpired;
+
+    public void TickRush(float deltaTime)
+    {
+        foreach (Customer customer in activeCustomers)
+        {
+            // Timeout đầu tiên có thể mở popup ngay trong vòng lặp này.
+            if (LevelManager.Ins != null && LevelManager.Ins.IsPopupOpen) break;
+            customer?.TickRush(deltaTime);
+        }
+    }
+
+    public Customer FirstCustomerFor(PoolType type)
+    {
+        Customer first = null;
+        foreach (Customer customer in activeCustomers)
+            if (customer != null && customer.CanReceive(type) && (first == null || customer.id < first.id)) first = customer;
+        return first;
+    }
+
+    private void HandleRushExpired(Customer customer) => OnRushExpired?.Invoke(customer);
     [Header("Khách hoàn thành")]
     [SerializeField] private float completedDelay = 0.8f;
 
@@ -56,7 +79,8 @@ public class CustomerManager : MonoBehaviour
         new HashSet<Customer>();
 
     private readonly object completedDelayId = new object();
-    public void Init(List<CustomerOrderData> customerOrders)
+    private bool allowSimultaneousRush = true;
+    public void Init(List<CustomerOrderData> customerOrders, bool simultaneousRush = true)
     {
         string error = ValidateData(customerOrders);
 
@@ -67,6 +91,8 @@ public class CustomerManager : MonoBehaviour
         }
 
         ClearCustomers();
+        if (dishArt == null && SushiArtCatalog.Default != null) dishArt = SushiArtCatalog.Default.dishImages;
+        allowSimultaneousRush = simultaneousRush;
 
         TotalCustomers = customerOrders.Count;
 
@@ -80,6 +106,7 @@ public class CustomerManager : MonoBehaviour
 
             customer.transform.localPosition = Vector3.zero;
             customer.transform.localRotation = Quaternion.identity;
+            customer.transform.localScale = Vector3.one * (i < 2 ? 1f : waitingScale);
 
             Sprite avatar = avatars.Count > 0
                 ? avatars[i % avatars.Count]
@@ -88,13 +115,18 @@ public class CustomerManager : MonoBehaviour
             customer.Setup(
                 i,
                 avatar,
-                customerOrders[i].CreateFoodList()
+                customerOrders[i],
+                dishArt
             );
 
             customer.OnCompleted += HandleCustomerCompleted;
+            customer.OnRushExpired += HandleRushExpired;
 
             if (i < 2)
+            {
                 activeCustomers[i] = customer;
+                customer.SitDown();
+            }
             else
                 waitingCustomers.Add(customer);
         }
@@ -141,16 +173,14 @@ public class CustomerManager : MonoBehaviour
         {
             CustomerOrderData customerOrder = customerOrders[i];
 
-            if (customerOrder == null ||
-                customerOrder.orders == null ||
-                customerOrder.orders.Count == 0)
+            if (customerOrder == null || customerOrder.ValidateOrders() != null)
             {
                 return $"Khách {i + 1} chưa có order.";
             }
 
             long total = 0;
 
-            foreach (FoodOrderData item in customerOrder.orders)
+            foreach (FoodOrderData item in customerOrder.CreateIngredientOrders())
             {
                 if (item == null || item.amount <= 0)
                     return $"Khách {i + 1} có order không hợp lệ.";
@@ -158,7 +188,7 @@ public class CustomerManager : MonoBehaviour
                 total += item.amount;
             }
 
-            if (total > customerPrefab.PlateCapacity)
+            if (!customerOrder.UsesRecipes && total > customerPrefab.PlateCapacity)
                 return $"Khách {i + 1} order vượt số vị trí trên đĩa.";
         }
 
@@ -191,6 +221,7 @@ public class CustomerManager : MonoBehaviour
 
                 RemoveCustomer(customer);
                 MoveNextCustomerToSeat(seatIndex);
+                MoveNextCustomerToSeat(1 - seatIndex);
 
                 NotifyProgress();
 
@@ -212,6 +243,13 @@ public class CustomerManager : MonoBehaviour
         }
 
         Customer customer = waitingCustomers[0];
+        if (!allowSimultaneousRush && customer.IsRush)
+        {
+            foreach (var seated in activeCustomers)
+                if (seated != null && seated.IsRush && !seated.IsCompleted) return;
+            foreach (var moving in movingCustomers)
+                if (moving != null && moving.IsRush) return;
+        }
         waitingCustomers.RemoveAt(0);
 
         movingCustomers[seatIndex] = customer;
@@ -223,9 +261,9 @@ public class CustomerManager : MonoBehaviour
 
         customer.transform.SetParent(seat, true);
 
-        customer.transform
-            .DOLocalMove(Vector3.zero, Mathf.Max(0.01f, moveDuration))
-            .SetEase(Ease.OutQuad)
+        DOTween.Sequence()
+            .Append(customer.transform.DOLocalMove(Vector3.zero, Mathf.Max(0.01f, moveDuration)).SetEase(Ease.OutQuad))
+            .Join(customer.transform.DOScale(Vector3.one, Mathf.Max(0.01f, moveDuration)).SetEase(Ease.OutQuad))
             .SetId(moveTweenId)
             .SetTarget(customer)
             .OnComplete(() =>
@@ -242,6 +280,7 @@ public class CustomerManager : MonoBehaviour
 
                 // Chỉ nhận Food sau khi đã tới ghế.
                 activeCustomers[seatIndex] = customer;
+                customer.SitDown();
             });
 
         RefreshWaitingPositions();
@@ -268,9 +307,9 @@ public class CustomerManager : MonoBehaviour
         }
     }
 
-    private Transform GetSeat(int seatIndex)
+    public Transform GetSeat(int seatIndex)
     {
-        return seatIndex == 0 ? firstSeat : secondSeat;
+        return seatIndex == 0 ? firstSeat : seatIndex == 1 ? secondSeat : null;
     }
 
     private int FindSeatIndex(Customer customer)
@@ -292,6 +331,7 @@ public class CustomerManager : MonoBehaviour
         customer.OnCompleted -= HandleCustomerCompleted;
 
         DOTween.Kill(customer, false);
+        customer.OnRushExpired -= HandleRushExpired;
 
         // Food dùng pool: trả về pool trước khi hủy khách.
         foreach (FoodShushi food in customer.ReceivedFoods)

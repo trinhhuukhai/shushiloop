@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class UICanvas : MonoBehaviour
 {
+    private bool gameplayPopupOpen;
     //public bool IsAvoidBackKey = false;
     public bool IsDestroyOnClose = false;
 
@@ -58,6 +59,11 @@ public class UICanvas : MonoBehaviour
     public virtual void Open()
     {
         gameObject.SetActive(true);
+        if (!gameplayPopupOpen && LevelManager.Ins != null)
+        {
+            gameplayPopupOpen = true;
+            LevelManager.Ins.SetPopupOpen(true);
+        }
     }
 
     //close canvas directly
@@ -71,6 +77,13 @@ public class UICanvas : MonoBehaviour
             Destroy(gameObject);
         }
 
+    }
+
+    protected virtual void OnDisable()
+    {
+        if (!gameplayPopupOpen) return;
+        gameplayPopupOpen = false;
+        if (LevelManager.Ins != null) LevelManager.Ins.SetPopupOpen(false);
     }
 
     //close canvas with delay time, used to anim UI action

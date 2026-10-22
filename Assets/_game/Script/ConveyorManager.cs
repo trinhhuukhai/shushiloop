@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,10 +24,16 @@ public class ConveyorManager : MonoBehaviour
     private float progress;
     private bool isRunning;
     private bool doubleSpeed;
+    private LineRenderer track;
 
     [Header("Food nhảy lên")]
-    [SerializeField] private float jumpDuration = 0.3f;
-    [SerializeField] private float jumpHeight = 0.8f;
+    [SerializeField, Min(0.1f)] private float jumpDuration = 0.42f;
+    [SerializeField, Min(0f)] private float jumpHeight = 0.95f;
+    [SerializeField, Min(0f)] private float pickupStagger = 0.055f;
+    [SerializeField, Min(0f)] private float trayPickupStagger = 0.085f;
+    [SerializeField, Min(0f)] private float takeoffDuration = 0.065f;
+    [SerializeField, Min(0.01f)] private float landingDuration = 0.1f;
+    [SerializeField, Min(0.1f)] private float beltFoodScale = 0.78f;
 
     private readonly Dictionary<Transform, FoodShushi> slotFoods =
         new Dictionary<Transform, FoodShushi>();
@@ -50,19 +56,16 @@ public class ConveyorManager : MonoBehaviour
     [Header("Giao món cho khách")]
     [SerializeField] private CustomerManager customerManager;
 
-    [Tooltip("Mỗi điểm nằm trên băng chuyền, phía trước một ghế khách.")]
-    [SerializeField] private Transform[] deliveryPoints = new Transform[2];
-
     [SerializeField] private Transform flyingFoodRoot;
 
     [Min(0.01f)]
     [SerializeField] private float deliveryRange = 0.3f;
 
     [Min(0.01f)]
-    [SerializeField] private float deliveryDuration = 0.4f;
+    [SerializeField] private float deliveryDuration = 0.48f;
 
     [Min(0f)]
-    [SerializeField] private float deliveryHeight = 0.6f;
+    [SerializeField] private float deliveryHeight = 0.75f;
 
     private readonly Dictionary<FoodShushi, Customer> deliveringFoods =
         new Dictionary<FoodShushi, Customer>();
@@ -70,9 +73,10 @@ public class ConveyorManager : MonoBehaviour
     private readonly object deliveryTweenId = new object();
 
     public int DeliveringCount => deliveringFoods.Count;
+    public CustomerManager Customers => customerManager;
     public void Init(int count, float speed)
     {
-        if (customerManager == null || flyingFoodRoot == null)
+        if (spline == null || slotPrefab == null || slotRoot == null || customerManager == null || flyingFoodRoot == null)
         {
             Debug.LogError(
                 "Chưa gán CustomerManager hoặc FlyingFoodRoot.",
@@ -81,17 +85,11 @@ public class ConveyorManager : MonoBehaviour
             return;
         }
 
-        if (deliveryPoints == null || deliveryPoints.Length != 2)
+        for (int i = 0; i < customerManager.ActiveCustomers.Count; i++)
         {
-            Debug.LogError("Cần hai Delivery Points tương ứng hai ghế khách.", this);
-            return;
-        }
-
-        for (int i = 0; i < deliveryPoints.Length; i++)
-        {
-            if (deliveryPoints[i] == null)
+            if (customerManager.GetSeat(i) == null)
             {
-                Debug.LogError($"Chưa gán Delivery Points[{i}].", this);
+                Debug.LogError($"Chưa gán ghế nhận nguyên liệu {i + 1}.", this);
                 return;
             }
         }
@@ -101,6 +99,7 @@ public class ConveyorManager : MonoBehaviour
         loopsPerSecond = Mathf.Max(0f, speed);
 
         spline.Initialize();
+        RefreshTrack();
         BuildDeliveryPoints();
         for (int i = 0; i < slotCount; i++)
         {
@@ -115,6 +114,7 @@ public class ConveyorManager : MonoBehaviour
 
         UpdateSlotPositions();
         isRunning = true;
+        NotifyOccupancy();
     }
 
     private void Update()
@@ -163,6 +163,7 @@ public class ConveyorManager : MonoBehaviour
     public void Clear()
     {
         isRunning = false;
+        DOTween.Kill(pickupTweenId);
         ClearDeliveringFoods();
         foreach (FoodShushi food in slotFoods.Values)
         {
@@ -189,65 +190,192 @@ public class ConveyorManager : MonoBehaviour
 
         slots.Clear();
         progress = 0f;
+        NotifyOccupancy();
     }
 
+
+    public int OccupiedSlotCount => slotFoods.Count;
+    public int FreeSlotCount => slots.Count - slotFoods.Count;
+    public int Capacity => slots.Count;
+    private readonly object pickupTweenId = new object();
+    public event System.Action<int, int> OnOccupancyChanged;
+    private void NotifyOccupancy() => OnOccupancyChanged?.Invoke(OccupiedSlotCount, Capacity);
+    private bool CanInteract => isRunning && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
 
     public bool TryTakeFromQueue(FoodQueue queue)
     {
-        if (!isRunning || queue == null || !queue.CanTakeTopFood())
-            return false;
+        if (!CanInteract || queue == null || queue.Board == null) return false;
+        if (!queue.Board.TryBuildTap(queue, out List<FoodPickup> plan)) return false;
+        return TryTakePlan(queue.Board, plan, FoodPickMode.Tap);
+    }
 
-        FoodShushi topFood = queue.GetTopFood();
+    public bool TryTakeChopsticks(FoodShushi food)
+    {
+        if (!CanInteract || food == null || food.Owner == null) return false;
+        BoardShishiManager board = food.Owner.Board;
+        return board != null && board.TryBuildChopsticks(food, out var plan) &&
+            TryTakePlan(board, plan, FoodPickMode.Chopsticks);
+    }
 
-        Transform targetSlot = null;
-        float nearestDistance = float.PositiveInfinity;
+    public bool TryTakeMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
+    {
+        if (!CanInteract || board == null || customer == null || dish == null || !customer.IsSeated ||
+            customer.IsCompleted || customer.RushExpired || dish.IsComplete || customerManager == null) return false;
+        bool active = false, ownsDish = false;
+        foreach (Customer seated in customerManager.ActiveCustomers) active |= seated == customer;
+        foreach (SushiDishOrder order in customer.Dishes) ownsDish |= order == dish;
+        if (!active || !ownsDish) return false;
 
-        foreach (Transform slot in slots)
+        var boardPlan = new List<FoodPickup>();
+        var beltPlan = new List<KeyValuePair<Transform, FoodShushi>>();
+        int needed = 0;
+        foreach (OrderItem ingredient in dish.Ingredients)
         {
-            if (slot == null || slotFoods.ContainsKey(slot))
-                continue;
-
-            float distance =
-                (slot.position - topFood.transform.position).sqrMagnitude;
-
-            if (distance >= nearestDistance)
-                continue;
-
-            nearestDistance = distance;
-            targetSlot = slot;
-        }
-
-        // Đầy băng chuyền: không lấy món khỏi cột.
-        if (targetSlot == null)
-            return false;
-
-        // Giữ slot trước khi lấy món.
-        slotFoods.Add(targetSlot, topFood);
-
-        if (!queue.TryTakeTopFood(targetSlot, out FoodShushi food))
-        {
-            slotFoods.Remove(targetSlot);
-            return false;
-        }
-
-        // Food đã là con của slot nên đích vẫn đúng khi slot di chuyển.
-        food.transform
-            .DOLocalJump(
-                Vector3.zero,
-                jumpHeight,
-                1,
-                Mathf.Max(0.01f, jumpDuration)
-            )
-            .SetEase(Ease.OutQuad)
-            .OnComplete(() =>
+            int remaining = ingredient.requiredAmount - ingredient.receivedAmount - ingredient.incomingAmount;
+            needed += Mathf.Max(0, remaining);
+            // Ưu tiên nguyên liệu trên vòng xoay, kể cả đang nhảy tới đĩa đã giữ chỗ.
+            foreach (Transform slot in slots)
             {
-                if (food != null)
-                    food.ArriveAtConveyor();
-            });
+                if (remaining <= 0) break;
+                if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food.Type != ingredient.typeFood) continue;
+                beltPlan.Add(new KeyValuePair<Transform, FoodShushi>(slot, food));
+                remaining--;
+            }
+            if (remaining <= 0) continue;
+            List<FoodPickup> pickups = board.BuildMagnet(ingredient.typeFood, remaining);
+            foreach (FoodPickup pickup in pickups) { boardPlan.Add(pickup); remaining -= pickup.amount; }
+            // Thiếu bất kỳ nguyên liệu nào: giữ nguyên board, vòng xoay và order.
+            if (remaining > 0) return false;
+        }
+        if (needed == 0) return false;
 
+        var spawned = new List<FoodShushi>();
+        var units = new List<FoodShushi>();
+        try
+        {
+            foreach (FoodPickup pickup in boardPlan)
+                for (int i = 0; i < pickup.amount; i++)
+                {
+                    FoodShushi unit = SimplePool.Spawn<FoodShushi>(pickup.food.Type);
+                    if (unit == null) throw new System.InvalidOperationException("Thiếu prefab nguyên liệu " + pickup.food.Type);
+                    spawned.Add(unit);
+                    unit.SetupFromData(new FoodData { typeFood = pickup.food.Type });
+                    unit.transform.SetParent(flyingFoodRoot, false);
+                    unit.transform.position = pickup.food.transform.position;
+                    unit.transform.localRotation = Quaternion.identity;
+                    SetWorldScale(unit.transform, pickup.food.transform.lossyScale);
+                    unit.BeginConveyorMove(false);
+                    units.Add(unit);
+                }
+        }
+        catch (System.Exception exception)
+        {
+            foreach (FoodShushi unit in spawned) SimplePool.Despawn(unit);
+            Debug.LogException(exception, this);
+            return false;
+        }
+        foreach (var pickup in beltPlan) units.Add(pickup.Value);
+        var targets = new List<Transform>();
+        foreach (FoodShushi unit in units)
+        {
+            if (customer.TryReserveFoodForDish(unit, dish, out Transform target)) { targets.Add(target); continue; }
+            for (int i = 0; i < targets.Count; i++) customer.CancelReceive(units[i]);
+            foreach (FoodShushi created in spawned) SimplePool.Despawn(created);
+            return false;
+        }
+        foreach (var pickup in beltPlan)
+        {
+            pickup.Value.transform.DOKill();
+            pickup.Value.RevealForMagnet();
+            slotFoods.Remove(pickup.Key);
+        }
+        if (boardPlan.Count > 0) board.CommitPickup(boardPlan, FoodPickMode.Magnet, 0);
+        for (int i = 0; i < units.Count; i++) FlyToCustomer(units[i], customer, targets[i]);
+        NotifyOccupancy();
         return true;
     }
 
+    private bool TryTakePlan(BoardShishiManager board, IReadOnlyList<FoodPickup> plan, FoodPickMode mode)
+    {
+        int total = 0;
+        var seen = new HashSet<FoodShushi>();
+        foreach (FoodPickup item in plan)
+        {
+            if (item.food == null || item.food.Owner == null || item.food.Owner.IsPickupPending || item.food.Owner.Board != board ||
+                item.amount < 0 || item.amount > item.food.Amount || !seen.Add(item.food)) return false;
+            total += item.amount;
+        }
+        // Giữ chỗ cả nhóm trước khi thay đổi bất cứ ô/cột nào, gồm món đang bay.
+        if (total > FreeSlotCount)
+        {
+            board.ShakePickup(plan);
+            return false;
+        }
+        var targets = new List<Transform>();
+        foreach (Transform slot in slots)
+            if (slot != null && !slotFoods.ContainsKey(slot)) targets.Add(slot);
+        Vector3 origin = plan[0].food.transform.position;
+        targets.Sort((a, b) => (a.position - origin).sqrMagnitude.CompareTo((b.position - origin).sqrMagnitude));
+        if (targets.Count < total) { board.ShakePickup(plan); return false; }
+        var units = new List<FoodShushi>();
+        var hiddenUnits = new List<bool>();
+        var flightDurations = new List<float>();
+        float stagger = mode == FoodPickMode.Tap && plan[0].food.TrayId > 0 ? trayPickupStagger : pickupStagger;
+        float takeoffDelay = 0;
+        try
+        {
+            foreach (FoodPickup item in plan)
+            {
+                for (int i = 0; i < item.amount; i++)
+                {
+                    FoodShushi unit = SimplePool.Spawn<FoodShushi>(item.food.Type);
+                    if (unit == null) throw new System.InvalidOperationException("Thiếu prefab nguyên liệu " + item.food.Type);
+                    units.Add(unit);
+                    unit.SetupFromData(new FoodData { typeFood = item.food.Type });
+                    // Chờ ở vị trí board trong world space; không trôi theo đĩa khi chưa cất cánh.
+                    unit.transform.SetParent(flyingFoodRoot, false);
+                    unit.transform.position = item.food.transform.position;
+                    unit.transform.localRotation = Quaternion.identity;
+                    SetWorldScale(unit.transform, item.food.transform.lossyScale);
+                    hiddenUnits.Add(item.food.IsHidden);
+                    unit.BeginConveyorMove(item.food.IsHidden);
+                    float duration = TravelDuration(jumpDuration, unit.transform.position, targets[units.Count - 1].position);
+                    flightDurations.Add(duration);
+                    float delay = (item.food.IsHidden ? 0.25f : 0) + (units.Count - 1) * stagger;
+                    takeoffDelay = Mathf.Max(takeoffDelay, delay + Mathf.Max(0, takeoffDuration));
+                }
+            }
+        }
+        catch (System.Exception exception)
+        {
+            foreach (FoodShushi unit in units)
+            {
+                unit.transform.SetParent(null, true);
+                SimplePool.Despawn(unit);
+            }
+            Debug.LogException(exception, this);
+            return false;
+        }
+        for (int i = 0; i < units.Count; i++) slotFoods.Add(targets[i], units[i]);
+        board.CommitPickup(plan, mode, takeoffDelay);
+        for (int i = 0; i < units.Count; i++)
+        {
+            FoodShushi unit = units[i];
+            Transform target = targets[i];
+            AnimateFlight(unit, target, flightDurations[i], jumpHeight, beltFoodScale,
+                (hiddenUnits[i] ? 0.25f : 0) + i * stagger, takeoffDuration, pickupTweenId, () =>
+                {
+                    if (unit == null || target == null) return;
+                    unit.transform.SetParent(target, false);
+                    unit.transform.localPosition = Vector3.zero;
+                    unit.transform.localRotation = Quaternion.identity;
+                    unit.transform.localScale = Vector3.one * beltFoodScale;
+                    unit.ArriveAtConveyor();
+                });
+        }
+        NotifyOccupancy();
+        return true;
+    }
     private void CheckCustomerOrders(
         float previousProgress,
         float advance)
@@ -284,7 +412,7 @@ public class ConveyorManager : MonoBehaviour
             {
                 Customer customer = customers[i];
 
-                if (customer == null)
+                if (customer == null || customerManager.FirstCustomerFor(food.Type) != customer)
                     continue;
 
                 float gateProgress = deliveryProgresses[i];
@@ -314,12 +442,7 @@ public class ConveyorManager : MonoBehaviour
                     continue;
 
                 slotFoods.Remove(slot);
-
-                Debug.Log(
-                    $"Giao {food.name} cho khách {customer.id}, " +
-                    $"đích: {target.name}",
-                    customer
-                );
+                NotifyOccupancy();
 
                 FlyToCustomer(food, customer, target);
                 break;
@@ -337,34 +460,10 @@ public class ConveyorManager : MonoBehaviour
         // Tách Food khỏi slot đang chạy, giữ nguyên vị trí world.
         food.transform.SetParent(flyingFoodRoot, true);
 
-        Vector3 startPosition = food.transform.position;
-
         deliveringFoods.Add(food, customer);
 
-        DOVirtual.Float(
-            0f,
-            1f,
-            Mathf.Max(0.01f, deliveryDuration),
-            progress =>
-            {
-                if (food == null || target == null)
-                    return;
-
-                Vector3 position = Vector3.Lerp(
-                    startPosition,
-                    target.position,
-                    progress
-                );
-
-                position += Vector3.up *
-                    (4f * deliveryHeight * progress * (1f - progress));
-
-                food.transform.position = position;
-            }
-        )
-        .SetEase(Ease.Linear)
-        .SetId(deliveryTweenId)
-        .OnComplete(() =>
+        AnimateFlight(food, target, TravelDuration(deliveryDuration, food.transform.position, target.position),
+            deliveryHeight, customer.ReceivingFoodScale, 0, 0, deliveryTweenId, () =>
         {
             if (food == null || customer == null || target == null)
             {
@@ -389,40 +488,88 @@ public class ConveyorManager : MonoBehaviour
         });
     }
 
-    private float FindDeliveryProgress(Vector2 targetPosition)
+    private static float TravelDuration(float duration, Vector3 start, Vector3 end) =>
+        Mathf.Max(0.1f, duration) + Mathf.Min(0.16f, Vector3.Distance(start, end) * 0.025f);
+
+    private static void SetWorldScale(Transform subject, Vector3 scale)
     {
-        const int samples = 256;
+        Vector3 parentScale = subject.parent != null ? subject.parent.lossyScale : Vector3.one;
+        subject.localScale = new Vector3(scale.x / Nonzero(parentScale.x), scale.y / Nonzero(parentScale.y), scale.z / Nonzero(parentScale.z));
+    }
 
-        float nearestProgress = 0f;
-        float nearestDistance = float.PositiveInfinity;
+    private static float Nonzero(float value) => Mathf.Abs(value) < 0.0001f ? 1f : value;
 
-        for (int i = 0; i < samples; i++)
+    private void AnimateFlight(FoodShushi food, Transform target, float duration, float height, float endScale,
+        float delay, float anticipation, object tweenId, System.Action onComplete)
+    {
+        Transform subject = food.transform;
+        Vector3 origin = subject.position;
+        Vector3 startScale = subject.lossyScale;
+        Quaternion startRotation = subject.rotation;
+        float lift = Mathf.Max(0, height) + Mathf.Min(0.25f, Mathf.Abs(target.position.x - origin.x) * 0.04f);
+        var sequence = DOTween.Sequence().AppendInterval(Mathf.Max(0, delay));
+        if (anticipation > 0)
+            sequence.Append(DOVirtual.Float(0, 1, anticipation, t =>
+            {
+                if (subject == null) return;
+                subject.position = origin;
+                SetWorldScale(subject, Vector3.Scale(startScale, new Vector3(1 + 0.08f * t, 1 - 0.08f * t, 1)));
+            }).SetEase(Ease.OutSine));
+        sequence.Append(DOVirtual.Float(0, 1, duration, t =>
         {
-            float sampleProgress = (float)i / samples;
-            Vector2 position = spline.AtDistance(sampleProgress);
-
-            float distance = (position - targetPosition).sqrMagnitude;
-
-            if (distance >= nearestDistance)
-                continue;
-
-            nearestDistance = distance;
-            nearestProgress = sampleProgress;
-        }
-
-        return nearestProgress;
+            if (subject == null || target == null) return;
+            // Đọc đích mỗi frame: bám đúng đĩa đang chạy và ô order của khách đang di chuyển.
+            subject.position = Vector3.Lerp(origin, target.position, t) + Vector3.up * (4 * lift * t * (1 - t));
+            float arc = Mathf.Sin(Mathf.PI * t);
+            float squash = anticipation > 0 ? 0.08f * (1 - Mathf.Clamp01(t * 5)) : 0;
+            Vector3 shape = new Vector3(1 + squash - 0.035f * arc, 1 - squash + 0.07f * arc, 1);
+            SetWorldScale(subject, Vector3.Scale(Vector3.Lerp(startScale, target.lossyScale * endScale, t), shape));
+            float tilt = -Mathf.Sign(target.position.x - origin.x) * 11f * arc;
+            subject.rotation = Quaternion.Slerp(startRotation, target.rotation, t) * Quaternion.Euler(0, 0, tilt);
+        }).SetEase(Ease.InOutSine));
+        sequence.Append(DOVirtual.Float(0, 1, Mathf.Max(0.01f, landingDuration), t =>
+        {
+            if (subject == null || target == null) return;
+            subject.position = target.position;
+            subject.rotation = target.rotation;
+            float squash = Mathf.Sin(Mathf.PI * t);
+            SetWorldScale(subject, Vector3.Scale(target.lossyScale * endScale, new Vector3(1 + 0.09f * squash, 1 - 0.08f * squash, 1)));
+        }).SetEase(Ease.Linear));
+        sequence.SetTarget(subject).SetId(tweenId).OnComplete(() => onComplete?.Invoke());
     }
 
     private float[] deliveryProgresses;
 
+    private void RefreshTrack()
+    {
+        if (track == null)
+        {
+            track = new GameObject("Conveyor track").AddComponent<LineRenderer>();
+            track.transform.SetParent(transform, false);
+            track.material = SushiWorldVisual.LineMaterial;
+            track.useWorldSpace = true;
+            track.loop = true;
+            track.sortingOrder = -2;
+            track.startWidth = track.endWidth = 0.85f;
+            track.startColor = track.endColor = new Color(0.12f, 0.15f, 0.17f);
+        }
+        track.gameObject.SetActive(true);
+        const int segments = 192;
+        track.positionCount = segments;
+        for (int i = 0; i < segments; i++)
+        {
+            Vector2 point = spline.AtDistance((float)i / segments);
+            track.SetPosition(i, new Vector3(point.x, point.y, positionZ));
+        }
+    }
+
     private void BuildDeliveryPoints()
     {
-        deliveryProgresses = new float[deliveryPoints.Length];
+        deliveryProgresses = new float[customerManager.ActiveCustomers.Count];
 
-        for (int i = 0; i < deliveryPoints.Length; i++)
+        for (int i = 0; i < deliveryProgresses.Length; i++)
         {
-            deliveryProgresses[i] =
-                FindDeliveryProgress(deliveryPoints[i].position);
+            deliveryProgresses[i] = (float)spline.ClosestDistance(customerManager.GetSeat(i).position);
         }
     }
 

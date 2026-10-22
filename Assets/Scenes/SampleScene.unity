@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 30167092}
   m_Layer: 0
-  m_Name: Doi2
+  m_Name: Waiting 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 30167091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.04, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 5.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -175,7 +175,7 @@ Transform:
   m_GameObject: {fileID: 260535341}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -2.15, y: 4.45, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -270,7 +270,7 @@ GameObject:
   m_Component:
   - component: {fileID: 459772467}
   m_Layer: 0
-  m_Name: Doi1
+  m_Name: Waiting 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -285,7 +285,7 @@ Transform:
   m_GameObject: {fileID: 459772466}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.97, y: 0, z: 0}
+  m_LocalPosition: {x: -1.4, y: 5.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -460,18 +460,8 @@ MonoBehaviour:
   isDontDestroy: 0
   otherPools:
   - root: {fileID: 535527866}
-    prefab: {fileID: 9058026793491968228, guid: 2af7dd1ed07d321409f6cd0e4aca1311, type: 3}
-    amount: 10
-    collect: 1
-    clamp: 0
-  - root: {fileID: 535527866}
-    prefab: {fileID: 7758589145591465366, guid: 61fef0a4c90cf184a87767afe04a4911, type: 3}
-    amount: 10
-    collect: 1
-    clamp: 0
-  - root: {fileID: 535527866}
-    prefab: {fileID: 7444381912142971014, guid: 4ee8c247d2dea8a46866f6798f2ace0d, type: 3}
-    amount: 10
+    prefab: {fileID: 9058026793491968228, guid: c92cfdb572e37f943341078dad17311d, type: 3}
+    amount: 32
     collect: 1
     clamp: 0
   Particle: []
@@ -522,12 +512,10 @@ MonoBehaviour:
   isDontDestroy: 0
   tf: {fileID: 573110026}
   columnPrefab: {fileID: 8844278956157773473, guid: a6a06bd7ed984de44bc55582d8540175, type: 3}
-  foodPrefabs:
-  - {fileID: 9058026793491968228, guid: 2af7dd1ed07d321409f6cd0e4aca1311, type: 3}
-  - {fileID: 7758589145591465366, guid: 61fef0a4c90cf184a87767afe04a4911, type: 3}
-  - {fileID: 7444381912142971014, guid: 4ee8c247d2dea8a46866f6798f2ace0d, type: 3}
+  ingredientPrefab: {fileID: 9058026793491968228, guid: c92cfdb572e37f943341078dad17311d, type: 3}
   columnWidth: 1.55
   conveyorManager: {fileID: 924643153}
+  trayHoldDuration: 0.2
 --- !u!4 &573110026
 Transform:
   m_ObjectHideFlags: 0
@@ -537,7 +525,7 @@ Transform:
   m_GameObject: {fileID: 573110024}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -2.52, z: 0}
+  m_LocalPosition: {x: 0, y: -1.72, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -553,7 +541,7 @@ GameObject:
   m_Component:
   - component: {fileID: 690448458}
   m_Layer: 0
-  m_Name: Doi3
+  m_Name: Waiting 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -568,7 +556,7 @@ Transform:
   m_GameObject: {fileID: 690448457}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.91, y: 0, z: 0}
+  m_LocalPosition: {x: 1.4, y: 5.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -603,8 +591,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fb62275bd98ccd4e930b5029102c430, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KaitenSpline
-  center: {x: 0, y: 0.5}
-  halfSize: {x: 3.7, y: 1.7}
+  center: {x: 0, y: 0}
+  halfSize: {x: 3.4, y: 1}
   cornerRadius: 1
 --- !u!4 &900714858
 Transform:
@@ -672,16 +660,18 @@ MonoBehaviour:
   loopsPerSecond: 0.08
   positionZ: 0
   playOnStart: 1
-  jumpDuration: 0.3
-  jumpHeight: 0.8
+  jumpDuration: 0.42
+  jumpHeight: 0.95
+  pickupStagger: 0.055
+  trayPickupStagger: 0.085
+  takeoffDuration: 0.065
+  landingDuration: 0.1
+  beltFoodScale: 0.78
   customerManager: {fileID: 1285739045}
-  deliveryPoints:
-  - {fileID: 260535342}
-  - {fileID: 459772467}
   flyingFoodRoot: {fileID: 1285739046}
   deliveryRange: 0.3
-  deliveryDuration: 0.4
-  deliveryHeight: 0.6
+  deliveryDuration: 0.48
+  deliveryHeight: 0.75
 --- !u!1 &1161625804
 GameObject:
   m_ObjectHideFlags: 0
@@ -768,8 +758,10 @@ MonoBehaviour:
   - {fileID: 30167092}
   - {fileID: 690448458}
   moveDuration: 0.35
+  waitingScale: 0.6
   avatars:
   - {fileID: 275185416072073027, guid: 294b55c5809c081429749748fe3147c4, type: 3}
+  dishArt: {fileID: 11400000, guid: 0fe45ee7bc5290a8eb10e4069406a361, type: 2}
   completedDelay: 0.8
 --- !u!4 &1285739046
 Transform:
@@ -780,7 +772,7 @@ Transform:
   m_GameObject: {fileID: 1285739044}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 5.3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -822,11 +814,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   isDontDestroy: 0
   levels:
-  - {fileID: 11400000, guid: 64c3bc6b6e1c94c469f63cb86517f3ff, type: 2}
+  - {fileID: 11400000, guid: fef168ae95f64079a8b8655432c068c3, type: 2}
+  - {fileID: 11400000, guid: fe406ceca87f481b80b8d9ae4bb59b30, type: 2}
+  - {fileID: 11400000, guid: 5cf33b59df84494bb1deb1ca90bd4c42, type: 2}
+  - {fileID: 11400000, guid: 740b3272cc054d86a4b2f95aa64e381d, type: 2}
+  - {fileID: 11400000, guid: 3dc87e4499f147b79f74bc532c0bb9c1, type: 2}
   currentLevelIndex: 0
   boardManager: {fileID: 573110025}
   customerManager: {fileID: 1285739045}
   conveyorManager: {fileID: 924643153}
+  reviveProvider: {fileID: 0}
+  showGameplayHud: 1
+  showLevelSelector: 1
 --- !u!4 &1344788578
 Transform:
   m_ObjectHideFlags: 0
@@ -852,7 +851,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1396798786}
   m_Layer: 0
-  m_Name: FirstSeat (1)
+  m_Name: SecondSeat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -867,7 +866,7 @@ Transform:
   m_GameObject: {fileID: 1396798785}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.74, y: 0, z: 0}
+  m_LocalPosition: {x: 2.15, y: 4.45, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

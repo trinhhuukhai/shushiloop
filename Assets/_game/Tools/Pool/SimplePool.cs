@@ -29,7 +29,8 @@ public static class SimplePool
         {
             if (root == null)
             {
-                root = GameObject.FindObjectOfType<PoolControler>().transform;
+                PoolControler controller = GameObject.FindFirstObjectByType<PoolControler>();
+                root = controller != null ? controller.transform : null;
 
                 if (root == null)
                 {
@@ -182,16 +183,14 @@ public static class SimplePool
 
     static public void Preload(GameUnit prefab, int qty = 1, Transform parent = null, bool collect = false, bool clamp = false)
     {
-        if (!poolTypes.ContainsKey(prefab.poolType))
-        {
-            poolTypes.Add(prefab.poolType, prefab);
-        }
-
         if (prefab == null)
         {
-            Debug.LogError(parent.name + " : IS EMPTY!!!");
+            Debug.LogError("Pool prefab is empty.");
             return;
         }
+
+        if (!poolTypes.TryGetValue(prefab.poolType, out GameUnit registered) || registered == null)
+            poolTypes[prefab.poolType] = prefab;
 
         Init(prefab, qty, parent, collect, clamp);
 
@@ -209,14 +208,25 @@ public static class SimplePool
         }
     }
 
+    // Nhiều type có thể dùng chung một prefab; pool vẫn được tạo theo instance ID của prefab.
+    public static void RegisterPrefab(PoolType type, GameUnit prefab)
+    {
+        if (prefab == null) throw new ArgumentNullException(nameof(prefab));
+        poolTypes[type] = prefab;
+    }
+
     static public T Spawn<T>(PoolType poolType, Vector3 pos, Quaternion rot) where T : GameUnit
     {
-        return Spawn(GetGameUnitByType(poolType), pos, rot) as T;
+        T unit = Spawn(GetGameUnitByType(poolType), pos, rot) as T;
+        if (unit != null) unit.poolType = poolType;
+        return unit;
     }
 
     static public T Spawn<T>(PoolType poolType) where T : GameUnit
     {
-        return Spawn<T>(GetGameUnitByType(poolType));
+        T unit = Spawn<T>(GetGameUnitByType(poolType));
+        if (unit != null) unit.poolType = poolType;
+        return unit;
     }
 
     static public T Spawn<T>(GameUnit obj, Vector3 pos, Quaternion rot) where T : GameUnit
@@ -314,10 +324,15 @@ public static class SimplePool
                 }
             }
 
-            poolTypes.Add(poolType, unit);
+            poolTypes[poolType] = unit;
         }
 
         return poolTypes[poolType];
+    }
+
+    public static bool HasPrefab(PoolType type)
+    {
+        return GetGameUnitByType(type) != null;
     }
 }
 
@@ -345,5 +360,16 @@ public enum PoolType
     Octopus,
     FishRoe,
     Tuna,
-    GrilledEel
+    GrilledEel,
+    // Chỉ thêm ở cuối để giữ ID của các prefab/level cũ.
+    Flounder,
+    Mackerel,
+    Avocado,
+    Mayonnaise,
+    BlackFishRoe,
+    GreenFishRoe,
+    Seaweed,
+    TeaPot,
+    EmptyCup,
+    IceCube
 }
