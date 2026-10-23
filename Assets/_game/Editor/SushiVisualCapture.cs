@@ -146,7 +146,7 @@ public static class SushiVisualCapture
         public bool scalerEnabled;
     }
 
-    private static void CaptureSet(string label, LevelManager level)
+    public static void CaptureSet(string label, LevelManager level)
     {
         Camera camera = Camera.main;
         Check(camera != null, "SampleScene has no MainCamera.");

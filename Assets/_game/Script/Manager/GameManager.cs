@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -54,6 +54,7 @@ public class GameManager : MonoBehaviour
     public bool showPopupDailyLogin = false;
     protected void Awake()
     {
+        if (ins != null && ins != this) { Destroy(gameObject); return; }
         ins = this;
         DontDestroyOnLoad(gameObject);
         DOTween.SetTweensCapacity(2000, 1000);
@@ -188,194 +189,41 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ie_LoadGame()
     {
-        yield return new WaitUntil(() =>
-             LoadingScreen.ins != null 
-            //SoundManager.ins != null &&
-            //DataManager.ins != null &&
-            //AdsManager.Ins != null
-        );
-        //DataManager.ins.LoadData();
-        //WorldTimeAPI.Ins.OnInit();
-        //SoundManager.PlayMusicBg(SoundID.sfx_bgm_gameplay);
-        LoadingScreen.ins.SetPercent(0.7f, 1f);
-        StartCoroutine(LoadingScreen.ins.ie_txtLoading());
-        yield return Cache.GetWFS(1f);
-
-        //WorldTimeAPI.Ins.OnInit();
-
-        //yield return new WaitUntil(() => AdsManager.Ins.IsAdsSetupDone);
-        //yield return new WaitUntil(() => DataManager.ins.isLoaded);
-
-        //if (AdsManager.Ins.IsInAppUpdate)
-        //{
-        //    GoogleInAppUpdate.CheckUpdate();
-        //    yield return new WaitUntil(() => !GoogleInAppUpdate.isCheckingUpdate);
-        //}
-
-        //StartCoroutine(CountTime());
-        yield return Cache.GetWFS(0.6f);
-        LoadingScreen.ins.SetPercent(1f, 1f);
-
-        yield return Cache.GetWFS(1f);
-        //yield return new WaitUntil(() => FirebaseManager.Ins.is_remote_config_done);
-        //FetchRemoteConfig();
-
-        //Debug.Log("-------0");
-        //UIManager.Ins.OpenUI<CanvasBlockRaycast>();
-        // Check GamePlay đã được load chưa
-        Scene gameplayScene = SceneManager.GetSceneByName("GamePlay");
-
-        if (gameplayScene.IsValid() && gameplayScene.isLoaded)
+        yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded && UIManager.Ins != null);
+        Time.timeScale = 1;
+        LoadingScreen loading = LoadingScreen.ins;
+        if (loading != null)
         {
-            // Scene đã mở -> vào game luôn
-            //if (AdsManager.Ins != null) {
-            //    AdsManager.Ins.SetInterLevel(GameDataFragment.cur.dataPlayer.cur_level);
-            //}
-
-            if (isPlayTestingLevel)
+            loading.SetPercent(0.15f, 0.15f);
+            loading.StartCoroutine(loading.ie_txtLoading());
+        }
+        Scene scene = SceneManager.GetSceneByName("GamePlay");
+        if (!scene.IsValid() || !scene.isLoaded)
+        {
+            AsyncOperation operation = SceneManager.LoadSceneAsync("GamePlay");
+            operation.allowSceneActivation = false;
+            while (operation.progress < 0.9f)
             {
-                //UIManager.Ins.OpenUI<CanvasFloating>();
-                //LevelManager.Ins.CheckHidebgFade();
-                //ChangeState(GameState.MainMenu);
-                //UIManager.Ins.OpenUI<CanvasMainMenu>();
-
-                //GameDataFragment.cur.dataPlayer.showTutorialBooster1 = true;
-                //GameDataFragment.cur.dataPlayer.showTutorialBooster2 = true;
-                //GameDataFragment.cur.dataPlayer.showTutorialBooster3 = true;
-                //GameDataFragment.cur.dataPlayer.showTutorialLevel1 = true;
-                //GameDataFragment.cur.dataPlayer.showTutorialLevel2 = true;
-                //GameDataFragment.cur.dataPlayer.isClickBucketTutorialClear = true;
-                //GameDataFragment.cur.dataPlayer.isClickBucketTutorialMagnet = true;
-                //GameDataFragment.cur.dataPlayer.fisrtUseBoosterClear = true;
-                //GameDataFragment.cur.dataPlayer.fisrtUseBoosterMagnet = true;
-                //GameDataFragment.cur.dataPlayer.fisrtUseBoosterSuffle = true;
-
-                //DataManager.ins.SaveData();
-            }else
-            {
-                //UIManager.Ins.OpenUI<CanvasFloating>();
-                //LevelManager.Ins.CheckHidebgFade();
-
-                //if (GameDataFragment.cur.dataPlayer.cur_level < levelBackToHome - 1)
-                //{
-                //    if(GameDataFragment.cur.dataPlayer.moneyTemp > 0)
-                //    {
-                //        GameDataFragment.cur.ChangeMoney(GameDataFragment.cur.dataPlayer.moneyTemp, "win");
-                //        GameDataFragment.cur.dataPlayer.moneyTemp = 0;
-                //        UIManager.Ins.GetUI<CanvasFloating>().ShowGold();
-                //    }
-                //    LevelManager.Ins.ClickPlayGame();
-                //}
-                //else
-                //{
-                //    ChangeState(GameState.MainMenu);
-                //    UIManager.Ins.OpenUI<CanvasMainMenu>();
-                //}
-                //DataManager.ins.SaveData();
+                if (loading != null) loading.SetPercent(0.15f + operation.progress / 0.9f * 0.8f, 0.1f);
+                yield return null;
             }
-            yield break;
+            if (loading != null) loading.SetPercent(1, 0.2f);
+            yield return new WaitForSecondsRealtime(0.25f);
+            operation.allowSceneActivation = true;
+            yield return operation;
         }
-
-        // ==============================
-        // GamePlay chưa load -> Load scene
-        // ==============================
-
-        var sync = SceneManager.LoadSceneAsync("GamePlay");
-        sync.allowSceneActivation = false;
-
-        while (sync.progress < 0.9f)
-        {
-            yield return null;
-        }
-
-        // Cho phép chuyển sang GamePlay
-        sync.allowSceneActivation = true;
-
-        // Quan trọng: chờ LoadSceneAsync hoàn thành thật sự
-        while (!sync.isDone)
-        {
-            yield return null;
-        }
-        //if (AdsManager.Ins != null)
-        //{
-        //    AdsManager.Ins.SetInterLevel(GameDataFragment.cur.dataPlayer.cur_level);
-        //}
-        // Chờ 1 frame để Awake/OnEnable/Start của các Manager chạy
-        //yield return null;
-
-        // ==============================
-        // VÀO GAME
-        // ==============================
-        if (isPlayTestingLevel)
-        {
-            //UIManager.Ins.OpenUI<CanvasFloating>();
-            //LevelManager.Ins.CheckHidebgFade();
-            //ChangeState(GameState.MainMenu);
-            //UIManager.Ins.OpenUI<CanvasMainMenu>();
-            //GameDataFragment.cur.dataPlayer.showTutorialBooster1 = true;
-            //GameDataFragment.cur.dataPlayer.showTutorialBooster2 = true;
-            //GameDataFragment.cur.dataPlayer.showTutorialBooster3 = true;
-            //GameDataFragment.cur.dataPlayer.showTutorialLevel1 = true;
-            //GameDataFragment.cur.dataPlayer.showTutorialLevel2 = true;
-            //GameDataFragment.cur.dataPlayer.isClickBucketTutorialClear = true;
-            //GameDataFragment.cur.dataPlayer.isClickBucketTutorialMagnet = true;
-            //GameDataFragment.cur.dataPlayer.fisrtUseBoosterClear = true;
-            //GameDataFragment.cur.dataPlayer.fisrtUseBoosterMagnet = true;
-            //GameDataFragment.cur.dataPlayer.fisrtUseBoosterSuffle = true;
-            //DataManager.ins.SaveData();
-        }
-        else
-        {
-            if (LevelManager.Ins != null)
-            {
-                //UIManager.Ins.OpenUI<CanvasFloating>();
-                //LevelManager.Ins.CheckHidebgFade();
-
-                //if (GameDataFragment.cur.dataPlayer.cur_level < levelBackToHome - 1)
-                //{
-                //    if (GameDataFragment.cur.dataPlayer.moneyTemp > 0)
-                //    {
-                //        GameDataFragment.cur.ChangeMoney(GameDataFragment.cur.dataPlayer.moneyTemp, "win");
-                //        GameDataFragment.cur.dataPlayer.moneyTemp = 0;
-                //        UIManager.Ins.GetUI<CanvasFloating>().ShowGold();
-                //    }
-                //    LevelManager.Ins.ClickPlayGame();
-                //}
-                //else
-                //{
-                //    ChangeState(GameState.MainMenu);
-                //    UIManager.Ins.OpenUI<CanvasMainMenu>();
-
-                //}
-                //DataManager.ins.SaveData();
-            }
-        }
-
+        else if (loading != null) loading.Close();
+        ChangeScene(GameScene.GamePlay);
+        ChangeState(GameState.GamePlay);
     }
 
-
-    //private IEnumerator ie_LoadGame()
-    //{
-    //    WorldTimeAPI.Ins.OnInit();
-
-    //    yield return new WaitUntil(() => AdsManager.Ins.IsAdsSetupDone);
-
-    //    DataManager.ins.LoadData();
-
-    //    EnergyManager.Ins.OnInit();
-    //    AdsRewardBonusManager.Ins.OnInit();
-
-    //    SceneManager.LoadScene("GamePlay");
-
-    //    ChangeState(GameState.MainMenu);
-    //    ChangeScene(GameScene.Home);
-    //}
+    private void OnDestroy() { if (ins == this) ins = null; }
 
     void OnApplicationPause(bool pauseStatus)
     {
         if (pauseStatus)
         {
-            DataManager.ins.SaveData();
+            if (DataManager.ins != null) DataManager.ins.SaveData();
             //GameDataFragment.cur.Save();
             PlayerPrefs.Save();
         }

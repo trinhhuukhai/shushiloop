@@ -24,6 +24,7 @@ public class ConveyorManager : MonoBehaviour
     private float progress;
     private bool isRunning;
     private bool doubleSpeed;
+    public bool IsDoubleSpeed => doubleSpeed;
     private LineRenderer track;
     private Transform trackVisuals;
 

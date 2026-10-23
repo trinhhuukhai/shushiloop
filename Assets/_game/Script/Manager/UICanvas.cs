@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class UICanvas : MonoBehaviour
 {
-    private bool gameplayPopupOpen;
+    private LevelManager pausedLevel;
+    private Coroutine pendingClose;
+    protected virtual bool BlocksGameplay => true;
     //public bool IsAvoidBackKey = false;
     public bool IsDestroyOnClose = false;
 
@@ -58,11 +60,13 @@ public class UICanvas : MonoBehaviour
     //mo canvas
     public virtual void Open()
     {
+        CancelInvoke(nameof(CloseDirectly));
+        if (pendingClose != null) { StopCoroutine(pendingClose); pendingClose = null; }
         gameObject.SetActive(true);
-        if (!gameplayPopupOpen && LevelManager.Ins != null)
+        if (BlocksGameplay && pausedLevel == null && LevelManager.Ins != null)
         {
-            gameplayPopupOpen = true;
-            LevelManager.Ins.SetPopupOpen(true);
+            pausedLevel = LevelManager.Ins;
+            pausedLevel.SetPopupOpen(true);
         }
     }
 
@@ -70,7 +74,9 @@ public class UICanvas : MonoBehaviour
     //dong truc tiep, ngay lap tuc
     public virtual void CloseDirectly()
     {
-        UIManager.Ins.RemoveBackUI(this);
+        CancelInvoke(nameof(CloseDirectly));
+        if (pendingClose != null) { StopCoroutine(pendingClose); pendingClose = null; }
+        if (UIManager.Ins != null) UIManager.Ins.RemoveBackUI(this);
         gameObject.SetActive(false);
         if (IsDestroyOnClose)
         {
@@ -81,16 +87,29 @@ public class UICanvas : MonoBehaviour
 
     protected virtual void OnDisable()
     {
-        if (!gameplayPopupOpen) return;
-        gameplayPopupOpen = false;
-        if (LevelManager.Ins != null) LevelManager.Ins.SetPopupOpen(false);
+        if (pausedLevel == null) return;
+        LevelManager owner = pausedLevel;
+        pausedLevel = null;
+        owner.SetPopupOpen(false);
     }
 
     //close canvas with delay time, used to anim UI action
     //dong canvas sau mot khoang thoi gian delay
     public virtual void Close(float delayTime)
     {
-        Invoke(nameof(CloseDirectly), delayTime);
+        if (delayTime <= 0) CloseDirectly();
+        else
+        {
+            if (pendingClose != null) StopCoroutine(pendingClose);
+            pendingClose = StartCoroutine(CloseAfterDelay(delayTime));
+        }
+    }
+
+    private System.Collections.IEnumerator CloseAfterDelay(float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        pendingClose = null;
+        CloseDirectly();
     }
 
 }

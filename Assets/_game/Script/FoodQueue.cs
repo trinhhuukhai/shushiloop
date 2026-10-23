@@ -257,9 +257,9 @@ public class FoodQueue : MonoBehaviour
         return index >= 0 && index < Mathf.Min(4, foods.Count) ? foods[index] : null;
     }
 
-    public void SwapVisibleRows()
+    public bool SwapVisibleRows()
     {
-        if (IsPickupPending || foods.Count < 2) return;
+        if (IsPickupPending || foods.Count < 2) return false;
         int firstSize = 1;
         int tray = foods[0].TrayId;
         if (tray > 0)
@@ -268,11 +268,12 @@ public class FoodQueue : MonoBehaviour
         int lastTray = foods[window - 1].TrayId;
         if (lastTray > 0)
             while (window < foods.Count && foods[window].TrayId == lastTray) window++;
-        if (firstSize >= window) return;
+        if (firstSize >= window) return false;
         List<FoodShushi> firstBlock = foods.GetRange(0, firstSize);
         foods.RemoveRange(0, firstSize);
         foods.InsertRange(window - firstSize, firstBlock);
         RefreshRows();
+        return true;
     }
 
     public void Shake()

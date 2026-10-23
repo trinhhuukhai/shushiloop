@@ -37,13 +37,14 @@ public class LoadingScreen : MonoBehaviour
         imgProgress.DOKill();
 
         imgProgress.DOFillAmount(to, time)
-            .SetEase(Ease.Linear);
+            .SetEase(Ease.Linear).SetUpdate(true);
     }
 
     public IEnumerator ie_txtLoading()
     {
         for (int i = 0; i < 4; i++)
         {
+            if (txt_loading == null) yield break;
             txt_loading.text = "Loading";
             yield return Cache.GetWFS(0.25f);
             txt_loading.text = "Loading.";

@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 public enum SushiReviveReason { None, RushCustomer, FrozenHeads }
@@ -7,7 +9,9 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 {
     [Header("Danh sách level")]
     [SerializeField]
-    private List<SushiLevelData> levels = new List<SushiLevelData>();
+    private AllLevelData allLevelData;
+    private IReadOnlyList<SushiLevelData> Levels => DataManager.ins != null && DataManager.ins.allLevelData != null
+        ? DataManager.ins.allLevelData.listAllLevel : allLevelData != null ? allLevelData.listAllLevel : null;
 
     [SerializeField] private int currentLevelIndex;
 
@@ -27,14 +31,18 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public SushiReviveReason PendingRevive { get; private set; }
     public Customer ExpiredCustomer { get; private set; }
     public int ReviveCost => reviveCount == 0 ? 300 : 600;
+    public bool CanWatchReviveAd => CanPurchaseRevive && reviveProvider.CanShowRewardedAd;
+    [SerializeField, Min(0)] private int victoryReward = 100;
+    public int VictoryReward => victoryReward;
+    private bool rewardClaimed;
     public bool CanPurchaseRevive => reviveProvider != null && !awaitingAd;
     public ConveyorManager Conveyor => conveyorManager;
     public BoardShishiManager Board => boardManager;
     public bool HasWon { get; private set; }
-    public bool HasNextLevel => currentLevelIndex + 1 < levels.Count;
+    public bool HasNextLevel => currentLevelIndex + 1 < LevelCount;
     public bool HasPreviousLevel => currentLevelIndex > 0;
     public bool ShowLevelSelector => showLevelSelector;
-    public int LevelCount => levels.Count;
+    public int LevelCount => Levels != null ? Levels.Count : 0;
     public int CurrentLevelIndex => currentLevelIndex;
     public event System.Action<SushiReviveReason> OnReviveRequested;
     private int popupCount;
@@ -48,7 +56,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public override void Awake()
     {
         base.Awake();
-        if (showGameplayHud && GetComponent<SushiGameplayHud>() == null) gameObject.AddComponent<SushiGameplayHud>();
+
     }
 
     private void OnEnable()
@@ -65,7 +73,12 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     private void Update()
     {
-        if (IsPlaying && !IsPopupOpen) customerManager.TickRush(Time.unscaledDeltaTime);
+        isPlay = CanInteract;
+        if (CanInteract)
+        {
+            totalPlayTime += Time.unscaledDeltaTime;
+            customerManager.TickRush(Time.unscaledDeltaTime);
+        }
     }
 
     public void SetPopupOpen(bool open)
@@ -102,6 +115,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         PendingRevive = reason;
         ApplyPopupPause();
         OnReviveRequested?.Invoke(reason);
+        if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasFail>();
     }
 
     public bool TryReviveWithCoins()
@@ -113,7 +127,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     public void TryReviveWithAd()
     {
-        if (PendingRevive == SushiReviveReason.None || !CanPurchaseRevive) return;
+        if (PendingRevive == SushiReviveReason.None || !CanWatchReviveAd) return;
         awaitingAd = true;
         int version = loadVersion;
         reviveProvider.ShowRewardedAd(success =>
@@ -130,6 +144,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (PendingRevive == SushiReviveReason.RushCustomer) ExpiredCustomer?.ReviveRush();
         else boardManager.BreakHeadIce();
         reviveCount++;
+        if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.CloseUI<CanvasFail>();
         ExpiredCustomer = null;
         PendingRevive = SushiReviveReason.None;
         ApplyPopupPause();
@@ -144,9 +159,19 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         ApplyPopupPause();
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
-        LoadLevel(currentLevelIndex);
+        if (showGameplayHud && UIManager.Ins == null)
+        {
+            SceneManager.LoadScene("Loading");
+            yield break;
+        }
+        if (DataManager.ins != null)
+            yield return new WaitUntil(() => DataManager.ins == null || DataManager.ins.isLoaded);
+        int index = GameDataFragment.cur != null && DataManager.ins != null &&
+            (GameManager.ins == null || !GameManager.ins.isPlayTestingLevel)
+            ? GameDataFragment.cur.dataPlayer.cur_level : currentLevelIndex;
+        LoadLevel(Mathf.Clamp(index, 0, Mathf.Max(0, LevelCount - 1)));
     }
 
     public void LoadLevel(int levelIndex)
@@ -159,13 +184,13 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
             return;
         }
 
-        if (levelIndex < 0 || levelIndex >= levels.Count)
+        if (levelIndex < 0 || levelIndex >= LevelCount)
         {
             Debug.LogError("Index level không hợp lệ.", this);
             return;
         }
 
-        SushiLevelData levelData = levels[levelIndex];
+        SushiLevelData levelData = Levels[levelIndex];
 
         if (levelData == null)
         {
@@ -184,6 +209,14 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         // Tạo dữ liệu mới trước khi dọn màn cũ.
         List<FoodQueueData> boardData = levelData.CreateBoardData();
 
+        if (showGameplayHud && UIManager.Ins != null)
+        {
+            UIManager.Ins.CloseUI<CanvasVictory>();
+            UIManager.Ins.CloseUI<CanvasFail>();
+            UIManager.Ins.CloseUI<CanvasSetting>();
+        }
+        rewardClaimed = false;
+        totalPlayTime = 0;
         IsPlaying = false;
         PendingRevive = SushiReviveReason.None;
         ExpiredCustomer = null;
@@ -205,6 +238,14 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         conveyorManager.Init(levelData.beltSlots, levelData.loopsPerSecond);
 
         IsPlaying = true;
+        isPlay = true;
+        GameManager.ChangeScene(GameScene.GamePlay);
+        GameManager.ChangeState(GameState.GamePlay);
+        if (showGameplayHud && UIManager.Ins != null)
+        {
+            UIManager.Ins.OpenUI<CanvasGamePlay>();
+            UIManager.Ins.OpenUI<CanvasFloating>();
+        }
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
         ApplyPopupPause();
     }
@@ -234,6 +275,18 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         // Đánh dấu trước để chỉ xử lý thắng một lần.
         IsPlaying = false;
         HasWon = true;
+        isPlay = false;
+        GameManager.ChangeState(GameState.Victory);
+        if (CanSaveProgress)
+        {
+            var player = GameDataFragment.cur.dataPlayer;
+            if (!player.completedLevels.Contains(currentLevelIndex)) player.completedLevels.Add(currentLevelIndex);
+            player.cur_level = Mathf.Max(player.cur_level, Mathf.Min(currentLevelIndex + 1, LevelCount - 1));
+            player.loseStreak = 0;
+            GameDataFragment.cur.Save();
+            DataManager.ins.SetLevelHigest(currentLevelIndex + 1);
+        }
+        if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasVictory>();
 
         conveyorManager.SetPaused(true);
 
@@ -254,9 +307,29 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         awaitingAd = false;
         ApplyPopupPause();
 
+        isPlay = false;
+        GameManager.ChangeState(GameState.Fail);
+        if (CanSaveProgress)
+        {
+            GameDataFragment.cur.dataPlayer.loseStreak++;
+            GameDataFragment.cur.Save();
+        }
+        if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasFail>();
         Debug.Log("Thua level");
 
         // Hiển thị popup thua tại đây.
+    }
+
+    private bool CanSaveProgress => DataManager.ins != null && DataManager.ins.isLoaded &&
+        GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null &&
+        (GameManager.ins == null || !GameManager.ins.isPlayTestingLevel);
+
+    public bool ClaimVictoryReward()
+    {
+        if (!HasWon || rewardClaimed) return false;
+        rewardClaimed = true;
+        if (CanSaveProgress) GameDataFragment.cur.ChangeMoney(victoryReward, "win");
+        return true;
     }
 
     public void ReplayLevel()
@@ -268,7 +341,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     {
         int nextIndex = currentLevelIndex + 1;
 
-        if (nextIndex >= levels.Count)
+        if (nextIndex >= LevelCount)
         {
             Debug.Log("Đã hết danh sách level.");
             return;

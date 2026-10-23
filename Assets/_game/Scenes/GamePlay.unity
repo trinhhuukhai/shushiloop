@@ -822,6 +822,7 @@ GameObject:
   - component: {fileID: 1344788578}
   - component: {fileID: 1344788577}
   - component: {fileID: 990000002}
+  - component: {fileID: 1344788579}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -842,19 +843,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   isDontDestroy: 0
-  levels:
-  - {fileID: 11400000, guid: fef168ae95f64079a8b8655432c068c3, type: 2}
-  - {fileID: 11400000, guid: fe406ceca87f481b80b8d9ae4bb59b30, type: 2}
-  - {fileID: 11400000, guid: 5cf33b59df84494bb1deb1ca90bd4c42, type: 2}
-  - {fileID: 11400000, guid: 740b3272cc054d86a4b2f95aa64e381d, type: 2}
-  - {fileID: 11400000, guid: 3dc87e4499f147b79f74bc532c0bb9c1, type: 2}
+  allLevelData: {fileID: 0}
   currentLevelIndex: 0
   boardManager: {fileID: 573110025}
   customerManager: {fileID: 1285739045}
   conveyorManager: {fileID: 924643153}
-  reviveProvider: {fileID: 0}
+  reviveProvider: {fileID: 1344788579}
   showGameplayHud: 1
-  showLevelSelector: 1
+  showLevelSelector: 0
+  victoryReward: 100
+  isPlay: 0
+  totalPlayTime: 0
 --- !u!4 &1344788578
 Transform:
   m_ObjectHideFlags: 0
@@ -870,6 +869,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1344788579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1344788576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0c336054c884c4587c22a2f2309f278, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SushiProfileReviveProvider
 --- !u!1 &1396798785
 GameObject:
   m_ObjectHideFlags: 0

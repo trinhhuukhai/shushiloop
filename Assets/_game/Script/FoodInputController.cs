@@ -13,30 +13,47 @@ public class FoodInputController : MonoBehaviour
     public FoodPickMode PickMode { get; private set; }
 
     private bool CanInteract => LevelManager.Ins == null || LevelManager.Ins.CanInteract;
-    public void SelectChopsticks() { if (CanInteract) PickMode = FoodPickMode.Chopsticks; }
-    public void SelectMagnet() { if (CanInteract) PickMode = FoodPickMode.Magnet; }
+    public void SelectChopsticks() { if (CanInteract && BoosterCount(BoosterType.Click) != 0) PickMode = FoodPickMode.Chopsticks; }
+    public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) PickMode = FoodPickMode.Magnet; }
     public void CancelBooster() { PickMode = FoodPickMode.Tap; }
     public void UseSwapRow()
     {
-        if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract) return;
-        LevelManager.Ins.Board.SwapRow();
+        if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract || BoosterCount(BoosterType.Shuffle) == 0) return;
+        if (!LevelManager.Ins.Board.SwapRow()) return;
+        ConsumeBooster(BoosterType.Shuffle);
         CancelBooster();
+    }
+
+    // Tests and editor fixtures without a loaded profile keep unlimited boosters.
+    public static int BoosterCount(BoosterType type)
+    {
+        if (DataManager.ins == null || !DataManager.ins.isLoaded || GameDataFragment.cur == null ||
+            GameDataFragment.cur.dataPlayer == null) return -1;
+        var player = GameDataFragment.cur.dataPlayer;
+        return type == BoosterType.Click ? player.boosterClick : type == BoosterType.Shuffle ? player.boosterSuffle : player.boosterHut;
+    }
+
+    private static void ConsumeBooster(BoosterType type)
+    {
+        if (BoosterCount(type) >= 0) GameDataFragment.cur.ChangeBoosterCount(type, -1, "GamePlay");
     }
 
     private void Awake() { if (gameCamera == null) gameCamera = Camera.main; }
 
     public bool TryUseChopsticks(FoodShushi food)
     {
-        if (!CanInteract || PickMode != FoodPickMode.Chopsticks || conveyorManager == null ||
+        if (!CanInteract || BoosterCount(BoosterType.Click) == 0 || PickMode != FoodPickMode.Chopsticks || conveyorManager == null ||
             !conveyorManager.TryTakeChopsticks(food)) return false;
+        ConsumeBooster(BoosterType.Click);
         CancelBooster();
         return true;
     }
 
     public bool TryUseMagnet(Customer customer, SushiDishOrder dish)
     {
-        if (!CanInteract || PickMode != FoodPickMode.Magnet || conveyorManager == null || LevelManager.Ins == null ||
+        if (!CanInteract || BoosterCount(BoosterType.Magnet) == 0 || PickMode != FoodPickMode.Magnet || conveyorManager == null || LevelManager.Ins == null ||
             !conveyorManager.TryTakeMagnet(LevelManager.Ins.Board, customer, dish)) return false;
+        ConsumeBooster(BoosterType.Magnet);
         CancelBooster();
         return true;
     }

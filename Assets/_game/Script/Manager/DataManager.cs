@@ -32,9 +32,11 @@ public class DataManager : MonoBehaviour
 
     private void Awake()
     {
+        if (ins != null && ins != this) { Destroy(gameObject); return; }
         ins = this;
         DontDestroyOnLoad(gameObject);
     }
+    private void OnDestroy() { if (ins == this) ins = null; }
     public bool isLoaded = false;
     //public PlayerData dt;
     //public const string PLAYER_DATA = "PLAYER_DATA";

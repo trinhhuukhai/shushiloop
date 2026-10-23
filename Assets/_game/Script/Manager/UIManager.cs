@@ -57,6 +57,11 @@ public class UIManager : MonoBehaviour
             return;
         }
     }
+
+    private void OnDestroy()
+    {
+        if (Ins == this) Ins = null;
+    }
     //open UI
     //mo UI canvas
     public T OpenUI<T>() where T : UICanvas
@@ -111,6 +116,7 @@ public class UIManager : MonoBehaviour
         if (!IsLoaded<T>())
         {
             UICanvas canvas = Instantiate(GetUIPrefab<T>(), CanvasParentTF);
+            canvas.gameObject.SetActive(false);
             uiCanvas[typeof(T)] = canvas;
         }
 
@@ -151,7 +157,9 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        return uiCanvasPrefab[typeof(T)] as T;
+        if (!uiCanvasPrefab.TryGetValue(typeof(T), out UICanvas prefab) || prefab == null)
+            throw new System.InvalidOperationException("UIManager: missing registered prefab for " + typeof(T).Name);
+        return prefab as T;
     }
 
 

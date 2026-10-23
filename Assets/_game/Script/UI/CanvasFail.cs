@@ -1,205 +1,59 @@
-﻿using DG.Tweening;
+﻿using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CanvasFail : UICanvas
 {
     public GameObject btnHome;
- 
+    public CanvasGroup grandCg;
+    [SerializeField] private TMP_Text title;
+    [SerializeField] private TMP_Text description;
+    [SerializeField] private TMP_Text coinPrice;
+    [SerializeField] private TMP_Text retryLabel;
+    [SerializeField] private TMP_Text feedback;
+    [SerializeField] private GameObject reviveActions;
+    [SerializeField] private Button coinButton;
+    [SerializeField] private Button adButton;
+
     public override void Open()
     {
         base.Open();
-        //SoundManager.PlayEfx(SoundID.sfx_game_lose);
-
-        UIManager.Ins.CloseUI<CanvasFloating>();
-        if (GameDataFragment.cur.dataPlayer.cur_level >= GameManager.ins.levelBackToHome - 1)
-        {
-            //btnHome.SetActive(true);
-            //LivesDataFragment.cur.ConsumeLife();
-            //LavaQuestDataFragment.cur.gameData.ShouldDefeatOnKillApp = false;
-            //OceanOdysseyDataFragment.cur.gameData.ShouldDefeatOnKillApp = false;
-            //LavaQuestDataFragment.cur.OnUserDefeat();
-            //OceanOdysseyDataFragment.cur.OnUserDefeat();
-            //SandyRaceDataFragment.cur.OnUserDefeat();
-
-        }
-        else
-        {
-            btnHome.SetActive(false);
-        }
-
-        GameDataFragment.cur.dataPlayer.loseStreak++;
-        //ProfileDataFragment.cur?.RecordLevelLose();
-        var dataResource = GameDataFragment.cur.dataPlayer;
-        //FirebaseManager.Ins.g_game_end(LevelManager.Ins.curLevelData, false,LevelManager.Ins.IsFirstTryThisLevel(), (int)LevelManager.Ins.totalPlayTime, "normal_lose", dataResource.money, dataResource.boosterClick, dataResource.boosterSuffle, dataResource.boosterHut);
-        LevelManager.Ins.totalPlayTime = 0;
-        DataManager.ins.SaveData();
-
-
+        feedback.text = "";
+        Refresh();
     }
-
-    public void Close()
+    private void Update() => Refresh();
+    private void Refresh()
     {
-        base.Close(0f);
+        LevelManager level = LevelManager.Ins;
+        if (level == null) return;
+        bool revive = level.PendingRevive != SushiReviveReason.None;
+        title.text = revive ? "Tiếp tục phục vụ?" : "Chưa hoàn thành";
+        description.text = !revive ? "Thử lại để hoàn thành các order nhé!" :
+            level.PendingRevive == SushiReviveReason.RushCustomer ? "Khách đã hết giờ. Tiếp tục để thêm 30 giây." :
+            "Các cột đã đóng băng. Tiếp tục để phá băng hàng đầu.";
+        reviveActions.SetActive(revive);
+        coinPrice.text = level.ReviveCost + " xu";
+        coinButton.interactable = level.CanPurchaseRevive;
+        adButton.gameObject.SetActive(revive && level.CanWatchReviveAd);
+        retryLabel.text = revive ? "Không tiếp tục" : "Chơi lại";
     }
-
-    public void CheckBtnRetry()
-    {
-        //SoundManager.PlayEfx(SoundID.sfx_click);
-
-        //if (LivesDataFragment.cur.HasLife())
-        //{
-        //    BtnNext();
-        //}
-        //else
-        //{
-        //    UIManager.Ins.OpenUI<CanvasGetMoreLiveReplay>();
-        //}
-    }
-
-    public void BtnNext()
-    {
-
-
-
-        //if (GameDataFragment.cur.dataPlayer.cur_level > GameManager.ins.GetLevelShowInter())
-        //{
-        //    if(GameDataFragment.cur.dataPlayer.loseStreak >= (int)AdsManager.Ins.numberFailLevel)
-        //    {
-        //        AdsManager.Ins._timeWatchAdsInter = 181;
-
-        //        AdsManager.Ins.ShowInterstitial((GameDataFragment.cur.dataPlayer.cur_level), "endgame_lose", true, () =>
-        //        {
-        //            GameDataFragment.cur.dataPlayer.loseStreak = 0;
-        //            GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-        //            DataManager.ins.SaveData();
-        //            onNextRetry();
-        //        });
-        //    }
-        //    else
-        //    {
-        //        AdsManager.Ins.ShowInterstitial((GameDataFragment.cur.dataPlayer.cur_level), "endgame_lose", true, () =>
-        //        {
-        //            GameDataFragment.cur.dataPlayer.loseStreak = 0;
-        //            GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-        //            DataManager.ins.SaveData();
-        //            onNextRetry();
-        //        });
-        //    }
-
-        //}
-        //else
-        //{
-        //    GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-        //    DataManager.ins.SaveData();
-        //    onNextRetry();
-        //}
-
-
-        void onNextRetry()
-        {
-            LevelManager.Ins.ReplayLevel();
-            Close();
-            if (GameDataFragment.cur.dataPlayer.cur_level >= 0)
-            {
-                UIManager.Ins.OpenUI<CanvasFloating>();
-            }
-        }
-    }
-
-
-    public void OnNextRetryWhenAddLive()
-    {
-        //GameDataFragment.cur.dataPlayer.loseStreak = 0;
-        GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-        DataManager.ins.SaveData();
-        LevelManager.Ins.ReplayLevel();
-        Close();
-        if (GameDataFragment.cur.dataPlayer.cur_level >= 0)
-        {
-            UIManager.Ins.OpenUI<CanvasFloating>();
-        }
-    }
-    public void BtnHome()
-    {
-        //SoundManager.PlayEfx(SoundID.sfx_click);
-        //if (GameDataFragment.cur.dataPlayer.cur_level > GameManager.ins.GetLevelShowInter())
-        //{
-        //    if (GameDataFragment.cur.dataPlayer.loseStreak >= (int)AdsManager.Ins.numberFailLevel)
-        //    {
-        //        AdsManager.Ins._timeWatchAdsInter = 181;
-
-        //        AdsManager.Ins.ShowInterstitial((GameDataFragment.cur.dataPlayer.cur_level), "endgame_lose", true, () =>
-        //        {
-        //            GameDataFragment.cur.dataPlayer.loseStreak = 0;
-        //            GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-
-        //            DataManager.ins.SaveData();
-        //            onNextHome();
-        //        });
-        //    }
-        //    else
-        //    {
-        //        AdsManager.Ins.ShowInterstitial((GameDataFragment.cur.dataPlayer.cur_level), "endgame_lose", true, () =>
-        //        {
-        //            GameDataFragment.cur.dataPlayer.loseStreak = 0;
-        //            GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-
-        //            DataManager.ins.SaveData();
-        //            onNextHome();
-        //        });
-        //    }
-
-        //}
-        //else
-        //{
-        //    GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
-        //    DataManager.ins.SaveData();
-        //    onNextHome();
-        //}
-
-
-        void onNextHome()
-        {
-            UIManager.Ins.OpenUI<CanvasTransit>();
-
-            UIManager.Ins.GetUI<CanvasTransit>()
-                .MakeDelayTransit(() =>
-                {
-                    UIManager.Ins.OpenUI<CanvasMainMenu>();
-                    UIManager.Ins.GetUI<CanvasMainMenu>().RefreshLevelMap();
-                    UIManager.Ins.CloseUI<CanvasGamePlay>();
-                    UIManager.Ins.OpenUI<CanvasFloating>();
-                    Close(0);
-                }, 1f);
-        }
-        
-
-
-
-    }
-
-    public CanvasGroup grandCg;
-    private Tween grandCgTween;
-
-    public void OnHandTouchPanel()
-    {
-        grandCgTween.Kill();
-        grandCgTween = grandCg.DOFade(0, .32f);
-    }
-
-    public void OnHAndReleasePanel()
-    {
-        grandCgTween.Kill();
-        grandCgTween = grandCg.DOFade(1, .32f);
-    }
-
     public void BtnRevive()
     {
-        //LevelManager.Ins.OnRevive();
-        Close();
+        if (LevelManager.Ins != null && LevelManager.Ins.TryReviveWithCoins()) CloseDirectly();
+        else feedback.text = "Chưa đủ xu để tiếp tục.";
     }
-
-
-
-
+    public void ReviveWithAd() => LevelManager.Ins?.TryReviveWithAd();
+    public void BtnNext()
+    {
+        LevelManager level = LevelManager.Ins;
+        if (level == null) return;
+        if (level.PendingRevive != SushiReviveReason.None) { level.DeclineRevive(); Refresh(); }
+        else { CloseDirectly(); level.ReplayLevel(); }
+    }
+    public void CheckBtnRetry() => BtnNext();
+    public void OnNextRetryWhenAddLive() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
+    public void BtnHome() => BtnNext();
+    public void OnHandTouchPanel() { if (grandCg != null) grandCg.alpha = 0.2f; }
+    public void OnHAndReleasePanel() { if (grandCg != null) grandCg.alpha = 1; }
+    public void Close() => CloseDirectly();
 }

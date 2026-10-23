@@ -27,6 +27,7 @@ public class GameDataFragment : DataFragment
     [ContextMenu("Load Data")]
     public override void Load()
     {
+        cur = this;
         if (!LoadData(ref dataPlayer, key)) ResetData();
         GameDataFragment.cur.dataPlayer.resetGameStreak = 0;
     }
@@ -41,6 +42,7 @@ public class GameDataFragment : DataFragment
     public override void Save()
     {
         SaveData(dataPlayer, key);
+        PlayerPrefs.Save();
     }
 
     public void ChangeMoney(int amount, string place = null)

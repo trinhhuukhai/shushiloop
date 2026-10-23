@@ -223,10 +223,12 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         linkFlashUntil = Time.unscaledTime + 0.3f;
     }
 
-    public void SwapRow()
+    public bool SwapRow()
     {
         foreach (FoodQueue column in foodQueues) column.CompleteColumnMovement();
-        foreach (FoodQueue column in foodQueues) column.SwapVisibleRows();
+        bool changed = false;
+        foreach (FoodQueue column in foodQueues) changed |= column.SwapVisibleRows();
+        return changed;
     }
 
     public void BreakHeadIce()

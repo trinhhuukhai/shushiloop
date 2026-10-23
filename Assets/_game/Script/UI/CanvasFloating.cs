@@ -1,4 +1,4 @@
-﻿using AssetKits.ParticleImage;
+using AssetKits.ParticleImage;
 using DG.Tweening;
 using System;
 using System.Collections;
@@ -9,6 +9,8 @@ using UnityEngine.UI;
 
 public class CanvasFloating : UICanvas
 {
+    protected override bool BlocksGameplay => false;
+    private int displayedGold = -1;
     // A Cường-----------------------------------
     public List<TripleValue<ItemT, ParticleImage, float>> listEffects;
     TripleValue<ItemT, ParticleImage, float> cur_Fx = new TripleValue<ItemT, ParticleImage, float>();
@@ -48,14 +50,15 @@ public class CanvasFloating : UICanvas
     public ParticleImage pI;
     private void Awake()
     {
-        rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
-        posTopGroupOr = TopGroup.anchoredPosition;
+        if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
+        if (TopGroup != null) posTopGroupOr = TopGroup.anchoredPosition;
 
     }
 
 
     public void HideUIFloat(bool ck)
     {
+        UiFloat.interactable = UiFloat.blocksRaycasts = !ck;
         if (ck)
         {
             UiFloat.alpha = 0;
@@ -64,8 +67,10 @@ public class CanvasFloating : UICanvas
     }
 
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
+        goldTween?.Kill();
         if (coLives != null)
             StopCoroutine(coLives);
         if (coLivesUnlimited != null)
@@ -78,6 +83,10 @@ public class CanvasFloating : UICanvas
     public override void Open()
     {
         base.Open();
+        ShowGold();
+        ShowGold_Heart();
+        HideHeart();
+        showBtnSettingInGame(true);
         //ShowGold_Heart();
         //showHeart();
         //StartCoroutine(IE_LivesUnlimited());
@@ -234,7 +243,7 @@ public class CanvasFloating : UICanvas
 
     public void PlayEffGold()
     {
-        effGold.Play();
+        if (effGold != null) effGold.Play();
         //SoundManager.PlayEfx(SoundID.sfx_ui_coin_claim);
     }
 
@@ -248,7 +257,7 @@ public class CanvasFloating : UICanvas
         int start = current - deltaGold;
         int end = current;
         //SoundManager.PlayEfx(SoundID.sfx_ui_coin_fly);
-        DOVirtual.DelayedCall(0.3f, () => pI.Play());
+        DOVirtual.DelayedCall(0.3f, () => { if (pI != null) pI.Play(); }).SetUpdate(true);
         goldTween = DOTween.To(
             () => start,
             x =>
@@ -265,7 +274,7 @@ public class CanvasFloating : UICanvas
             txtGold.text = end.ToString("N0");
             if(!victory)
             {
-                BlockUI.Ins.UnBlock();
+                if (BlockUI.Ins != null) BlockUI.Ins.UnBlock();
 
             }
         });
@@ -298,7 +307,8 @@ public class CanvasFloating : UICanvas
 
     public void ShowGold()
     {
-        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
+        displayedGold = GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null ? GameDataFragment.cur.dataPlayer.money : 0;
+        if (txtGold != null) txtGold.text = displayedGold.ToString("N0");
     }
 
     public void MoveToPosition(Transform tf)
@@ -372,13 +382,17 @@ public class CanvasFloating : UICanvas
 
     public void OnSetting()
     {
-        //if (BoosterManager.Ins.usingFreePickBooster) return;
-        //if(BoosterManager.Ins.usingShuffleBooster) return;
-        //if (BoosterManager.Ins.usingHutBooster) return;
-        //SoundManager.PlayEfx(SoundID.sfx_click);
+        if (UIManager.Ins != null && LevelManager.Ins != null && LevelManager.Ins.CanInteract)
+            UIManager.Ins.OpenUI<CanvasSetting>();
+    }
 
-        //UIManager.Ins.OpenUI<CanvasSetting>();
-        //LevelManager.Ins.OnSetting();
+    private void Update()
+    {
+        if (GameDataFragment.cur == null || GameDataFragment.cur.dataPlayer == null) return;
+        if (displayedGold != GameDataFragment.cur.dataPlayer.money && (goldTween == null || !goldTween.IsActive())) ShowGold();
+        bool available = LevelManager.Ins != null && LevelManager.Ins.CanInteract;
+        if (settingBt != null) settingBt.interactable = available;
+        if (btnSettingIngame != null && btnSettingIngame.TryGetComponent(out Button button)) button.interactable = available;
     }
 
     public void OnMoreLives()

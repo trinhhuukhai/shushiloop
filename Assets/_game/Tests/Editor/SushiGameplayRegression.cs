@@ -709,7 +709,9 @@ public static class SushiGameplayRegression
         Set(level, "boardManager", board); Set(level, "customerManager", customers); Set(level, "conveyorManager", conveyor);
         obj.SetActive(true);
         var data = ValidLevel(); data.number = 20; data.customers[0].rushCustomer = true;
-        Set(level, "levels", new List<SushiLevelData> { data }); level.LoadLevel(0);
+        var allLevels = ScriptableObject.CreateInstance<AllLevelData>();
+        allLevels.listAllLevel = new List<SushiLevelData> { data };
+        Set(level, "allLevelData", allLevels); level.LoadLevel(0);
     }
 
     private static Customer RecipeCustomer(params DishOrderData[] dishes)

@@ -1063,14 +1063,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   uiResources:
-  - {fileID: 4941376167658389801, guid: 773e73e1cb3b07c4690af5af6358daea, type: 3}
-  - {fileID: 7434899692910868455, guid: 7d06c19d4e7d91240b55c2295feba4e1, type: 3}
-  - {fileID: 6543291969433730204, guid: acfe05830bc08944991c3b168cc47490, type: 3}
   - {fileID: 5368383497717632842, guid: e11f3199a85bb9d42b4ec443fc1d9faa, type: 3}
   - {fileID: 6521218741447195954, guid: f21a6c7d86594804a96cd88601508ffd, type: 3}
-  - {fileID: 3026732846789188790, guid: 0666c1369cdb84c4b924dfdc7912fc8f, type: 3}
   - {fileID: 734846047533744933, guid: 98f87b31f8b085b468cded79bf028a66, type: 3}
+  - {fileID: 4941376167658389801, guid: 773e73e1cb3b07c4690af5af6358daea, type: 3}
+  - {fileID: 7434899692910868455, guid: 7d06c19d4e7d91240b55c2295feba4e1, type: 3}
   - {fileID: 4693206049384719267, guid: 283a8cafb87d27c4aa8267460d4c4e41, type: 3}
+  - {fileID: 6543291969433730204, guid: acfe05830bc08944991c3b168cc47490, type: 3}
+  - {fileID: 3026732846789188790, guid: 0666c1369cdb84c4b924dfdc7912fc8f, type: 3}
   CanvasParentTF: {fileID: 2021205628}
 --- !u!225 &2021205624
 CanvasGroup:
