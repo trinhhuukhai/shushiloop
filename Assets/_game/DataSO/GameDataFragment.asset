@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c33abf6827fa295449db1ce1debb5c8f, type: 3}
+  m_Name: GameDataFragment
+  m_EditorClassIdentifier: Assembly-CSharp::GameDataFragment
+  key: GameDataFragment
+  dataPlayer:
+    money: 500
+    moneyTemp: 0
+    cur_level: 0
+    boosterClick: 2
+    boosterSuffle: 2
+    boosterHut: 2
+    played_levelID: 
+    isFirstGame: 1
+    last_time_receive_free_spin: 0
+    day1_level_max: 0
+    elementUnlocked: []
+    isShowInter: 0
+    _retryCountThisLevel: 0
+    boughtIAPPackID: []
+    lastTimeShow_RemoveAdsBundle: 0
+    lastTimeShow_RemoveAdsPack: 0
+    lastTimeShow_StarterPack: 0
+    adsInterCount: 0
+    adsRewardCount: 0
+    total_value_purchase: 0
+    loseStreak: 0
+    resetGameStreak: 0
+    isOfferingRemoveAdsBundle: 0
+    isOfferingStarterPack: 0
+    isFirstSpin: 1
+    showTutorialBooster1: 0
+    showTutorialBooster2: 0
+    showTutorialBooster3: 0
+    isClickBucketTutorialClear: 0
+    isClickBucketTutorialMagnet: 0
+    completedLevels: 
+    showTutorialLevel1: 0
+    showTutorialLevel2: 0
+    fisrtUseBoosterClear: 0
+    fisrtUseBoosterSuffle: 0
+    fisrtUseBoosterMagnet: 0
+    isFirstRevive: 0
+    isShowTrapHoiCham: 0
+    isShowTrapLock: 0
+    isShowTrapIce: 0
+    isShowTrapTunel: 0
+    isShowTrapLinked: 0
+    isClickChauTutHoiCham: 0
+    isClickChauTutHam: 0
+    isClickChauTutLock: 0
+    isClickChauTutIce: 0
+    isClickChauDayNoi: 0
+    isShowTutBattlePass: 0

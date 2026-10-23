@@ -43,7 +43,8 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     private bool pauseApplied;
     private bool awaitingAd;
     private float previousTimeScale = 1;
-
+    public bool isPlay = false;
+    public float totalPlayTime = 0;
     public override void Awake()
     {
         base.Awake();

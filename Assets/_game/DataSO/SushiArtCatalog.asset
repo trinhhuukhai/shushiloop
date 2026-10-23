@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9743d42cae4241a68835ad4de6650f39, type: 3}
+  m_Name: SushiArtCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::SushiArtCatalog
+  ingredientImages: {fileID: 11400000, guid: 98f8a211cacd990689db5355864e7539, type: 2}
+  dishImages: {fileID: 11400000, guid: 0fe45ee7bc5290a8eb10e4069406a361, type: 2}
+  hiddenTile: {fileID: 21300000, guid: 62ea703025f91f98ef3df89db99db822, type: 3}
+  frozenTile: {fileID: 21300000, guid: 1d3ab207f58152af2cb765707ea1f146, type: 3}
+  linkedTile: {fileID: 21300000, guid: 7c2dfccf5816201cd6386a7b0438b9fb, type: 3}
+  rigidTray: {fileID: 21300000, guid: e30ea8977fef38f215adcadb730bb4ba, type: 3}
+  boardTile: {fileID: -1403730195, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+  plate: {fileID: -1272579404, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+  orderCard: {fileID: 708245321, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+  conveyor: {fileID: 1809157389, guid: cd3a011aec8c9884fb6bd799808e0150, type: 3}
+  customerAvatars:
+  - {fileID: 87560130, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
+  - {fileID: -534975809, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
+  - {fileID: 312702338, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}

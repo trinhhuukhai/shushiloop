@@ -2,9 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TypeLevel
+{
+    Normal,
+    Hard,
+    SuperHard
+}
+
 [CreateAssetMenu(menuName = "SushiKhai/Level", fileName = "SushiLevel")]
 public class SushiLevelData : ScriptableObject
 {
+    public TypeLevel TypeLevel;
     [Min(1)] public int number = 1;
     public string levelName;
     [TextArea] public string hint;

@@ -178,10 +178,10 @@ public class UIManager : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (Input.GetKey(KeyCode.Escape) && BackTopUI != null)
-        {
-            BackActionEvents[BackTopUI]?.Invoke();
-        }
+        //if (Input.GetKey(KeyCode.Escape) && BackTopUI != null)
+        //{
+        //    BackActionEvents[BackTopUI]?.Invoke();
+        //}
     }
 
     public void PushBackAction(UICanvas canvas, UnityAction action)
