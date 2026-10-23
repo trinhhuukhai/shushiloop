@@ -19,8 +19,9 @@ public class FoodQueue : MonoBehaviour
     private Tween columnMoveTween;
     private GameObject departingTray;
     private const int VisibleRows = 4;
-    private Transform beltView;
-    private readonly List<Transform> emptyBases = new List<Transform>();
+    [Header("Prefab visuals")]
+    [SerializeField] private Transform beltView;
+    [SerializeField] private List<Transform> emptyBases = new List<Transform>();
 
     public BoardShishiManager Board { get; internal set; }
     public IReadOnlyList<FoodShushi> Foods => foods;
@@ -41,7 +42,6 @@ public class FoodQueue : MonoBehaviour
     {
         ClearFoods();
         if (tf == null) tf = transform;
-        EnsureBeltView();
         foreach (FoodData item in data.foods)
         {
             FoodShushi food = SimplePool.Spawn<FoodShushi>(item.typeFood);
@@ -205,28 +205,6 @@ public class FoodQueue : MonoBehaviour
     {
         columnMoveTween?.Complete(true);
         DOTween.Complete(rowTweenId);
-    }
-
-    private void EnsureBeltView()
-    {
-        if (beltView != null) return;
-        beltView = new GameObject("Column conveyor").transform;
-        beltView.SetParent(tf, false);
-        float height = VisibleRows * rowSpace;
-        float center = -(VisibleRows - 1) * rowSpace * 0.5f;
-        var bed = SushiWorldVisual.Panel(beltView, "Belt", -4);
-        bed.transform.localPosition = Vector3.up * center;
-        bed.transform.localScale = new Vector3(1.42f, height, 1);
-        bed.color = new Color(0.28f, 0.18f, 0.12f);
-        for (int side = -1; side <= 1; side += 2)
-        {
-            var rail = SushiWorldVisual.Panel(beltView, "Rail", -3);
-            rail.transform.localPosition = new Vector3(side * 0.69f, center, -0.01f);
-            rail.transform.localScale = new Vector3(0.09f, height, 1);
-            rail.color = new Color(0.9f, 0.61f, 0.28f);
-        }
-        for (int i = 0; i < VisibleRows; i++)
-            emptyBases.Add(SushiWorldVisual.BoardBase(tf, "Empty belt base").transform);
     }
 
     private void RefreshEmptyBasesImmediate()

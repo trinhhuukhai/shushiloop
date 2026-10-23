@@ -17,8 +17,9 @@ public class OrderItem
 public class Customer : MonoBehaviour
 {
     public int id;
-    public SpriteRenderer avartar;
+    [SerializeField] private UnityEngine.UI.Image avatarImage;
     [SerializeField] private SushiIngredientArtLibrary ingredientArt;
+    [SerializeField] private CustomerRecipeView recipeView;
 
     [Header("Các vị trí đặt Food trên đĩa")]
     [SerializeField]
@@ -49,7 +50,17 @@ public class Customer : MonoBehaviour
     public float RushRemaining { get; private set; }
     public float RushDuration { get; private set; }
     public bool IsCompleted => completed;
-    public float ReceivingFoodScale => dishes.Count > 0 ? CustomerRecipeView.IngredientSize(dishes.Count) : 0.35f;
+    public float ReceivingFoodScale => dishes.Count > 0 ? recipeView.CardAt(0).IngredientAt(0).ReceivingFoodScale : 0.35f;
+    public float GetReceivingFoodScale(FoodShushi food)
+    {
+        if (reservations.TryGetValue(food, out Reservation reservation) && reservation.dish != null)
+        {
+            int index = 0;
+            while (reservation.dish.Ingredients[index] != reservation.dishIngredient) index++;
+            return recipeView.CardAt(reservation.dish.Index).IngredientAt(index).ReceivingFoodScale;
+        }
+        return ReceivingFoodScale;
+    }
     public Sprite GetIngredientSprite(PoolType type)
     {
         Sprite sprite = ingredientArt != null ? ingredientArt.GetSprite(type) : null;
@@ -69,21 +80,14 @@ public class Customer : MonoBehaviour
             foreach (DishOrderData order in data.dishes)
                 for (int portion = 0; portion < order.amount; portion++)
                     dishes.Add(new SushiDishOrder(dishes.Count, SushiRecipeCatalog.Get(order.dish)));
-            int slotIndex = 0;
+            recipeView.Setup(this, art);
             foreach (var dish in dishes)
             {
                 for (int i = 0; i < dish.Recipe.Ingredients.Count; i++)
                 {
-                    var slot = new GameObject("Dish ingredient " + slotIndex++).transform;
-                    slot.SetParent(transform, false);
-                    slot.localPosition = CustomerRecipeView.IngredientPosition(dish.Index, dishes.Count,
-                        i, dish.Recipe.Ingredients.Count);
-                    recipeSlots.Add(slot);
+                    recipeSlots.Add(recipeView.DeliverySlot(dish.Index, i));
                 }
             }
-            var view = GetComponent<CustomerRecipeView>();
-            if (view == null) view = gameObject.AddComponent<CustomerRecipeView>();
-            view.Setup(this, art);
         }
         ConfigureRush(data);
         OnOrderChanged?.Invoke(this);
@@ -98,7 +102,6 @@ public class Customer : MonoBehaviour
         foreach (var order in orders) ingredients += order.requiredAmount;
         RushDuration = data.rushSeconds > 0 ? data.rushSeconds : 20f + 5f * ingredients;
         RushRemaining = RushDuration;
-        if (IsRush && GetComponent<RushCustomerView>() == null) gameObject.AddComponent<RushCustomerView>();
     }
 
     public void SitDown()
@@ -142,23 +145,17 @@ public class Customer : MonoBehaviour
 
         orders.Clear();
         dishes.Clear();
-        foreach (var slot in recipeSlots) if (slot != null) Destroy(slot.gameObject);
+        if (recipeView != null) recipeView.Clear();
         recipeSlots.Clear();
         settledFoods.Clear();
         receivedFoods.Clear();
         reservations.Clear();
         occupiedSlots.Clear();
 
-        if (avartar != null)
+        if (avatarImage != null)
         {
-            avartar.sprite = avatarSprite;
-            avartar.sortingOrder = 2;
-            if (avatarSprite != null)
-            {
-                float scale = 1.05f / Mathf.Max(0.01f, avatarSprite.bounds.size.y);
-                avartar.transform.localScale = Vector3.one * scale;
-                avartar.transform.localPosition = new Vector3(0, 0.65f, 0) - avatarSprite.bounds.center * scale;
-            }
+            avatarImage.sprite = avatarSprite;
+            avatarImage.enabled = avatarSprite != null;
         }
 
         // Gộp các món cùng loại thành một OrderItem có số lượng.
@@ -264,7 +261,7 @@ public class Customer : MonoBehaviour
 
         food.transform.SetParent(target, true);
         food.transform.localPosition = Vector3.zero;
-        food.transform.localScale = Vector3.one * ReceivingFoodScale;
+        food.transform.localScale = Vector3.one * GetReceivingFoodScale(food);
         food.ArriveAtCustomerPlate();
 
         reservations.Remove(food);

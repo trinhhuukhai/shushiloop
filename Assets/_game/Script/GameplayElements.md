@@ -16,6 +16,17 @@ Các nguyên liệu thiếu đã được bổ sung vào cuối `PoolType` để
 
 ## Một prefab nguyên liệu dùng chung
 
+Các visual cố định đã được lưu trong prefab, không tạo lại bằng code khi `Setup`:
+
+- `Prefabs/Ingredient.prefab`: `Ingredient image`, `Quantity` (TMP), `Board tile`, `Element` (TMP), `Cover`; tất cả được gán vào **Prefab visuals** của `FoodShushi`. Quantity/Element/Cover mặc định tắt, code bật theo số lượng/ẩn/băng. Chọn child hoặc bật tạm để chỉnh trong Prefab Mode. Font, màu và vị trí Quantity thông thường lấy từ prefab; vị trí khi đóng băng chỉnh ở các trường `Frozen ...`.
+- `Prefabs/FoodQueue.prefab`: `Column conveyor` chứa Belt/Left rail/Right rail và 4 `Empty belt base`. Khay rỗng sau pick vẫn clone từ Board tile, trượt nhẹ + fade theo cấu hình hiện có.
+- `Prefabs/Customer.prefab` chứa nested `CustomerVisuals.prefab`: Canvas World Space, Avatar (`Image` giữ tỉ lệ), vùng Orders với hai cột Layout Group, timer/badge/thanh countdown và template thẻ món (tắt). Chỉnh vị trí, kích thước và khoảng cách trực tiếp trên RectTransform/Layout Group trong prefab. Avatar chỉ nhận sprite, không bị code sửa scale/vị trí.
+- `Prefabs/DishCard.prefab`: UI Image/TMP cho nền, tên món, ảnh món, dấu hoàn thành và hàng nguyên liệu. Layout Group tự xếp/co các thẻ theo vùng Orders; `SushiDishCardView` chỉ gán dữ liệu/trạng thái, không đổi Transform, kích thước, font hoặc vẽ LineRenderer. Image bật Preserve Aspect để ảnh vừa khung do prefab quy định.
+- `Prefabs/OrderIngredient.prefab`: Image, Progress TMP và Delivery slot; được lồng sẵn trong DishCard. Các slot dư tắt theo công thức. Điểm nhận nguyên liệu và vùng chọn Magnet đọc đúng UI thực tế, không dùng tọa độ tính riêng trong code. Runtime nhân bản template theo số phần món; chỉnh style chung ở prefab con hoặc override trong CustomerVisuals.
+- `Prefabs/Dia.prefab`: ảnh nằm trong child `Ceramic plate`, root giữ scale 1 cho nguyên liệu đáp đúng kích thước. `OrderView.prefab` cũ đã có sẵn icon và dấu hoàn thành nên giữ cấu trúc đó.
+
+Menu **SushiKhai → Prefabs → Add Missing Visuals** chỉ dành cho bổ sung reference/visual thiếu trong Editor; không tự chạy khi import hoặc Play, không dựng lại visual đã được gán. Sprite panel và material viền được lưu thành asset trong Resources để reference trong prefab không bị mất khi đóng/mở Unity. Công cụ cập nhật art chỉ đổi sprite của `foodRenderer`, không ghi ảnh nguyên liệu lên nền/cover.
+
 `BoardShishiManager.ingredientPrefab` trỏ tới `Assets/_game/Prefabs/Ingredient.prefab`. Board đăng ký mọi type nguyên liệu vào cùng prefab qua `SimplePool.RegisterPrefab`; pool lưu theo instance ID của prefab nên cả 21 type cùng dùng một pool. Scene mẫu cũng chỉ preload prefab này trong `PoolControler.otherPools`.
 
 Prefab chứa `foodRenderer` và tham chiếu `SushiIngredientArtLibrary`. Asset sẵn có là `Assets/_game/Art/Ingredients/SushiIngredientArt.asset`, chứa 21 cặp `{ type, sprite }`. `FoodShushi.SetupFromData` luôn gán lại sprite theo `typeFood` và co vừa ô, kể cả khi object vừa được tái sử dụng cho một loại khác. Không cần `rawSprite`/`cookedSprite`, nhãn tên hay prefab riêng theo nguyên liệu. Nền ô chỉ hiển thị trên board; băng chuyền và khách dùng riêng sprite nguyên liệu.

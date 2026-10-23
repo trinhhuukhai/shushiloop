@@ -473,7 +473,7 @@ public class ConveyorManager : MonoBehaviour
         deliveringFoods.Add(food, customer);
 
         AnimateFlight(food, target, TravelDuration(deliveryDuration, food.transform.position, target.position),
-            deliveryHeight, customer.ReceivingFoodScale, 0, 0, deliveryTweenId, () =>
+            deliveryHeight, customer.GetReceivingFoodScale(food), 0, 0, deliveryTweenId, () =>
         {
             if (food == null || customer == null || target == null)
             {

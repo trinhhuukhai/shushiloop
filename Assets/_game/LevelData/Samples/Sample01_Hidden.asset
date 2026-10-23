@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Sample01_Hidden
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   number: 10
-  levelName: 'Ô ẩn và số lượng'
-  hint: 'Lấy ô ×n; lật 3 ô dấu ? khi chúng lên đầu cột.'
-  beltSlots: 12
+  levelName: "\xD4 \u1EA9n v\xE0 s\u1ED1 l\u01B0\u1EE3ng"
+  hint: "L\u1EA5y \xF4 \xD7n; l\u1EADt 3 \xF4 d\u1EA5u ? khi ch\xFAng l\xEAn \u0111\u1EA7u
+    c\u1ED9t."
+  beltSlots: 8
   loopsPerSecond: 0.07
   numberColumns: 4
   boardSeed: 10

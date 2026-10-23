@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Sample04_LinkedRush
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   number: 40
-  levelName: 'Ô nối và hai khách vội'
-  hint: 'Hai khách có 75/90 giây. Đưa cả cặp dây lên đầu cột; có ô ẩn + băng.'
-  beltSlots: 14
+  levelName: "\xD4 n\u1ED1i v\xE0 hai kh\xE1ch v\u1ED9i"
+  hint: "Hai kh\xE1ch c\xF3 75/90 gi\xE2y. \u0110\u01B0a c\u1EA3 c\u1EB7p d\xE2y
+    l\xEAn \u0111\u1EA7u c\u1ED9t; c\xF3 \xF4 \u1EA9n + b\u0103ng."
+  beltSlots: 12
   loopsPerSecond: 0.08
   numberColumns: 6
   boardSeed: 40

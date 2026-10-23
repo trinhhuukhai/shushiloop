@@ -225,12 +225,12 @@ public sealed class SushiArtSetup : AssetPostprocessor
         if (customer != null) changed |= AssignMissing(customer, "ingredientArt", ingredients);
         foreach (SpriteRenderer renderer in prefab.GetComponentsInChildren<SpriteRenderer>(true))
         {
-            if (renderer.sharedMaterial != SushiWorldVisual.SpriteMaterial)
+            if (renderer.sharedMaterial == null)
             {
                 renderer.sharedMaterial = SushiWorldVisual.SpriteMaterial;
                 EditorUtility.SetDirty(renderer); changed = true;
             }
-            if (food != null)
+            if (food != null && renderer == new SerializedObject(food).FindProperty("foodRenderer").objectReferenceValue)
             {
                 var library = new SerializedObject(food).FindProperty("ingredientArt").objectReferenceValue as SushiIngredientArtLibrary;
                 Sprite sprite = library != null ? library.GetSprite(food.Type) : null;

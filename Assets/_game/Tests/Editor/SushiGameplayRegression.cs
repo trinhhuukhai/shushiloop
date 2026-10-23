@@ -57,6 +57,8 @@ public static class SushiGameplayRegression
             DOTween.defaultUpdateType = UpdateType.Manual;
             CreateFixture();
             SushiRecipeChecks.Run();
+            Run("prefab visuals are serialized, reusable and preserve authored text layout", PrefabVisuals);
+            Run("customer UI binds data without rewriting prefab layout and fits large orders", CustomerPrefabBinding);
             Run("all 21 ingredient types share one prefab and select their own art", SharedIngredientArt);
             Run("two art lists resolve all dishes, ingredients and element sprites before serving", ArtCatalogImages);
             Run("quantity reserves separate slots and rejects overflow atomically", Quantity);
@@ -134,29 +136,16 @@ public static class SushiGameplayRegression
         fixture = Node("Fixture");
         Transform pool = Node("Pool");
         typeof(SimplePool).GetField("root", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, pool);
-        FoodShushi prefab = Node("Shared ingredient prefab").gameObject.AddComponent<FoodShushi>();
-        var image = new GameObject("Food image").AddComponent<SpriteRenderer>();
-        image.transform.SetParent(prefab.transform, false);
-        Set(prefab, "foodRenderer", image);
+        FoodShushi prefab = Prefab<FoodShushi>("Ingredient");
         SimplePool.Preload(prefab, 2, pool, true, false);
-        prefab.gameObject.SetActive(false);
-        FoodQueue columnPrefab = Node("Column prefab").gameObject.AddComponent<FoodQueue>();
-        columnPrefab.gameObject.AddComponent<BoxCollider2D>();
-        columnPrefab.tf = columnPrefab.transform;
+        FoodQueue columnPrefab = Prefab<FoodQueue>("FoodQueue");
         board = Node("Board").gameObject.AddComponent<BoardShishiManager>();
         Set(board, "tf", board.transform); Set(board, "columnPrefab", columnPrefab);
         Set(board, "ingredientPrefab", prefab);
         conveyor = Node("Conveyor").gameObject.AddComponent<ConveyorManager>();
         Set(board, "conveyorManager", conveyor);
         customers = Node("Customers").gameObject.AddComponent<CustomerManager>();
-        Customer customerPrefab = Node("Customer prefab").gameObject.AddComponent<Customer>();
-        var plates = new List<Transform>();
-        for (int i = 0; i < 6; i++)
-        {
-            var plate = new GameObject("Plate " + i).transform;
-            plate.SetParent(customerPrefab.transform, false); plates.Add(plate);
-        }
-        Set(customerPrefab, "plateSlots", plates);
+        Customer customerPrefab = Prefab<Customer>("Customer");
         Set(customers, "customerPrefab", customerPrefab);
         Set(customers, "firstSeat", Node("Seat 0")); Set(customers, "secondSeat", Node("Seat 1"));
         var waiting = new List<Transform>();
@@ -164,8 +153,37 @@ public static class SushiGameplayRegression
         Set(customers, "waitingPositions", waiting);
         Set(conveyor, "customerManager", customers);
         Set(conveyor, "spline", Node("Spline").gameObject.AddComponent<ConveyorSpline>());
-        Set(conveyor, "slotPrefab", Node("Slot prefab")); Set(conveyor, "slotRoot", Node("Slots"));
+        Set(conveyor, "slotPrefab", Prefab<Transform>("Dia")); Set(conveyor, "slotRoot", Node("Slots"));
         Set(conveyor, "flyingFoodRoot", Node("Flying food"));
+    }
+    private static T Prefab<T>(string name) where T : Component =>
+        AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_game/Prefabs/" + name + ".prefab").GetComponent<T>();
+
+    private static void PrefabVisuals()
+    {
+        FoodShushi prefab = Prefab<FoodShushi>("Ingredient");
+        foreach (string field in new[] { "foodRenderer", "quantityLabel", "stateLabel", "cover", "tileBackground" })
+            Check(Get<Component>(prefab, field) != null, "Ingredient prefab is missing " + field);
+        Check(Prefab<Customer>("Customer").GetComponent<RushCustomerView>() != null &&
+            Get<CustomerRecipeView>(Prefab<Customer>("Customer"), "recipeView") != null, "customer visual components are not authored");
+        Check(Get<List<Transform>>(Prefab<FoodQueue>("FoodQueue"), "emptyBases").Count == 4,
+            "four empty conveyor bases are missing from the prefab");
+        Check(Prefab<Transform>("Dia").Find("Ceramic plate") != null, "plate image is not authored");
+        var instance = Object.Instantiate(prefab, fixture);
+        instance.gameObject.SetActive(false);
+        var quantity = Get<TMPro.TextMeshPro>(instance, "quantityLabel");
+        int childCount = instance.GetComponentsInChildren<Transform>(true).Length;
+        float fontSize = quantity.fontSize;
+        Vector3 position = quantity.transform.localPosition;
+        instance.gameObject.SetActive(true);
+        instance.SetupFromData(Food(PoolType.SushiRice, 3));
+        Check(quantity.text == "×3" && quantity.gameObject.activeSelf, "authored quantity label was not updated");
+        instance.SetupFromData(Food(PoolType.Salmon, 2, hidden: true));
+        Check(!quantity.gameObject.activeSelf && instance.transform.Find("Cover").gameObject.activeSelf, "hidden prefab state wrong");
+        instance.SetupFromData(Food(PoolType.Shrimp, 2));
+        Check(instance.GetComponentsInChildren<Transform>(true).Length == childCount &&
+            quantity.fontSize == fontSize && quantity.transform.localPosition == position, "setup rebuilt visuals or changed authored text layout");
+        Object.Destroy(instance.gameObject);
     }
     private static void Load(int slots, params FoodData[][] columns)
     {
@@ -177,6 +195,59 @@ public static class SushiGameplayRegression
     private static FoodQueue Column(int index) => board.FoodQueues[index];
     private static bool Tap(int index) => conveyor.TryTakeFromQueue(Column(index));
     private static void Advance(float seconds = 1) { DOTween.ManualUpdate(seconds, seconds); }
+
+    private static void CustomerPrefabBinding()
+    {
+        foreach (int count in new[] { 1, 2, 4, 8 })
+        {
+            Customer customer = RecipeCustomer(new DishOrderData { dish = SushiDishId.MakiAvocado, amount = count });
+            customer.SitDown();
+            CustomerRecipeView view = customer.GetComponent<CustomerRecipeView>();
+            RectTransform orderRoot = Get<RectTransform>(view, "orderRoot");
+            for (int i = 0; i < count; i++)
+            {
+                SushiDishCardView card = view.CardAt(i);
+                Vector3 center = card.Rect.TransformPoint(card.Rect.rect.center);
+                Check(card.Rect.rect.width > 0 && card.Rect.rect.height > 0 && view.DishAtWorldPosition(center) == customer.Dishes[i],
+                    "prefab layout or hit area failed for " + count + " dishes");
+                var corners = new Vector3[4]; card.Rect.GetWorldCorners(corners);
+                foreach (Vector3 corner in corners)
+                {
+                    Vector3 local = orderRoot.InverseTransformPoint(corner);
+                    Check(local.y >= orderRoot.rect.yMin - 0.1f && local.y <= orderRoot.rect.yMax + 0.1f,
+                        "large order extends outside the customer panel");
+                }
+                Check((card.DeliverySlot(1).position - card.IngredientAt(1).Image.transform.position).sqrMagnitude < 0.00001f &&
+                    card.IngredientAt(1).ReceivingFoodScale > 0, "prefab delivery anchor does not follow the image layout");
+            }
+            SushiDishCardView first = view.CardAt(0);
+            first.DishImage.transform.localScale = new Vector3(0.93f, 0.93f, 1);
+            var label = Get<TMPro.TMP_Text>(first, "dishName");
+            label.fontSizeMax = 17;
+            var rects = first.GetComponentsInChildren<RectTransform>(true);
+            var positions = new Vector3[rects.Length]; var sizes = new Vector2[rects.Length];
+            for (int i = 0; i < rects.Length; i++) { positions[i] = rects[i].localPosition; sizes[i] = rects[i].sizeDelta; }
+            for (int iteration = 0; iteration < 3; iteration++) first.Bind(customer, customer.Dishes[0], SushiArtCatalog.Default.dishImages);
+            for (int i = 0; i < rects.Length; i++)
+                Check(rects[i].localPosition == positions[i] && rects[i].sizeDelta == sizes[i], "binding rewrote an authored RectTransform");
+            Check(label.fontSizeMax == 17 && first.DishImage.transform.localScale.x == 0.93f,
+                "binding rewrote authored font settings or image scale");
+            Object.Destroy(customer.gameObject);
+        }
+        Customer rushCustomer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
+        rushCustomer.ConfigureRush(new CustomerOrderData { rushCustomer = true, rushSeconds = 30 });
+        rushCustomer.SitDown();
+        RushCustomerView rush = rushCustomer.GetComponent<RushCustomerView>();
+        int childCount = rushCustomer.GetComponentsInChildren<Transform>(true).Length;
+        Invoke(rush, "Update");
+        Check(Get<GameObject>(rush, "indicator").activeSelf && Get<TMPro.TMP_Text>(rush, "timer").text == "00:30",
+            "rush prefab did not bind its initial state");
+        rushCustomer.TickRush(15); Invoke(rush, "Update");
+        Check(Get<UnityEngine.UI.Image>(rush, "countdown").fillAmount == 0.5f &&
+            rushCustomer.GetComponentsInChildren<Transform>(true).Length == childCount,
+            "rush display created visual objects or failed to bind remaining time");
+        Object.Destroy(rushCustomer.gameObject);
+    }
 
     private static void SharedIngredientArt()
     {
@@ -237,18 +308,18 @@ public static class SushiGameplayRegression
             "element illustration missing");
         Customer customer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
         customer.SitDown();
-        SpriteRenderer dish = customer.transform.Find("Nigiri tôm/Order dish").GetComponent<SpriteRenderer>();
+        SushiDishCardView card = customer.GetComponent<CustomerRecipeView>().CardAt(0);
+        UnityEngine.UI.Image dish = card.DishImage;
         Check(!customer.IsCompleted && dish.enabled && dish.sprite == catalog.GetDish(SushiDishId.NigiriShrimp), "dish image waits for completion");
-        SpriteRenderer icon = customer.transform.Find("Nigiri tôm/Shrimp").GetComponent<SpriteRenderer>();
+        UnityEngine.UI.Image icon = card.IngredientAt(1).Image;
         Check(icon.sprite == catalog.GetIngredient(PoolType.Shrimp) && icon.enabled, "order ingredient does not resolve image by type");
         dish.sprite = icon.sprite = null;
-        dish.transform.localScale = icon.transform.localScale = Vector3.one;
+        Vector3 dishScale = dish.transform.localScale, iconScale = icon.transform.localScale;
         customer.GetComponent<CustomerRecipeView>().RefreshArtwork();
         Check(dish.sprite == catalog.GetDish(SushiDishId.NigiriShrimp) && icon.sprite == catalog.GetIngredient(PoolType.Shrimp),
             "refresh did not restore order images");
-        Check(Mathf.Max(dish.sprite.bounds.size.x, dish.sprite.bounds.size.y) * dish.transform.localScale.x < 0.7f &&
-            Mathf.Max(icon.sprite.bounds.size.x, icon.sprite.bounds.size.y) * icon.transform.localScale.x <= 0.43f,
-            "refresh did not resize restored images to fit the order card");
+        Check(dish.preserveAspect && icon.preserveAspect && dish.transform.localScale == dishScale && icon.transform.localScale == iconScale,
+            "data binding changed prefab image fitting or scale");
         Load(4, new[] { Food(hidden: true) }, new[] { Food(PoolType.Egg, ice: 2) });
         Check(Column(0).GetTopFood().transform.Find("Cover").GetComponent<SpriteRenderer>().sprite == catalog.hiddenTile,
             "question mark tile did not use its illustration");
@@ -257,8 +328,8 @@ public static class SushiGameplayRegression
         var frozen = Column(1).GetTopFood();
         Check(frozen.transform.Find("Quantity").localPosition.y > 0 && frozen.transform.Find("Element").localPosition.y < 0,
             "frozen layer count overlaps ingredient quantity");
-        Check(dish.sharedMaterial == SushiWorldVisual.SpriteMaterial && icon.sharedMaterial == SushiWorldVisual.SpriteMaterial,
-            "order images do not use sprite material");
+        Check(dish.material != null && icon.material != null && dish.material.shader != null && icon.material.shader != null,
+            "order UI images have missing materials");
         Load(8, new[] { Food(link: 1) }, new[] { Food(PoolType.Egg), Food(PoolType.Shrimp, link: 1) },
             new[] { Food(tray: 1), Food(PoolType.Egg, tray: 1) });
         Invoke(board, "LateUpdate");
@@ -480,7 +551,7 @@ public static class SushiGameplayRegression
         FoodShushi head = column.Foods[0], behind = column.Foods[2];
         Check(conveyor.TryTakeChopsticks(column.Foods[1]) && column.IsPickupPending, "chopsticks did not start advancing the column");
         Advance();
-        Check(head.transform.localPosition == Vector3.zero && Mathf.Abs(behind.transform.localPosition.y + 1.2f) < 0.001f,
+        Check(head.transform.localPosition == Vector3.zero && Mathf.Abs(behind.transform.localPosition.y + Get<float>(column, "rowSpace")) < 0.001f,
             "chopsticks moved rows ahead of the gap or failed to collapse rows behind it");
         Load(8, new[] { Food(amount: 3), Food(PoolType.Egg) }, new[] { Food(PoolType.Egg, 3) });
         column = Column(0);
@@ -587,7 +658,7 @@ public static class SushiGameplayRegression
         Load(2, new[] { Food(amount: 2) }, new[] { Food(PoolType.Egg, 2) });
         Customer customer = SetRecipeOrders(new DishOrderData { dish = SushiDishId.NigiriEgg, amount = 2 });
         var view = customer.GetComponent<CustomerRecipeView>();
-        Vector3 point = customer.transform.TransformPoint(CustomerRecipeView.CardPosition(1, 2));
+        Vector3 point = view.CardAt(1).Rect.TransformPoint(view.CardAt(1).Rect.rect.center);
         Check(view.DishAtWorldPosition(point) == customer.Dishes[1] &&
             view.DishAtWorldPosition(customer.transform.TransformPoint(new Vector3(8, 8, 0))) == null,
             "order hit testing did not resolve the exact dish card");
@@ -643,7 +714,7 @@ public static class SushiGameplayRegression
 
     private static Customer RecipeCustomer(params DishOrderData[] dishes)
     {
-        var customer = Node("Recipe customer").gameObject.AddComponent<Customer>();
+        var customer = Object.Instantiate(Prefab<Customer>("Customer"), fixture);
         customer.Setup(0, null, new CustomerOrderData { dishes = new List<DishOrderData>(dishes) });
         return customer;
     }
@@ -723,14 +794,13 @@ public static class SushiGameplayRegression
         Customer first = customers.ActiveCustomers[0], second = customers.ActiveCustomers[1];
         var waiting = Get<List<Customer>>(customers, "waitingCustomers")[0];
         Check(!waiting.IsSeated && Mathf.Abs(waiting.transform.localScale.x - 0.6f) < 0.001f, "waiting customer is not smaller");
-        Check(waiting.GetComponent<CustomerRecipeView>() != null && waiting.transform.Find("Trà xanh đá") != null &&
-            !waiting.transform.Find("Trà xanh đá").gameObject.activeSelf, "waiting order card is visible");
+        Check(!waiting.GetComponent<CustomerRecipeView>().CardAt(0).gameObject.activeSelf, "waiting order card is visible");
         var recipeSlots = Get<List<Transform>>(second, "recipeSlots");
-        Check((recipeSlots[1].localPosition - CustomerRecipeView.IngredientPosition(0, 1, 1, 2)).sqrMagnitude < 0.00001f,
+        var icon = second.GetComponent<CustomerRecipeView>().CardAt(0).IngredientAt(1).Image;
+        Check((recipeSlots[1].position - icon.transform.position).sqrMagnitude < 0.00001f,
             "delivery target does not match ingredient icon");
         Sprite expected = second.GetIngredientSprite(PoolType.Shrimp);
         Check(expected != null, "customer ingredient art missing");
-        var icon = second.transform.Find("Nigiri tôm/Shrimp").GetComponent<SpriteRenderer>();
         Check(icon.sprite == expected && icon.gameObject.activeInHierarchy, "customer does not display ingredient sprite");
         var gates = Get<float[]>(conveyor, "deliveryProgresses");
         var spline = Get<ConveyorSpline>(conveyor, "spline");
@@ -773,7 +843,7 @@ public static class SushiGameplayRegression
         level.SetPopupOpen(true); customers.TickRush(10);
         Check(first.RushRemaining == 26 && Time.timeScale == 0, "popup did not pause timer");
         level.SetPopupOpen(false); Check(Time.timeScale == 1, "popup did not restore time");
-        Customer waiting = Node("Waiting customer").gameObject.AddComponent<Customer>();
+        Customer waiting = Object.Instantiate(Prefab<Customer>("Customer"), fixture);
         var order = Order(PoolType.SushiRice, 2, true); waiting.Setup(4, null, order.CreateFoodList()); waiting.ConfigureRush(order);
         waiting.TickRush(10); Check(waiting.RushRemaining == 30, "waiting timer started early");
     }

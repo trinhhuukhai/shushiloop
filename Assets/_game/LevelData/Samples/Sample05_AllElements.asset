@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Sample05_AllElements
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   number: 46
-  levelName: 'Đủ 5 item và khay cứng'
-  hint: '18 giây: lấy khay cơm/tôm ở cột 1. Khay cột 6 vắt hàng 4–5 để thử Swap Row.'
-  beltSlots: 12
+  levelName: "\u0110\u1EE7 5 item v\xE0 khay c\u1EE9ng"
+  hint: "18 gi\xE2y: l\u1EA5y khay c\u01A1m/t\xF4m \u1EDF c\u1ED9t 1. Khay c\u1ED9t
+    6 v\u1EAFt h\xE0ng 4\u20135 \u0111\u1EC3 th\u1EED Swap Row."
+  beltSlots: 13
   loopsPerSecond: 0.1
   numberColumns: 6
   boardSeed: 46

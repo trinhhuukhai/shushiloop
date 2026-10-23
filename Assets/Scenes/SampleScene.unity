@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 30167091}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 6.05, z: 0}
+  m_LocalPosition: {x: -0.089999914, y: 5.83, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -285,7 +285,7 @@ Transform:
   m_GameObject: {fileID: 459772466}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4, y: 6.05, z: 0}
+  m_LocalPosition: {x: -1.43, y: 5.83, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -557,7 +557,7 @@ Transform:
   m_GameObject: {fileID: 690448457}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.4, y: 6.05, z: 0}
+  m_LocalPosition: {x: 1.2500001, y: 5.83, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -673,6 +673,34 @@ MonoBehaviour:
   deliveryRange: 0.3
   deliveryDuration: 0.48
   deliveryHeight: 0.75
+--- !u!114 &990000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f416e14f012b40e47bdb924d32e7d65f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraControl
+  isDontDestroy: 0
+  cam: {fileID: 519420031}
+  playfieldSize: {x: 9, y: 16}
+  playfieldCenter: {x: 0, y: 0}
+--- !u!114 &990000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1344788576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2e47f32de1d4d219c668a83b3437741, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SushiRestaurantView
 --- !u!1 &1161625804
 GameObject:
   m_ObjectHideFlags: 0
@@ -760,8 +788,7 @@ MonoBehaviour:
   - {fileID: 690448458}
   moveDuration: 0.35
   waitingScale: 0.4
-  avatars:
-  - {fileID: 275185416072073027, guid: 294b55c5809c081429749748fe3147c4, type: 3}
+  avatars: []
   dishArt: {fileID: 11400000, guid: 0fe45ee7bc5290a8eb10e4069406a361, type: 2}
   completedDelay: 0.8
 --- !u!4 &1285739046
@@ -874,34 +901,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1285739046}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &990000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519420028}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f416e14f012b40e47bdb924d32e7d65f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraControl
-  cam: {fileID: 519420031}
-  playfieldSize: {x: 9, y: 16}
-  playfieldCenter: {x: 0, y: 0}
---- !u!114 &990000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1344788576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2e47f32de1d4d219c668a83b3437741, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SushiRestaurantView
-
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

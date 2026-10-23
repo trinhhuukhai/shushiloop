@@ -92,6 +92,8 @@ public class CustomerManager : MonoBehaviour
 
         ClearCustomers();
         if (dishArt == null && SushiArtCatalog.Default != null) dishArt = SushiArtCatalog.Default.dishImages;
+        if (avatars.Count == 0 && SushiArtCatalog.Default != null)
+            avatars.AddRange(SushiArtCatalog.Default.customerAvatars);
         allowSimultaneousRush = simultaneousRush;
 
         TotalCustomers = customerOrders.Count;

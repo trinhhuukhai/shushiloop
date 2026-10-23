@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Sample03_FrozenRush
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   number: 30
-  levelName: 'Phá băng và phục vụ khách vội'
-  hint: 'Khách đầu có 60 giây. Lấy cột kề để phá băng 1–2 lớp.'
-  beltSlots: 14
+  levelName: "Ph\xE1 b\u0103ng v\xE0 ph\u1EE5c v\u1EE5 kh\xE1ch v\u1ED9i"
+  hint: "Kh\xE1ch \u0111\u1EA7u c\xF3 60 gi\xE2y. L\u1EA5y c\u1ED9t k\u1EC1 \u0111\u1EC3
+    ph\xE1 b\u0103ng 1\u20132 l\u1EDBp."
+  beltSlots: 11
   loopsPerSecond: 0.075
   numberColumns: 6
   boardSeed: 30

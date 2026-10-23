@@ -16,7 +16,7 @@ MonoBehaviour:
   levelName: "Kh\xE1ch v\u1ED9i trong h\xE0ng ch\u1EDD"
   hint: "Kh\xE1ch th\u1EE9 3 c\xF3 45 gi\xE2y; \u0111\u1ED3ng h\u1ED3 ch\u1EC9 ch\u1EA1y
     khi kh\xE1ch \u0111\xE3 ng\u1ED3i."
-  beltSlots: 12
+  beltSlots: 10
   loopsPerSecond: 0.07
   numberColumns: 6
   boardSeed: 20

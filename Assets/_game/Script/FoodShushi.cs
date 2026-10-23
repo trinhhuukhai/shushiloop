@@ -29,15 +29,30 @@ public class FoodShushi : GameUnit
     [SerializeField] private int trayId;
     [SerializeField] private bool hidden;
 
-    private TextMeshPro quantityLabel;
-    private TextMeshPro stateLabel;
-    private SpriteRenderer cover;
-    private SpriteRenderer tileBackground;
+    [Header("Prefab visuals")]
+    [SerializeField] private TextMeshPro quantityLabel;
+    [SerializeField] private TextMeshPro stateLabel;
+    [SerializeField] private SpriteRenderer cover;
+    [SerializeField] private SpriteRenderer tileBackground;
+    [SerializeField] private Vector3 frozenQuantityPosition = new Vector3(-0.28f, 0.32f, -0.1f);
+    [SerializeField] private Vector3 frozenStatePosition = new Vector3(0.25f, -0.31f, -0.3f);
+    [SerializeField] private float frozenStateFontSize = 2.6f;
+    private Vector3 quantityPosition;
+    private Vector3 statePosition;
+    private float stateFontSize;
+    private Vector3 coverScale = Vector3.one;
     private bool boardVisible = true;
     private Tween revealTween;
-    private SpriteRenderer[] prefabRenderers;
-
-    private void Awake() { prefabRenderers = GetComponentsInChildren<SpriteRenderer>(true); }
+    private void Awake()
+    {
+        if (cover != null) coverScale = cover.transform.localScale;
+        if (quantityLabel != null) quantityPosition = quantityLabel.transform.localPosition;
+        if (stateLabel != null)
+        {
+            statePosition = stateLabel.transform.localPosition;
+            stateFontSize = stateLabel.fontSize;
+        }
+    }
 
     private void OnEnable()
     {
@@ -123,8 +138,7 @@ public class FoodShushi : GameUnit
         trayId = data.trayId;
         boardVisible = true;
         ApplyIngredientArt();
-        EnsureVisuals();
-        cover.transform.localScale = Vector3.one;
+        cover.transform.localScale = coverScale;
         RefreshVisual();
     }
 
@@ -141,8 +155,6 @@ public class FoodShushi : GameUnit
         Sprite sprite = ingredientArt != null ? ingredientArt.GetSprite(Type) : null;
         if (sprite == null && SushiArtCatalog.Default != null) sprite = SushiArtCatalog.Default.GetIngredient(Type);
         foodRenderer.sprite = sprite;
-        foodRenderer.sharedMaterial = SushiWorldVisual.SpriteMaterial;
-        foodRenderer.color = Color.white;
         if (sprite == null) return;
         if (foodRenderer.transform == transform) return;
         Bounds bounds = foodRenderer.sprite.bounds;
@@ -164,7 +176,7 @@ public class FoodShushi : GameUnit
             .Append(cover.transform.DOScaleX(0f, 0.125f))
             .AppendCallback(() => { hidden = false; RefreshVisual(); })
             .AppendInterval(0.125f)
-            .OnComplete(() => { revealTween = null; cover.transform.localScale = Vector3.one; });
+            .OnComplete(() => { revealTween = null; cover.transform.localScale = coverScale; });
     }
 
     public void BreakIce(int damage = 1)
@@ -198,25 +210,12 @@ public class FoodShushi : GameUnit
         view.SetActive(boardVisible);
     }
 
-    private void EnsureVisuals()
-    {
-        if (quantityLabel != null) return;
-        int order = foodRenderer != null ? foodRenderer.sortingOrder + 3 : 4;
-        quantityLabel = SushiWorldVisual.Label(transform, "Quantity", new Vector3(0.32f, -0.4f, -0.1f), 2.6f, order);
-        tileBackground = SushiWorldVisual.BoardBase(transform);
-        stateLabel = SushiWorldVisual.Label(transform, "Element", new Vector3(0, 0, -0.2f), 3.5f, order + 1);
-        cover = SushiWorldVisual.Panel(transform, "Cover", order - 1);
-        RefreshVisual();
-    }
-
     private void RefreshVisual()
     {
         foodState = hidden ? FoodState.HoiCham : iceLayers > 0 ? FoodState.Ice :
             linkId > 0 ? FoodState.Lock : trayId > 0 ? FoodState.RigidTray : FoodState.Normal;
         bool onBoard = foodLocation == FoodLocation.Board;
         bool visible = !onBoard || boardVisible;
-        if (prefabRenderers != null)
-            foreach (var renderer in prefabRenderers) renderer.enabled = visible;
         if (foodRenderer != null)
         {
             foodRenderer.enabled = visible && !hidden && amount > 0;
@@ -225,8 +224,7 @@ public class FoodShushi : GameUnit
         }
         if (quantityLabel == null) return;
         quantityLabel.text = "×" + amount;
-        quantityLabel.transform.localPosition = iceLayers > 0 ? new Vector3(-0.28f, 0.32f, -0.1f) :
-            new Vector3(0.32f, -0.4f, -0.1f);
+        quantityLabel.transform.localPosition = iceLayers > 0 ? frozenQuantityPosition : quantityPosition;
         tileBackground.gameObject.SetActive(visible && onBoard);
         quantityLabel.gameObject.SetActive(visible && onBoard && !hidden && amount > 1);
         bool showCover = visible && (hidden || (onBoard && iceLayers > 0));
@@ -236,8 +234,8 @@ public class FoodShushi : GameUnit
         cover.sprite = element != null ? element : SushiWorldVisual.WhiteSprite;
         cover.color = element != null ? Color.white : hidden ? new Color(0.68f, 0.37f, 0.14f) : new Color(0.3f, 0.8f, 1f, 0.55f);
         stateLabel.text = hidden ? (element == null ? "?" : "") : iceLayers > 0 ? iceLayers.ToString() : "";
-        stateLabel.transform.localPosition = !hidden && element != null ? new Vector3(0.25f, -0.31f, -0.3f) : Vector3.back * 0.2f;
-        stateLabel.fontSize = !hidden && element != null ? 2.6f : 3.5f;
+        stateLabel.transform.localPosition = !hidden && element != null ? frozenStatePosition : statePosition;
+        stateLabel.fontSize = !hidden && element != null ? frozenStateFontSize : stateFontSize;
         stateLabel.color = !hidden && element != null ? Color.white : new Color(0.2f, 0.1f, 0.04f);
         stateLabel.gameObject.SetActive(showCover && stateLabel.text.Length > 0);
     }
@@ -245,7 +243,7 @@ public class FoodShushi : GameUnit
     public void RefreshArtwork()
     {
         ApplyIngredientArt();
-        if (quantityLabel != null) RefreshVisual();
+        if (Application.isPlaying && quantityLabel != null) RefreshVisual();
     }
 
     internal void BeginConveyorMove(bool revealHidden)
@@ -300,7 +298,7 @@ public class FoodShushi : GameUnit
         revealTween?.Kill();
         revealTween = null;
         hidden = false;
-        if (cover != null) cover.transform.localScale = Vector3.one;
+        if (cover != null) cover.transform.localScale = coverScale;
         RefreshVisual();
     }
 
