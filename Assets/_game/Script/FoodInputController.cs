@@ -12,13 +12,13 @@ public class FoodInputController : MonoBehaviour
     [SerializeField] private LayerMask columnMask = ~0;
     public FoodPickMode PickMode { get; private set; }
 
-    private bool CanInteract => LevelManager.Ins == null || LevelManager.Ins.CanInteract;
+    private bool CanInteract => !SushiLevelOneTutorial.IsInputLocked && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
     public void SelectChopsticks() { if (CanInteract && BoosterCount(BoosterType.Click) != 0) PickMode = FoodPickMode.Chopsticks; }
     public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) PickMode = FoodPickMode.Magnet; }
     public void CancelBooster() { PickMode = FoodPickMode.Tap; }
     public void UseSwapRow()
     {
-        if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract || BoosterCount(BoosterType.Shuffle) == 0) return;
+        if (SushiLevelOneTutorial.IsInputLocked || LevelManager.Ins == null || !LevelManager.Ins.CanInteract || BoosterCount(BoosterType.Shuffle) == 0) return;
         if (!LevelManager.Ins.Board.SwapRow()) return;
         ConsumeBooster(BoosterType.Shuffle);
         CancelBooster();
@@ -77,7 +77,7 @@ public class FoodInputController : MonoBehaviour
     private void Update()
     {
         if (!TryGetPressPosition(out Vector2 screenPosition)) return;
-        if (LevelManager.Ins != null && !LevelManager.Ins.CanInteract) return;
+        if (!CanInteract) return;
         if (gameCamera == null || conveyorManager == null) return;
         // Kiểm tra UI trực tiếp, kể cả touch mới xuất hiện trong frame hiện tại.
         if (EventSystem.current != null)

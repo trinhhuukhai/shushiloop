@@ -26,6 +26,7 @@ public class CanvasFail : UICanvas
     {
         LevelManager level = LevelManager.Ins;
         if (level == null) return;
+        if (btnHome != null) btnHome.SetActive(GameManager.ins != null && GameManager.ins.CanReturnHome);
         bool revive = level.PendingRevive != SushiReviveReason.None;
         title.text = revive ? "Tiếp tục phục vụ?" : "Chưa hoàn thành";
         description.text = !revive ? "Thử lại để hoàn thành các order nhé!" :
@@ -52,7 +53,7 @@ public class CanvasFail : UICanvas
     }
     public void CheckBtnRetry() => BtnNext();
     public void OnNextRetryWhenAddLive() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
-    public void BtnHome() { CloseDirectly(); GameManager.ins?.ReturnToMainMenu(); }
+    public void BtnHome() { if (GameManager.ins == null || !GameManager.ins.CanReturnHome) return; GameManager.ins.ReturnToMainMenu(); }
     public void OnHandTouchPanel() { if (grandCg != null) grandCg.alpha = 0.2f; }
     public void OnHAndReleasePanel() { if (grandCg != null) grandCg.alpha = 1; }
     public void Close() => CloseDirectly();

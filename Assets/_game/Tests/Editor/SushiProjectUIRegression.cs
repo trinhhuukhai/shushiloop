@@ -31,6 +31,11 @@ public static class SushiProjectUIRegression
             throw new InvalidOperationException("Run only in the isolated Sushi UI Verification project.");
         SushiProjectUISetup.Setup();
         SushiMainMenuSetup.Setup();
+        SushiTutorialSetup.Setup();
+        Check(Application.persistentDataPath.Contains("Sushi UI Verification"), "Never seed the user's save directory.");
+        var seededProfile = AssetDatabase.LoadAssetAtPath<GameDataFragment>("Assets/_game/DataSO/GameDataFragment.asset");
+        seededProfile.dataPlayer = new GameDataFragment.DataPlayer { cur_level = 4, showTutorialLevel1 = true };
+        seededProfile.Save();
         EditorSceneManager.OpenScene("Assets/_game/Scenes/Loading.unity");
         UICheat cheat = Object.FindFirstObjectByType<UICheat>();
         Canvas cheatCanvas = cheat != null ? cheat.GetComponentInParent<Canvas>().rootCanvas : null;
@@ -142,7 +147,7 @@ public static class SushiProjectUIRegression
             (checks as IDisposable)?.Dispose();
             checks = null;
             SessionState.SetInt(Key, 0);
-            File.WriteAllText("ProjectUIRegressionResults.txt", "PASS: Loading to empty GamePlay/MainMenu, explicit Level button, UICTransis before level initialization and reveal, repeated-click guard, shared levels, prefab binding, HUD input, nested pause, boosters, coin revive, lose/retry, win/reward/next, final level, return home, asynchronous rejected/invalid startup recovery, canvas scale restoration, clean re-entry/replay.\n");
+            File.WriteAllText("ProjectUIRegressionResults.txt", "PASS: Unlocked level 5 profile Loading to empty GamePlay/MainMenu, explicit Level button, UICTransis before level initialization and reveal, repeated-click guard, shared levels, prefab binding, HUD input, nested pause, boosters, coin revive, lose/retry, win/reward/next, final level, return home, asynchronous rejected/invalid startup recovery, canvas scale restoration, clean re-entry/replay.\n");
             Debug.Log("PROJECT_UI_REGRESSION_OK");
             EditorApplication.Exit(0);
         }
@@ -270,10 +275,19 @@ public static class SushiProjectUIRegression
         Check(level.ClaimVictoryReward() && !level.ClaimVictoryReward() && player.money == level.VictoryReward, "Win reward can be claimed more than once.");
         Capture("Win", level);
         Click(ui.GetUI<CanvasVictory>(), "Content/Victory card/Claim and next");
+        Check(GameManager.ins.IsLoadingLevel && ui.IsOpened<CanvasTransit>() && level.CurrentLevelIndex == 0,
+            "Early victory Next must show UICTransis before replacing the board.");
+        while (GameManager.ins.IsLoadingLevel)
+        {
+            Check(!level.CanInteract && Time.timeScale == 0, "Victory transition resumed before its cover closed.");
+            yield return null;
+        }
         Check(level.CurrentLevelIndex == 1 && level.CanInteract && player.money == level.VictoryReward, "Next level duplicated the reward or retained pause.");
         level.LoadLevel(level.LevelCount - 1); Invoke(level, "CompleteLevel");
         Click(ui.GetUI<CanvasVictory>(), "Content/Victory card/Claim and next");
-        Check(level.CurrentLevelIndex == level.LevelCount - 1 && level.CanInteract, "Last level navigated outside AllLevelData.");
+        Check(ui.IsOpened<CanvasMainMenu>() && level.CurrentLevel == null && !GameManager.ins.IsLoadingLevel,
+            "Final unlocked level must return Home after claiming its reward.");
+        level.LoadLevel(level.LevelCount - 1);
         ui.OpenUI<CanvasSetting>();
         ui.OpenUI<CanvasFail>();
         Check(Time.timeScale == 0, "Home teardown test requires nested paused popups.");
@@ -376,7 +390,7 @@ public static class SushiProjectUIRegression
     }
 
     private static string[] Required(UICanvas view) => view is CanvasGamePlay
-        ? new[] { "rootPanel", "txtLevvel", "occupancy", "boosterHint", "speedText", "cancelBooster", "levelSelector" }
+        ? new[] { "rootPanel", "txtLevvel", "boosterHint", "speedText", "cancelBooster", "levelSelector" }
         : view is CanvasFloating ? new[] { "rootPanel", "txtGold", "TopGroup", "btnSettingIngame" }
         : view is CanvasVictory ? new[] { "goldRwTxt", "btnGoldRW", "title", "nextLabel" }
         : new[] { "title", "description", "coinPrice", "retryLabel", "feedback", "reviveActions", "coinButton", "adButton" };

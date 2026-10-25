@@ -1,0 +1,9 @@
+PASS
+Cold loading duration 1.81 s; cover blocks input and timers.
+Fresh level 1 opens gameplay and floating HUD directly, without Home.
+Recipe and ingredient hand steps, exact target lock, blocked boosters, paused timer, persisted completion.
+Replay skips completed tutorial; level 1 Settings Home is hidden and callback protected.
+Winning level 1 uses UICTransis before level 2; repeated Next claims/loads once.
+Winning current level 4 transitions into level 5, despite the already-advanced profile.
+Level 5 Settings returns Home and clears the world count, board, customers and popups.
+Unlocked Home Play uses UICTransis; winning level 5+ Next claims once and returns Home.

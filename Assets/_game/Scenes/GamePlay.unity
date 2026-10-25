@@ -823,6 +823,7 @@ GameObject:
   - component: {fileID: 1344788577}
   - component: {fileID: 990000002}
   - component: {fileID: 1344788579}
+  - component: {fileID: 1344788580}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -881,6 +882,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c336054c884c4587c22a2f2309f278, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SushiProfileReviveProvider
+--- !u!114 &1344788580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1344788576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9dedae842974f94e9362786d7fc53cf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::SushiLevelOneTutorial
+  targetColumn: 1
+  targetIngredient: 2
+  targetCustomerIndex: 0
+  targetDishIndex: 0
 --- !u!1 &1396798785
 GameObject:
   m_ObjectHideFlags: 0

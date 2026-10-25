@@ -187,44 +187,108 @@ public class GameManager : MonoBehaviour
         StartCoroutine(ie_LoadGame());
     }
 
+    public const int MainMenuUnlockLevel = 5;
+    [SerializeField, Min(0.5f)] private float minimumStartupLoadingDuration = 1.65f;
+    public float MinimumStartupLoadingDuration => minimumStartupLoadingDuration;
     public bool IsLoadingLevel { get; private set; }
+
+    // Gate Home using the level being played, even after victory advances the saved profile.
+    public bool CanReturnHome => LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null &&
+        LevelManager.Ins.CurrentLevelIndex + 1 >= MainMenuUnlockLevel;
+    public bool CanOpenMainMenu => SelectedLevelIndex() + 1 >= MainMenuUnlockLevel;
+
+    private int SelectedLevelIndex()
+    {
+        LevelManager level = LevelManager.Ins;
+        int index = GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null && !isPlayTestingLevel
+            ? GameDataFragment.cur.dataPlayer.cur_level : level != null ? level.CurrentLevelIndex : 0;
+        return level != null && level.LevelCount > 0 ? Mathf.Clamp(index, 0, level.LevelCount - 1) : Mathf.Max(0, index);
+    }
 
     private IEnumerator ie_LoadGame()
     {
+        IsLoadingLevel = true;
         Time.timeScale = 1;
+        float startedAt = Time.realtimeSinceStartup;
         LoadingScreen loading = LoadingScreen.ins;
-        if (loading != null)
+        LevelManager coveredLevel = null;
+        bool enteredGameplay = false;
+        try
         {
-            loading.SetPercent(0.15f, 0.15f);
-            loading.StartCoroutine(loading.ie_txtLoading());
+            if (loading != null)
+            {
+                loading.SetPercent(0.15f, 0.15f);
+                loading.StartCoroutine(loading.ie_txtLoading());
+            }
+            yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded && UIManager.Ins != null);
+            if (loading != null)
+            {
+                DontDestroyOnLoad(loading.gameObject);
+                loading.SetPercent(0.55f, 0.25f);
+            }
+            Scene scene = SceneManager.GetSceneByName("GamePlay");
+            if (!scene.IsValid() || !scene.isLoaded)
+                yield return SceneManager.LoadSceneAsync("GamePlay");
+
+            LevelManager level = LevelManager.Ins;
+            if (level == null)
+                Debug.LogError("GamePlay scene is missing its LevelManager.");
+            else if (!CanOpenMainMenu)
+            {
+                // The startup cover is not a UICanvas, so hold its own pause while creating the first board.
+                coveredLevel = level;
+                coveredLevel.SetPopupOpen(true);
+                level.LoadLevel(SelectedLevelIndex(), false);
+                enteredGameplay = level.IsPlaying;
+                yield return null;
+                yield return null;
+            }
+
+            if (loading != null) loading.SetPercent(1, 0.25f);
+            float remaining = Mathf.Max(0.25f, minimumStartupLoadingDuration - (Time.realtimeSinceStartup - startedAt));
+            yield return new WaitForSecondsRealtime(remaining);
         }
-        yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded && UIManager.Ins != null);
-        // Load the scene systems first, while the startup cover remains visible.
-        if (loading != null)
+        finally
         {
-            DontDestroyOnLoad(loading.gameObject);
-            loading.SetPercent(0.55f, 0.2f);
+            // Release input and timers only after the startup cover disappears.
+            if (loading != null) { loading.Close(); Destroy(loading.gameObject); }
+            if (coveredLevel != null) coveredLevel.SetPopupOpen(false);
+            IsLoadingLevel = false;
+            if (this != null)
+            {
+                if (enteredGameplay && coveredLevel != null) coveredLevel.ShowGameplayHud();
+                else OpenMainMenu();
+            }
         }
-        Scene scene = SceneManager.GetSceneByName("GamePlay");
-        if (!scene.IsValid() || !scene.isLoaded)
-            yield return SceneManager.LoadSceneAsync("GamePlay");
-        if (loading != null) loading.SetPercent(1, 0.2f);
-        yield return new WaitForSecondsRealtime(0.25f);
-        ReturnToMainMenu();
-        if (loading != null) { loading.Close(); Destroy(loading.gameObject); }
     }
 
-    // Loading prepares the profile and home UI. Only a deliberate Level button press enters gameplay.
     public bool StartCurrentLevel()
     {
         if (IsLoadingLevel || !IsScene(GameScene.Home) || DataManager.ins == null ||
             !DataManager.ins.isLoaded || UIManager.Ins == null) return false;
         IsLoadingLevel = true;
-        StartCoroutine(LoadSelectedLevel());
+        StartCoroutine(LoadSelectedLevel(SelectedLevelIndex()));
         return true;
     }
 
-    private IEnumerator LoadSelectedLevel()
+    public bool ContinueAfterVictory()
+    {
+        LevelManager level = LevelManager.Ins;
+        if (IsLoadingLevel || level == null || !level.HasWon || UIManager.Ins == null) return false;
+        // Claim exactly once before Home clears the current level or a transition replaces it.
+        level.ClaimVictoryReward();
+        if (CanReturnHome)
+        {
+            ReturnToMainMenu();
+            return true;
+        }
+        int nextIndex = level.HasNextLevel ? level.CurrentLevelIndex + 1 : level.CurrentLevelIndex;
+        IsLoadingLevel = true;
+        StartCoroutine(LoadSelectedLevel(nextIndex));
+        return true;
+    }
+
+    private IEnumerator LoadSelectedLevel(int index)
     {
         CanvasTransit transit = null;
         try
@@ -235,13 +299,11 @@ public class GameManager : MonoBehaviour
                 Debug.LogError("GamePlay scene is missing its LevelManager.");
                 yield break;
             }
-            int index = GameDataFragment.cur != null && !isPlayTestingLevel
-                ? GameDataFragment.cur.dataPlayer.cur_level : level.CurrentLevelIndex;
             index = Mathf.Clamp(index, 0, Mathf.Max(0, level.LevelCount - 1));
             transit = UIManager.Ins.OpenUI<CanvasTransit>();
             // Real frames show the cover before the board and customers are initialized.
             yield return transit.CoverLevel(index);
-            level.LoadLevel(index);
+            level.LoadLevel(index, false);
             if (!level.IsPlaying) yield break;
             // Keep gameplay paused under the cover while layout and world sprites settle.
             yield return null;
@@ -252,13 +314,24 @@ public class GameManager : MonoBehaviour
         {
             if (transit != null) transit.CloseDirectly();
             IsLoadingLevel = false;
-            if (this != null && (LevelManager.Ins == null || !LevelManager.Ins.IsPlaying))
-                ReturnToMainMenu();
+            if (this != null)
+            {
+                if (LevelManager.Ins != null && LevelManager.Ins.IsPlaying) LevelManager.Ins.ShowGameplayHud();
+                else OpenMainMenu();
+            }
         }
     }
+
     public void ReturnToMainMenu()
     {
         if (IsLoadingLevel || UIManager.Ins == null) return;
+        if (LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null && !CanReturnHome) return;
+        OpenMainMenu();
+    }
+
+    private void OpenMainMenu()
+    {
+        if (UIManager.Ins == null) return;
         UIManager.Ins.CloseAll();
         LevelManager.Ins?.EnterMainMenu();
         Time.timeScale = 1;
@@ -266,7 +339,6 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.MainMenu);
         UIManager.Ins.OpenUI<CanvasMainMenu>();
     }
-
     private void OnDestroy() { if (ins == this) ins = null; }
 
     void OnApplicationPause(bool pauseStatus)

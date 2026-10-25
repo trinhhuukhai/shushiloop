@@ -192,6 +192,9 @@ public static class SushiVisualCapture
                     foreach (CanvasState state in states)
                         state.canvas.scaleFactor = ScaleForCapture(state.scaler, size, state.scale);
                     Canvas.ForceUpdateCanvases();
+                    // Tutorial focus depends on the live world camera and capture viewport.
+                    Object.FindFirstObjectByType<CanvasTutorial>()?.RefreshLayout();
+                    Canvas.ForceUpdateCanvases();
                     if (GraphicsSettings.currentRenderPipeline != null)
                         RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = target });
                     else camera.Render();
@@ -230,6 +233,9 @@ public static class SushiVisualCapture
             camera.rect = previousRect;
             camera.transform.SetPositionAndRotation(previousPosition, previousRotation);
             if (control != null) control.enabled = wasControlled;
+            Canvas.ForceUpdateCanvases();
+            Object.FindFirstObjectByType<CanvasTutorial>()?.RefreshLayout();
+            Canvas.ForceUpdateCanvases();
         }
     }
 

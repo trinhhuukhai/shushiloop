@@ -1,0 +1,4 @@
+PASS
+Cold loading duration 1.48 s; cover blocks input and timers.
+Saved level 5 opens MainMenu in an empty GamePlay scene.
+Unlocked Home Play uses UICTransis; winning level 5+ Next claims once and returns Home.

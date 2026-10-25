@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,6 +25,7 @@ public class CanvasGamePlay : UICanvas
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
+        if (occupancy != null) occupancy.gameObject.SetActive(false);
 
     }
 
@@ -68,7 +69,7 @@ public class CanvasGamePlay : UICanvas
     public void BoosterSuffle() => ButtonBoosterHoanDoi();
     public void BoosterHut() => ButtonBoosterHut();
     public void CancelBooster() { input?.CancelBooster(); Refresh(); }
-    public void OnClickChangeSpeed() { LevelManager.Ins?.Conveyor.ToggleSpeed(); Refresh(); }
+    public void OnClickChangeSpeed() { if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract || SushiLevelOneTutorial.IsInputLocked) return; LevelManager.Ins.Conveyor.ToggleSpeed(); Refresh(); }
     public void ChangeSpeed(bool value)
     {
         if (LevelManager.Ins != null && LevelManager.Ins.Conveyor.IsDoubleSpeed != value) OnClickChangeSpeed();
@@ -76,7 +77,7 @@ public class CanvasGamePlay : UICanvas
     public void PreviousLevel() => LevelManager.Ins?.PreviousLevel();
     public void NextLevel() => LevelManager.Ins?.NextLevel();
     public void ReplayLevel() => LevelManager.Ins?.ReplayLevel();
-    public void btnSettingIngame() => UIManager.Ins.OpenUI<CanvasSetting>();
+    public void btnSettingIngame() { if (!SushiLevelOneTutorial.IsInputLocked) UIManager.Ins.OpenUI<CanvasSetting>(); }
     public void showTxtLevel() => Refresh();
     public void setTxtGold()
     {

@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class ConveyorManager : MonoBehaviour
 {
@@ -215,6 +216,7 @@ public class ConveyorManager : MonoBehaviour
 
     public bool TryTakeFromQueue(FoodQueue queue)
     {
+        if (SushiLevelOneTutorial.IsInputLocked && !SushiLevelOneTutorial.AllowsQueue(queue)) return false;
         if (!CanInteract || queue == null || queue.Board == null) return false;
         if (!queue.Board.TryBuildTap(queue, out List<FoodPickup> plan)) return false;
         return TryTakePlan(queue.Board, plan, FoodPickMode.Tap);
@@ -222,6 +224,7 @@ public class ConveyorManager : MonoBehaviour
 
     public bool TryTakeChopsticks(FoodShushi food)
     {
+        if (SushiLevelOneTutorial.IsInputLocked) return false;
         if (!CanInteract || food == null || food.Owner == null) return false;
         BoardShishiManager board = food.Owner.Board;
         return board != null && board.TryBuildChopsticks(food, out var plan) &&
@@ -230,6 +233,7 @@ public class ConveyorManager : MonoBehaviour
 
     public bool TryTakeMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
     {
+        if (SushiLevelOneTutorial.IsInputLocked) return false;
         if (!CanInteract || board == null || customer == null || dish == null || !customer.IsSeated ||
             customer.IsCompleted || customer.RushExpired || dish.IsComplete || customerManager == null) return false;
         bool active = false, ownsDish = false;

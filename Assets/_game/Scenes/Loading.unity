@@ -557,6 +557,7 @@ MonoBehaviour:
   levelShowInter: 0
   vuaMuaIAPSeasonpass: 0
   showPopupDailyLogin: 0
+  minimumStartupLoadingDuration: 1.65
 --- !u!1 &1227915775
 GameObject:
   m_ObjectHideFlags: 0
@@ -1175,6 +1176,7 @@ MonoBehaviour:
   - {fileID: 963065970381214062, guid: 403a3e0d94472aa4693a001acf45422d, type: 3}
   - {fileID: 8791164629219436922, guid: 28514e4ccc85c2644a06c3395e2f2a49, type: 3}
   - {fileID: 734846047533744933, guid: 98f87b31f8b085b468cded79bf028a66, type: 3}
+  - {fileID: 1615744088044602020, guid: 2cfe3b23a3f202242ae11893613915f6, type: 3}
   CanvasParentTF: {fileID: 2021205628}
 --- !u!225 &2021205624
 CanvasGroup:

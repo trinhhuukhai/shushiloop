@@ -150,14 +150,16 @@ public static class SushiProjectUISetup
 
     private static void BuildGameplay(CanvasGamePlay view)
     {
+        // Migrate an already authored HUD without rebuilding the user's controls.
+        Transform oldCapacity = view.transform.Find("Content/Header/Belt capacity");
+        if (oldCapacity != null) Object.DestroyImmediate(oldCapacity.gameObject);
+        Bind(view, "occupancy", null);
         if (view.transform.Find("Content") != null) return;
         RectTransform root = Content(view, false); Bind(view, "rootPanel", root);
         RectTransform header = Rect(root, "Header", new Vector2(1000, 100), new Vector2(0, -60), new Vector2(0.5f, 1));
         Bind(view, "TopGroup", header);
         TMP_Text level = Label(header, "Level", "Level 1", new Vector2(300, 65), Vector2.zero, 38); level.color = Color.white;
         Bind(view, "txtLevvel", level);
-        TMP_Text capacity = Label(header, "Belt capacity", "0/12", new Vector2(240, 45), new Vector2(0, -58), 28); capacity.color = Cream;
-        Bind(view, "occupancy", capacity);
         Button speed = Button(header, "Speed", "1×", new Vector2(100, 64), new Vector2(345, 0), view.OnClickChangeSpeed);
         Bind(view, "speedText", speed.GetComponentInChildren<TMP_Text>());
         RectTransform footer = Rect(root, "Boosters", new Vector2(990, 120), new Vector2(0, 83), new Vector2(0.5f, 0));

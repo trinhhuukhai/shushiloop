@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -689,6 +689,7 @@ public static class SushiGameplayRegression
     }
     private static void LevelValidation()
     {
+        ProgressionGates();
         var data = ValidLevel(); Check(data.ValidateData() == null, data.ValidateData());
         var copy = data.CreateBoardData(); copy[0].foods[0].amount = 1;
         Check(data.boardColumns[0].foods[0].amount == 2, "board data aliases asset");
@@ -701,6 +702,113 @@ public static class SushiGameplayRegression
         data.boardColumns[0].foods[0].iceLayers = 0; data.number = 19; data.customers[0].rushCustomer = true;
         Check(data.ValidateData() != null, "rush unlock gate ignored");
         Object.DestroyImmediate(data);
+    }
+    private static SushiLevelData GateFixture(int number, params FoodData[][] columns)
+    {
+        var data = ScriptableObject.CreateInstance<SushiLevelData>();
+        data.number = number;
+        data.numberColumns = columns.Length;
+        data.boardColumns = new List<FoodQueueData>();
+        data.customers = new List<CustomerOrderData>();
+        var totals = new Dictionary<PoolType, int>();
+        foreach (FoodData[] column in columns)
+        {
+            data.boardColumns.Add(new FoodQueueData { foods = new List<FoodData>(column) });
+            foreach (FoodData food in column)
+            {
+                totals.TryGetValue(food.typeFood, out int amount);
+                totals[food.typeFood] = amount + food.amount;
+            }
+        }
+        foreach (var ingredient in totals)
+            for (int remaining = ingredient.Value; remaining > 0; remaining -= 6)
+                data.customers.Add(Order(ingredient.Key, Mathf.Min(6, remaining)));
+        return data;
+    }
+
+    private static void ProgressionGates()
+    {
+        Check(SushiLevelData.HiddenUnlockLevel == 5 && SushiLevelData.FrozenUnlockLevel == 7 &&
+            SushiLevelData.LinkedUnlockLevel == 9 && SushiLevelData.TrayUnlockLevel == 11,
+            "campaign mechanic constants changed from the requested 5/7/9/11 milestones");
+
+        var hidden = GateFixture(4, new[] { Food(), Food(hidden: true) }, new[] { Food(PoolType.Egg) });
+        Check(hidden.ValidateData() != null, "hidden tile allowed before level 5");
+        hidden.number = 5;
+        Check(hidden.ValidateData() == null, "hidden tile rejected at level 5: " + hidden.ValidateData());
+        hidden.boardColumns[0].foods[0].hidden = true;
+        Check(hidden.ValidateData() != null, "hidden tile allowed in the initial head row");
+        hidden.boardColumns[0].foods[0].hidden = false;
+        hidden.boardColumns[0].foods[1].hidden = false;
+        hidden.boardColumns[0].foods[1].foodState = FoodState.HoiCham;
+        hidden.number = 4;
+        Check(hidden.ValidateData() != null, "legacy HoiCham state bypassed level 5");
+        hidden.number = 5;
+        Check(hidden.ValidateData() == null, "legacy HoiCham state rejected at level 5");
+        Object.DestroyImmediate(hidden);
+
+        var frozen = GateFixture(6,
+            new[] { Food(), Food(), Food(), Food(), Food(), Food() },
+            new[] { Food(PoolType.Egg, ice: 1) },
+            new[] { Food(), Food(), Food(), Food(), Food(), Food() });
+        Check(frozen.ValidateData() != null && SushiLevelData.GetMaximumIceLayers(6) == 0,
+            "ice allowed before level 7");
+        frozen.boardColumns[1].foods[0].foodState = FoodState.Ice;
+        int[] stages = { 7, 8, 9, 13, 14, 17, 18, 20, 29, 30, 38, 39, 40, 48, 49, 50 };
+        int[] limits = { 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 5, 4, 4, 5, 4 };
+        for (int i = 0; i < stages.Length; i++)
+        {
+            frozen.number = stages[i];
+            Check(SushiLevelData.GetMaximumIceLayers(stages[i]) == limits[i],
+                "wrong ice limit at level " + stages[i]);
+            frozen.boardColumns[1].foods[0].iceLayers = limits[i];
+            Check(frozen.ValidateData() == null,
+                "valid ice rejected at level " + stages[i] + ": " + frozen.ValidateData());
+            frozen.boardColumns[1].foods[0].iceLayers = limits[i] + 1;
+            Check(frozen.ValidateData() != null, "ice cap bypassed at level " + stages[i]);
+        }
+        frozen.number = 7;
+        frozen.boardColumns[1].foods[0].iceLayers = 1;
+        frozen.boardColumns[0].foods[0].iceLayers = 1;
+        Check(frozen.ValidateData() != null, "ice intro accepted fewer than two unfrozen heads");
+        Object.DestroyImmediate(frozen);
+        var impossibleIce = GateFixture(7, new[] { Food() },
+            new[] { Food(PoolType.Egg), Food(PoolType.Egg, ice: 1) }, new[] { Food() });
+        Check(impossibleIce.ValidateData() != null, "ice without adjacent moves at its row was allowed");
+        Object.DestroyImmediate(impossibleIce);
+
+        var linked = GateFixture(8, new[] { Food(), Food(link: 1) },
+            new[] { Food(PoolType.Egg), Food(PoolType.Egg, link: 1) });
+        Check(linked.ValidateData() != null, "link allowed before level 9");
+        linked.number = 9;
+        Check(linked.ValidateData() == null, "valid pair rejected at level 9: " + linked.ValidateData());
+        foreach (FoodQueueData column in linked.boardColumns)
+        {
+            column.foods[1].lockId = 1;
+            column.foods[1].linkId = 0;
+            column.foods[1].foodState = FoodState.Lock;
+        }
+        linked.number = 8;
+        Check(linked.ValidateData() != null, "legacy lockId bypassed level 9");
+        linked.number = 9;
+        Check(linked.ValidateData() == null, "legacy lockId rejected at level 9");
+        Object.DestroyImmediate(linked);
+        var twoPairs = GateFixture(9, new[] { Food(), Food(link: 1), Food(link: 2) },
+            new[] { Food(PoolType.Egg), Food(PoolType.Egg, link: 1), Food(PoolType.Egg, link: 2) });
+        Check(twoPairs.ValidateData() != null, "intro level 9 allowed two link pairs");
+        twoPairs.number = 10;
+        Check(twoPairs.ValidateData() == null, "two pairs rejected after introduction: " + twoPairs.ValidateData());
+        Object.DestroyImmediate(twoPairs);
+
+        var tray = GateFixture(10, new[] { Food(), Food(tray: 1), Food(PoolType.Egg, tray: 1) },
+            new[] { Food(PoolType.Egg) });
+        Check(tray.ValidateData() != null, "tray allowed before level 11");
+        tray.number = 11;
+        Check(tray.ValidateData() == null, "valid tray rejected at level 11: " + tray.ValidateData());
+        tray.boardColumns[0].foods[1].foodState = FoodState.RigidTray;
+        tray.boardColumns[0].foods[2].foodState = FoodState.RigidTray;
+        Check(tray.ValidateData() == null, "explicit rigid tray states rejected at level 11");
+        Object.DestroyImmediate(tray);
     }
     private static void CreateLevel()
     {

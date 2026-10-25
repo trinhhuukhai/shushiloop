@@ -39,6 +39,11 @@ public static class SushiMainMenuCapture
         {
             SushiProjectUISetup.Setup();
             SushiMainMenuSetup.Setup();
+            SushiTutorialSetup.Setup();
+            Check(Application.persistentDataPath.Contains("Sushi UI Verification"), "Never seed the user's save directory.");
+            var seededProfile = AssetDatabase.LoadAssetAtPath<GameDataFragment>("Assets/_game/DataSO/GameDataFragment.asset");
+            seededProfile.dataPlayer = new GameDataFragment.DataPlayer { cur_level = 4, showTutorialLevel1 = true };
+            seededProfile.Save();
             EditorSceneManager.OpenScene("Assets/_game/Scenes/Loading.unity", OpenSceneMode.Single);
             Directory.CreateDirectory("Documentation");
             SessionState.SetFloat(Started, (float)EditorApplication.timeSinceStartup);
@@ -167,7 +172,7 @@ public static class SushiMainMenuCapture
             }
             Check(menu.SelectedTab == 3 && UIManager.Ins.IsOpened<CanvasDecoration>(), "Decoration button did not open its provided prefab.");
             Capture("Decoration", 720, 1280);
-            Report.AppendLine("PASS: Loading enters GamePlay and opens only MainMenu; no level, ingredients, customers or conveyor slots initialized.");
+            Report.AppendLine("PASS: Saved level 5 Loading enters GamePlay and opens only MainMenu; no level, ingredients, customers or conveyor slots initialized.");
             Report.AppendLine("PASS: Seven authored button callbacks are present; navigation tested through real pointer-click handlers.");
             Report.AppendLine("PASS: Page slide, marker translation, sideways icon entry and lift observed between real player frames, then correct final transforms.");
             Report.AppendLine("PASS: Rapid Shop > Leaderboard > Home leaves only home visible and selected.");

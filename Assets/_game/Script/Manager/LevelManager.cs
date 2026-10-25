@@ -27,7 +27,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public SushiLevelData CurrentLevel { get; private set; }
     public bool IsPlaying { get; private set; }
     public bool IsPopupOpen => popupCount > 0 || PendingRevive != SushiReviveReason.None;
-    public bool CanInteract => IsPlaying && !IsPopupOpen;
+    public bool CanInteract => IsPlaying && !IsPopupOpen && !tutorialHold;
     public SushiReviveReason PendingRevive { get; private set; }
     public Customer ExpiredCustomer { get; private set; }
     public int ReviveCost => reviveCount == 0 ? 300 : 600;
@@ -49,6 +49,9 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     private int reviveCount;
     private int loadVersion;
     private bool pauseApplied;
+    private bool tutorialHold;
+    private bool gameplayHudShown;
+    public bool IsTutorialHeld => tutorialHold;
     private bool awaitingAd;
     private float previousTimeScale = 1;
     public bool isPlay = false;
@@ -66,6 +69,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     private void OnDisable()
     {
+        GetComponent<SushiLevelOneTutorial>()?.Cancel();
         if (customerManager != null) customerManager.OnRushExpired -= HandleRushExpired;
         if (pauseApplied) Time.timeScale = previousTimeScale;
         pauseApplied = false;
@@ -87,20 +91,26 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         ApplyPopupPause();
     }
 
+    public void SetTutorialHold(bool held)
+    {
+        tutorialHold = held;
+        ApplyPopupPause();
+    }
+
     private void ApplyPopupPause()
     {
-        if (IsPopupOpen && !pauseApplied)
+        if ((IsPopupOpen || tutorialHold) && !pauseApplied)
         {
             previousTimeScale = Time.timeScale;
             Time.timeScale = 0;
             pauseApplied = true;
         }
-        else if (!IsPopupOpen && pauseApplied)
+        else if (!IsPopupOpen && !tutorialHold && pauseApplied)
         {
             Time.timeScale = previousTimeScale;
             pauseApplied = false;
         }
-        if (conveyorManager != null) conveyorManager.SetPaused(IsPopupOpen || !IsPlaying);
+        if (conveyorManager != null) conveyorManager.SetPaused(IsPopupOpen || tutorialHold || !IsPlaying);
     }
 
     private void HandleRushExpired(Customer customer)
@@ -177,7 +187,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         LoadLevel(Mathf.Clamp(index, 0, Mathf.Max(0, LevelCount - 1)));
     }
 
-    public void LoadLevel(int levelIndex)
+    public void LoadLevel(int levelIndex, bool openGameplayHud = true)
     {
         if (boardManager == null ||
             customerManager == null ||
@@ -211,6 +221,8 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
         // Tạo dữ liệu mới trước khi dọn màn cũ.
         List<FoodQueueData> boardData = levelData.CreateBoardData();
+        GetComponent<SushiLevelOneTutorial>()?.Cancel();
+        gameplayHudShown = false;
 
         if (showGameplayHud && UIManager.Ins != null)
         {
@@ -243,18 +255,25 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         isPlay = true;
         GameManager.ChangeScene(GameScene.GamePlay);
         GameManager.ChangeState(GameState.GamePlay);
-        if (showGameplayHud && UIManager.Ins != null)
-        {
-            UIManager.Ins.OpenUI<CanvasGamePlay>();
-            UIManager.Ins.OpenUI<CanvasFloating>();
-        }
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
+        // Covered loads build the board first and reveal its HUD only after the loading canvas closes.
+        if (openGameplayHud) ShowGameplayHud();
         ApplyPopupPause();
+    }
+
+    public void ShowGameplayHud()
+    {
+        if (!IsPlaying || !showGameplayHud || UIManager.Ins == null || gameplayHudShown ||
+            (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return;
+        UIManager.Ins.OpenUI<CanvasGamePlay>();
+        UIManager.Ins.OpenUI<CanvasFloating>();
+        gameplayHudShown = true;
+        GetComponent<SushiLevelOneTutorial>()?.Prepare(this);
     }
 
     private void LateUpdate()
     {
-        if (!IsPlaying || IsPopupOpen)
+        if (!CanInteract)
             return;
 
         if (boardManager.AllRemainingHeadsFrozen())
@@ -336,6 +355,9 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     public void EnterMainMenu()
     {
+        GetComponent<SushiLevelOneTutorial>()?.Cancel();
+        tutorialHold = false;
+        gameplayHudShown = false;
         IsPlaying = false;
         isPlay = false;
         HasWon = false;

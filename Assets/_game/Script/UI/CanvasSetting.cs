@@ -19,8 +19,13 @@ public class CanvasSetting : UICanvas
     {
         base.Open();
         bool inGame = LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null;
+        bool allowHome = inGame && GameManager.ins != null && GameManager.ins.CanReturnHome;
         if (back_Bt != null) back_Bt.gameObject.SetActive(inGame);
-        if (homeBt != null) homeBt.gameObject.SetActive(inGame);
+        if (homeBt != null)
+        {
+            homeBt.interactable = allowHome;
+            homeBt.gameObject.SetActive(allowHome);
+        }
         if (resumeBt != null) resumeBt.GetComponentInChildren<TMP_Text>().text = inGame ? "Tiếp tục" : "Đóng";
         if (mainPanelRect != null)
         {
@@ -32,7 +37,12 @@ public class CanvasSetting : UICanvas
     public void OnReplayLevel() => OnReplay();
     public void OnReplay() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
     public void OnGiveUp() { CloseDirectly(); LevelManager.Ins?.LoseLevel(); }
-    public void OnBackHome() { CloseDirectly(); GameManager.ins?.ReturnToMainMenu(); }
+    public void OnBackHome()
+    {
+        // Also protect the callback against stale UI events and direct invocation.
+        if (GameManager.ins == null || !GameManager.ins.CanReturnHome || GameManager.ins.IsLoadingLevel) return;
+        GameManager.ins.ReturnToMainMenu();
+    }
     public void OnSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(true); }
     public void CloseSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(false); }
     public void BackInHome() => CloseDirectly();
