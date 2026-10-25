@@ -1,0 +1,32 @@
+Authored callback: Play <- Play level
+Authored callback: OpenShop <- Wallet
+Authored callback: OpenHome <- Home
+Authored callback: OpenLeaderboard <- Leaderboard
+Authored callback: OpenDecoration <- Decoration
+Authored callback: OpenSettings <- Settings
+Authored callback: OpenProfile <- Profile
+Capture: Documentation/MainMenuRefreshMainMenu_720x1280.png
+Capture: Documentation/MainMenuRefreshMainMenu_1080x2400.png
+Capture: Documentation/MainMenuRefreshMainMenu_1536x2048.png
+Pointer click: OpenShop
+Shop animation start: frame=65, selected=0, shopX=-1080.00, markerX=0.00, shopIconX=42.00, shopIconY=0.00, homeActive=True
+Shop animation intermediate: frame=66, selected=0, shopX=-1077.33, markerX=-0.89, shopIconX=27.07, shopIconY=9.24, homeActive=True
+Shop animation end: frame=94, selected=0, shopX=0.00, markerX=-360.00, shopIconX=0.00, shopIconY=26.00, homeActive=False
+Capture: Documentation/MainMenuRefreshShop_720x1280.png
+Pointer click: OpenLeaderboard
+Capture: Documentation/MainMenuRefreshLeaderboard_720x1280.png
+Pointer click: OpenProfile
+Capture: Documentation/MainMenuRefreshProfile_720x1280.png
+Pointer click: CloseProfile
+Pointer click: OpenShop
+Pointer click: OpenLeaderboard
+Pointer click: OpenHome
+Rapid Shop Leaderboard Home settled: frame=193, selected=1, shopX=-1080.00, markerX=0.00, shopIconX=0.00, shopIconY=0.00, homeActive=True
+Capture: Documentation/MainMenuRefreshHomeAfterRapidTabs_720x1280.png
+Pointer click: OpenDecoration
+Capture: Documentation/MainMenuRefreshDecoration_720x1280.png
+PASS: Loading enters GamePlay and opens only MainMenu; no level, ingredients, customers or conveyor slots initialized.
+PASS: Seven authored button callbacks are present; navigation tested through real pointer-click handlers.
+PASS: Page slide, marker translation, sideways icon entry and lift observed between real player frames, then correct final transforms.
+PASS: Rapid Shop > Leaderboard > Home leaves only home visible and selected.
+PASS: Actual MainMenu captured at 720x1280, 1080x2400, 1536x2048; Shop, Leaderboard and post-rapid Home at 720x1280.

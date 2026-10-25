@@ -187,9 +187,10 @@ public class GameManager : MonoBehaviour
         StartCoroutine(ie_LoadGame());
     }
 
+    public bool IsLoadingLevel { get; private set; }
+
     private IEnumerator ie_LoadGame()
     {
-        yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded && UIManager.Ins != null);
         Time.timeScale = 1;
         LoadingScreen loading = LoadingScreen.ins;
         if (loading != null)
@@ -197,24 +198,73 @@ public class GameManager : MonoBehaviour
             loading.SetPercent(0.15f, 0.15f);
             loading.StartCoroutine(loading.ie_txtLoading());
         }
+        yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded && UIManager.Ins != null);
+        // Load the scene systems first, while the startup cover remains visible.
+        if (loading != null)
+        {
+            DontDestroyOnLoad(loading.gameObject);
+            loading.SetPercent(0.55f, 0.2f);
+        }
         Scene scene = SceneManager.GetSceneByName("GamePlay");
         if (!scene.IsValid() || !scene.isLoaded)
+            yield return SceneManager.LoadSceneAsync("GamePlay");
+        if (loading != null) loading.SetPercent(1, 0.2f);
+        yield return new WaitForSecondsRealtime(0.25f);
+        ReturnToMainMenu();
+        if (loading != null) { loading.Close(); Destroy(loading.gameObject); }
+    }
+
+    // Loading prepares the profile and home UI. Only a deliberate Level button press enters gameplay.
+    public bool StartCurrentLevel()
+    {
+        if (IsLoadingLevel || !IsScene(GameScene.Home) || DataManager.ins == null ||
+            !DataManager.ins.isLoaded || UIManager.Ins == null) return false;
+        IsLoadingLevel = true;
+        StartCoroutine(LoadSelectedLevel());
+        return true;
+    }
+
+    private IEnumerator LoadSelectedLevel()
+    {
+        CanvasTransit transit = null;
+        try
         {
-            AsyncOperation operation = SceneManager.LoadSceneAsync("GamePlay");
-            operation.allowSceneActivation = false;
-            while (operation.progress < 0.9f)
+            LevelManager level = LevelManager.Ins;
+            if (level == null)
             {
-                if (loading != null) loading.SetPercent(0.15f + operation.progress / 0.9f * 0.8f, 0.1f);
-                yield return null;
+                Debug.LogError("GamePlay scene is missing its LevelManager.");
+                yield break;
             }
-            if (loading != null) loading.SetPercent(1, 0.2f);
-            yield return new WaitForSecondsRealtime(0.25f);
-            operation.allowSceneActivation = true;
-            yield return operation;
+            int index = GameDataFragment.cur != null && !isPlayTestingLevel
+                ? GameDataFragment.cur.dataPlayer.cur_level : level.CurrentLevelIndex;
+            index = Mathf.Clamp(index, 0, Mathf.Max(0, level.LevelCount - 1));
+            transit = UIManager.Ins.OpenUI<CanvasTransit>();
+            // Real frames show the cover before the board and customers are initialized.
+            yield return transit.CoverLevel(index);
+            level.LoadLevel(index);
+            if (!level.IsPlaying) yield break;
+            // Keep gameplay paused under the cover while layout and world sprites settle.
+            yield return null;
+            yield return null;
+            yield return transit.RevealLevel(false);
         }
-        else if (loading != null) loading.Close();
-        ChangeScene(GameScene.GamePlay);
-        ChangeState(GameState.GamePlay);
+        finally
+        {
+            if (transit != null) transit.CloseDirectly();
+            IsLoadingLevel = false;
+            if (this != null && (LevelManager.Ins == null || !LevelManager.Ins.IsPlaying))
+                ReturnToMainMenu();
+        }
+    }
+    public void ReturnToMainMenu()
+    {
+        if (IsLoadingLevel || UIManager.Ins == null) return;
+        UIManager.Ins.CloseAll();
+        LevelManager.Ins?.EnterMainMenu();
+        Time.timeScale = 1;
+        ChangeScene(GameScene.Home);
+        ChangeState(GameState.MainMenu);
+        UIManager.Ins.OpenUI<CanvasMainMenu>();
     }
 
     private void OnDestroy() { if (ins == this) ins = null; }

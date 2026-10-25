@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,9 @@ public static class SushiProjectUIRegression
     private const string Key = "SushiProjectUIRegression.Pending";
     private const string Started = "SushiProjectUIRegression.Started";
     private static int readyFrame;
+    private static int firstLoadVersion;
+    private static bool transitionCaptured;
+    private static IEnumerator checks;
     static SushiProjectUIRegression() => EditorApplication.update += Update;
 
     public static void RunBatch()
@@ -26,7 +30,13 @@ public static class SushiProjectUIRegression
         if (!Application.isBatchMode || PlayerSettings.productName != "Sushi UI Verification")
             throw new InvalidOperationException("Run only in the isolated Sushi UI Verification project.");
         SushiProjectUISetup.Setup();
+        SushiMainMenuSetup.Setup();
         EditorSceneManager.OpenScene("Assets/_game/Scenes/Loading.unity");
+        UICheat cheat = Object.FindFirstObjectByType<UICheat>();
+        Canvas cheatCanvas = cheat != null ? cheat.GetComponentInParent<Canvas>().rootCanvas : null;
+        SessionState.SetBool(Key + ".CheatCanvas", cheatCanvas != null && cheatCanvas.enabled);
+        var cheatRaycaster = cheatCanvas != null ? cheatCanvas.GetComponent<GraphicRaycaster>() : null;
+        SessionState.SetBool(Key + ".CheatRaycaster", cheatRaycaster != null && cheatRaycaster.enabled);
         SessionState.SetFloat(Started, (float)EditorApplication.timeSinceStartup);
         SessionState.SetInt(Key, 1);
         EditorApplication.isPlaying = true;
@@ -51,6 +61,9 @@ public static class SushiProjectUIRegression
         SushiVisualCapture.CaptureSet("ProjectUI" + label, level);
     }
 
+    private static int LoadVersion(LevelManager level) => (int)typeof(LevelManager)
+        .GetField("loadVersion", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(level);
+
     private static void Update()
     {
         int phase = SessionState.GetInt(Key, 0);
@@ -59,38 +72,120 @@ public static class SushiProjectUIRegression
         {
             if (EditorApplication.timeSinceStartup - SessionState.GetFloat(Started, 0) > 180)
                 throw new TimeoutException("Loading/UI integration timed out.");
-            if (!Application.isPlaying || SceneManager.GetActiveScene().name != "GamePlay" ||
-                LevelManager.Ins == null || LevelManager.Ins.CurrentLevel == null) return;
-            LevelManager level = LevelManager.Ins;
+            if (!Application.isPlaying || UIManager.Ins == null || GameManager.ins == null ||
+                DataManager.ins == null || !DataManager.ins.isLoaded) return;
+            UIManager ui = UIManager.Ins;
             if (phase == 1)
             {
+                if (!ui.IsOpened<CanvasMainMenu>()) return;
+                CheckColdMenu();
                 Check(Application.persistentDataPath.Contains("Sushi UI Verification"), "Test must never write the user's save directory.");
-                Check(DataManager.ins.isLoaded && level.LevelCount == DataManager.ins.allLevelData.listAllLevel.Count, "Loading did not wait for the shared level data.");
                 var player = GameDataFragment.cur.dataPlayer;
                 player.cur_level = 0; player.money = 1000; player.boosterClick = 2; player.boosterSuffle = 2; player.boosterHut = 2;
                 GameManager.ins.isPlayTestingLevel = false;
-                level.LoadLevel(0);
                 readyFrame = Time.frameCount + 8;
+                transitionCaptured = false;
+                checks = null;
                 SessionState.SetInt(Key, 2);
                 return;
             }
+            if (phase == 2)
+            {
+                if (Time.frameCount < readyFrame) return;
+                CheckColdMenu();
+                firstLoadVersion = LoadVersion(LevelManager.Ins);
+                CanvasMainMenu menu = ui.GetUI<CanvasMainMenu>();
+                menu.Play();
+                menu.Play();
+                Check(GameManager.ins.IsLoadingLevel, "Level button did not begin the explicit gameplay transition.");
+                Check(ui.IsOpened<CanvasTransit>() && LevelManager.Ins.CurrentLevel == null,
+                    "UICTransis must open before the level is initialized.");
+                Check(!LevelManager.Ins.CanInteract && Time.timeScale == 0, "Level transition did not block gameplay.");
+                SessionState.SetInt(Key, 3);
+                return;
+            }
+            if (phase == 3)
+            {
+                Check(SceneManager.GetActiveScene().name == "GamePlay" && LevelManager.Ins != null,
+                    "Play must reuse the GamePlay scene prepared by Loading.");
+                LevelManager level = LevelManager.Ins;
+                if (GameManager.ins.IsLoadingLevel)
+                {
+                    Check(ui.IsOpened<CanvasTransit>() && !level.CanInteract && Time.timeScale == 0,
+                        "Gameplay became interactive before the transition revealed the level.");
+                    if (level.CurrentLevel == null)
+                        Check(level.Board.FoodQueues.Count == 0 && level.Conveyor.Slots.Count == 0,
+                            "Ingredients appeared before the transition prepared the level.");
+                    CanvasTransit transit = ui.GetUI<CanvasTransit>();
+                    if (!transitionCaptured && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                        transit.fill != null && transit.fill.fillAmount > 0.2f && transit.fill.fillAmount < 0.7f)
+                    {
+                        SushiMainMenuCapture.Capture("LevelTransition_720x1280", 720, 1280);
+                        transitionCaptured = true;
+                    }
+                    return;
+                }
+                Check(level.CurrentLevel != null && level.CanInteract && Time.timeScale == 1,
+                    "The completed transition did not release gameplay.");
+                Check(level.LevelCount == DataManager.ins.allLevelData.listAllLevel.Count, "Gameplay did not use shared level data.");
+                Check(LoadVersion(level) == firstLoadVersion + 1, "Repeated Level button clicks initialized gameplay more than once.");
+                Check(!ui.IsOpened<CanvasMainMenu>() && !ui.IsOpened<CanvasTransit>(),
+                    "Menu or transition remained open during gameplay.");
+                readyFrame = Time.frameCount + 8;
+                SessionState.SetInt(Key, 4);
+                return;
+            }
+            // The suite returns Home and awaits transitions; do not require a loaded level here.
             if (Time.frameCount < readyFrame) return;
+            if (checks == null) checks = RunChecks(LevelManager.Ins);
+            if (checks.MoveNext()) return;
+            (checks as IDisposable)?.Dispose();
+            checks = null;
             SessionState.SetInt(Key, 0);
-            RunChecks(level);
-            File.WriteAllText("ProjectUIRegressionResults.txt", "PASS: Loading, shared levels, prefab binding, HUD input, nested pause, boosters, coin revive, lose/retry, win/reward/next, final level.\n");
+            File.WriteAllText("ProjectUIRegressionResults.txt", "PASS: Loading to empty GamePlay/MainMenu, explicit Level button, UICTransis before level initialization and reveal, repeated-click guard, shared levels, prefab binding, HUD input, nested pause, boosters, coin revive, lose/retry, win/reward/next, final level, return home, asynchronous rejected/invalid startup recovery, canvas scale restoration, clean re-entry/replay.\n");
             Debug.Log("PROJECT_UI_REGRESSION_OK");
             EditorApplication.Exit(0);
         }
         catch (Exception error)
         {
             SessionState.SetInt(Key, 0);
+            try { (checks as IDisposable)?.Dispose(); }
+            finally { checks = null; }
             Debug.LogException(error);
             File.WriteAllText("ProjectUIRegressionResults.txt", "FAIL\n" + error);
             EditorApplication.Exit(1);
         }
     }
 
-    private static void RunChecks(LevelManager level)
+    private static void CheckColdMenu()
+    {
+        UIManager ui = UIManager.Ins;
+        Check(SceneManager.GetActiveScene().name == "GamePlay", "Loading did not prepare the GamePlay scene before Home.");
+        LevelManager level = LevelManager.Ins;
+        Check(level != null && level.Board != null && level.Conveyor != null,
+            "Cold home is missing its prepared gameplay systems.");
+        Check(!level.IsPlaying && !level.CanInteract && level.CurrentLevel == null && level.totalPlayTime == 0,
+            "Cold home started a level or gameplay timer.");
+        Check(level.Board.FoodQueues.Count == 0 && level.Conveyor.Slots.Count == 0 &&
+            level.Conveyor.Customers.TotalCustomers == 0, "Cold home initialized ingredients, conveyor plates, or customers.");
+        Check(GameManager.IsScene(GameScene.Home) && GameManager.IsState(GameState.MainMenu), "Cold home has the wrong navigation state.");
+        CanvasScaler homeScaler = ui.GetUI<CanvasMainMenu>().GetComponent<Canvas>().rootCanvas.GetComponent<CanvasScaler>();
+        Check(homeScaler.screenMatchMode == CanvasScaler.ScreenMatchMode.MatchWidthOrHeight && homeScaler.matchWidthOrHeight == 0,
+            "Home must use the root canvas width policy on phones and tablets.");
+        Check(ui.IsOpened<CanvasMainMenu>() && !ui.IsOpened<CanvasGamePlay>() && !ui.IsOpened<CanvasFloating>(), "Cold home opened gameplay UI.");
+        Check(!GameManager.ins.IsLoadingLevel && Time.timeScale == 1, "Cold home retained a loading or pause state.");
+        if (UICheat.Ins != null)
+        {
+            Canvas cheatCanvas = UICheat.Ins.GetComponentInParent<Canvas>().rootCanvas;
+            var raycaster = cheatCanvas.GetComponent<GraphicRaycaster>();
+            Check(!cheatCanvas.enabled && (raycaster == null || !raycaster.enabled), "Debug overlay obscures or intercepts the menu.");
+        }
+        Check(LoadingScreen.ins == null || !LoadingScreen.ins.gameObject.activeInHierarchy, "Loading cover did not close before home.");
+        Check(EditorBuildSettings.scenes.Length >= 2 && EditorBuildSettings.scenes[0].path.EndsWith("/Loading.unity"),
+            "The player must launch from Loading.");
+    }
+
+    private static IEnumerator RunChecks(LevelManager level)
     {
         UIManager ui = UIManager.Ins;
         var player = GameDataFragment.cur.dataPlayer;
@@ -100,7 +195,17 @@ public static class SushiProjectUIRegression
         Check(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Length == 1, "Duplicate or missing EventSystem.");
         Check(Object.FindFirstObjectByType<SushiGameplayHud>() == null, "Legacy generated HUD is still enabled.");
         CanvasGamePlay hud = ui.GetUI<CanvasGamePlay>();
+        Check(hud.GetComponent<Canvas>().rootCanvas.GetComponent<CanvasScaler>().screenMatchMode == CanvasScaler.ScreenMatchMode.Expand,
+            "Leaving home must restore the gameplay canvas scale policy.");
         CanvasFloating floating = ui.GetUI<CanvasFloating>();
+        if (UICheat.Ins != null)
+        {
+            Canvas cheatCanvas = UICheat.Ins.GetComponentInParent<Canvas>().rootCanvas;
+            var raycaster = cheatCanvas.GetComponent<GraphicRaycaster>();
+            Check(cheatCanvas.enabled == SessionState.GetBool(Key + ".CheatCanvas", false) &&
+                (raycaster == null || raycaster.enabled == SessionState.GetBool(Key + ".CheatRaycaster", false)),
+                "Leaving home must restore the original debug overlay settings.");
+        }
         Canvas.ForceUpdateCanvases();
         Check(floating.GoldFr.transform.position.y > Screen.height * 0.8f,
             "The wallet must stay in the header, clear of conveyor and ingredients.");
@@ -169,10 +274,105 @@ public static class SushiProjectUIRegression
         level.LoadLevel(level.LevelCount - 1); Invoke(level, "CompleteLevel");
         Click(ui.GetUI<CanvasVictory>(), "Content/Victory card/Claim and next");
         Check(level.CurrentLevelIndex == level.LevelCount - 1 && level.CanInteract, "Last level navigated outside AllLevelData.");
+        ui.OpenUI<CanvasSetting>();
+        ui.OpenUI<CanvasFail>();
+        Check(Time.timeScale == 0, "Home teardown test requires nested paused popups.");
+        ui.GetUI<CanvasSetting>().OnBackHome();
+        Check(ui.IsOpened<CanvasMainMenu>() && !ui.IsOpened<CanvasGamePlay>() &&
+            !ui.IsOpened<CanvasFloating>() && !ui.IsOpened<CanvasSetting>() && !ui.IsOpened<CanvasFail>(), "Home did not close gameplay and its popups.");
+        Check(!level.IsPlaying && !level.IsPopupOpen && level.CurrentLevel == null && level.totalPlayTime == 0,
+            "Home retained a running level, timer, or popup.");
+        Check(level.Board.FoodQueues.Count == 0 && level.Conveyor.Slots.Count == 0 &&
+            level.Conveyor.Customers.TotalCustomers == 0, "Home retained ingredients, conveyor plates, or customers.");
+        Check(Time.timeScale == 1 && GameManager.IsState(GameState.MainMenu), "Returning home left the app paused.");
+        player.cur_level = 0;
+        IEnumerator recovery = CheckStartupRecovery(level, ui);
+        try
+        {
+            while (recovery.MoveNext()) yield return recovery.Current;
+        }
+        finally { (recovery as IDisposable)?.Dispose(); }
+        CanvasMainMenu menu = ui.GetUI<CanvasMainMenu>();
+        int reentryVersion = LoadVersion(level);
+        menu.Play();
+        menu.Play();
+        Check(GameManager.ins.IsLoadingLevel && ui.IsOpened<CanvasTransit>(),
+            "Re-entering gameplay did not show UICTransis.");
+        while (GameManager.ins.IsLoadingLevel) yield return null;
+        Check(level.CanInteract && level.CurrentLevelIndex == 0 && Time.timeScale == 1 &&
+            !ui.IsOpened<CanvasTransit>(), "Level button could not re-enter after returning home.");
+        Check(LoadVersion(level) == reentryVersion + 1, "Repeated re-entry clicks initialized the level more than once.");
+        FoodQueue firstQueue = level.Board.FoodQueues[0];
+        menu.Play();
+        Check(level.Board.FoodQueues[0] == firstQueue, "A second Level click restarted the already entered level.");
+        ui.OpenUI<CanvasSetting>();
+        ui.GetUI<CanvasSetting>().OnReplay();
+        Check(level.CanInteract && Time.timeScale == 1 && !ui.IsOpened<CanvasSetting>(), "Replay retained paused menu state.");
         GameDataFragment.cur.Save();
         int savedLevel = player.cur_level; int savedMoney = player.money;
         GameDataFragment.cur.Load();
         Check(GameDataFragment.cur.dataPlayer.cur_level == savedLevel && GameDataFragment.cur.dataPlayer.money == savedMoney, "Progress or wallet did not persist.");
+    }
+
+    private static IEnumerator CheckStartupRecovery(LevelManager level, UIManager ui)
+    {
+        CanvasMainMenu menu = ui.GetUI<CanvasMainMenu>();
+        var playButton = (Button)typeof(CanvasMainMenu).GetField("playButton",
+            BindingFlags.Instance | BindingFlags.NonPublic).GetValue(menu);
+        // A ready button can race with an unavailable service. A rejected request must release its latch.
+        DataManager.ins.isLoaded = false;
+        try { menu.Play(); }
+        finally { DataManager.ins.isLoaded = true; }
+        menu.RefreshLevelMap();
+        Check(playButton.interactable && !GameManager.ins.IsLoadingLevel, "A rejected Level request locked the menu.");
+
+        var levels = DataManager.ins.allLevelData.listAllLevel;
+        SushiLevelData original = levels[0];
+        SushiLevelData invalid = Object.Instantiate(original);
+        invalid.beltSlots = 0;
+        var expectedLog = new ExpectedErrorLogHandler(Debug.unityLogger.logHandler, invalid.ValidateData());
+        try
+        {
+            levels[0] = invalid;
+            Debug.unityLogger.logHandler = expectedLog;
+            menu.Play();
+            Check(GameManager.ins.IsLoadingLevel && ui.IsOpened<CanvasTransit>(),
+                "Invalid-level startup must still enter the transition before validation.");
+            while (GameManager.ins.IsLoadingLevel) yield return null;
+            Check(expectedLog.Count == 1, "Invalid level startup did not report its validation error.");
+        }
+        finally
+        {
+            Debug.unityLogger.logHandler = expectedLog.Inner;
+            levels[0] = original;
+            Object.DestroyImmediate(invalid);
+        }
+        menu.RefreshLevelMap();
+        Check(ui.IsOpened<CanvasMainMenu>() && playButton.interactable && !GameManager.ins.IsLoadingLevel &&
+            !ui.IsOpened<CanvasTransit>() && !level.IsPlaying && level.CurrentLevel == null && Time.timeScale == 1,
+            "Failed level startup did not restore a usable, unpaused home menu.");
+        menu.SelectTab(0);
+        Check(menu.SelectedTab == 0, "Failed level startup left tab navigation locked.");
+        menu.SelectTab(1);
+        Check(menu.SelectedTab == 1, "Home tab could not recover after failed startup.");
+    }
+
+    private sealed class ExpectedErrorLogHandler : ILogHandler
+    {
+        public readonly ILogHandler Inner;
+        private readonly string expected;
+        public int Count { get; private set; }
+        public ExpectedErrorLogHandler(ILogHandler inner, string expected)
+        {
+            Inner = inner;
+            this.expected = expected;
+        }
+        public void LogFormat(LogType type, Object context, string format, params object[] arguments)
+        {
+            if (type == LogType.Error && string.Format(format, arguments) == expected) { Count++; return; }
+            Inner.LogFormat(type, context, format, arguments);
+        }
+        public void LogException(Exception error, Object context) => Inner.LogException(error, context);
     }
 
     private static string[] Required(UICanvas view) => view is CanvasGamePlay

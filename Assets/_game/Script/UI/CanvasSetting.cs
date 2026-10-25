@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class CanvasSetting : UICanvas
@@ -14,19 +15,24 @@ public class CanvasSetting : UICanvas
     public GameObject panelSettingLanguage;
     public RectTransform mainPanelRect;
 
+    public override void Open()
+    {
+        base.Open();
+        bool inGame = LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null;
+        if (back_Bt != null) back_Bt.gameObject.SetActive(inGame);
+        if (homeBt != null) homeBt.gameObject.SetActive(inGame);
+        if (resumeBt != null) resumeBt.GetComponentInChildren<TMP_Text>().text = inGame ? "Tiếp tục" : "Đóng";
+        if (mainPanelRect != null)
+        {
+            var title = mainPanelRect.Find("Title")?.GetComponent<TMP_Text>();
+            if (title != null) title.text = inGame ? "Tạm dừng" : "Cài đặt";
+        }
+    }
     public void OnResume() => CloseDirectly();
     public void OnReplayLevel() => OnReplay();
-    public void OnReplay()
-    {
-        CloseDirectly();
-        LevelManager.Ins?.ReplayLevel();
-    }
-    public void OnGiveUp()
-    {
-        CloseDirectly();
-        LevelManager.Ins?.LoseLevel();
-    }
-    public void OnBackHome() => OnGiveUp();
+    public void OnReplay() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
+    public void OnGiveUp() { CloseDirectly(); LevelManager.Ins?.LoseLevel(); }
+    public void OnBackHome() { CloseDirectly(); GameManager.ins?.ReturnToMainMenu(); }
     public void OnSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(true); }
     public void CloseSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(false); }
     public void BackInHome() => CloseDirectly();

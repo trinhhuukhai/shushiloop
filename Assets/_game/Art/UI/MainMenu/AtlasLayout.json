@@ -1,0 +1,92 @@
+{
+    "version":  1,
+    "coordinateOrigin":  "bottom-left",
+    "trimAlphaThreshold":  48,
+    "paddingPixels":  2,
+    "atlases":  [
+                    {
+                        "file":  "MainMenuRestaurant.png",
+                        "width":  941,
+                        "height":  1672,
+                        "sprites":  [
+                                        {
+                                            "name":  "RestaurantBackground",
+                                            "x":  0,
+                                            "y":  0,
+                                            "width":  941,
+                                            "height":  1672
+                                        }
+                                    ]
+                    },
+                    {
+                        "file":  "UIIconsAtlas.png",
+                        "width":  1254,
+                        "height":  1254,
+                        "sprites":  [
+                                        {
+                                            "name":  "Avatar",
+                                            "x":  51,
+                                            "y":  808,
+                                            "width":  340,
+                                            "height":  400
+                                        },
+                                        {
+                                            "name":  "Coin",
+                                            "x":  460,
+                                            "y":  835,
+                                            "width":  330,
+                                            "height":  332
+                                        },
+                                        {
+                                            "name":  "Heart",
+                                            "x":  865,
+                                            "y":  852,
+                                            "width":  346,
+                                            "height":  285
+                                        },
+                                        {
+                                            "name":  "Star",
+                                            "x":  57,
+                                            "y":  461,
+                                            "width":  331,
+                                            "height":  311
+                                        },
+                                        {
+                                            "name":  "Gear",
+                                            "x":  471,
+                                            "y":  451,
+                                            "width":  311,
+                                            "height":  320
+                                        },
+                                        {
+                                            "name":  "Shop",
+                                            "x":  892,
+                                            "y":  443,
+                                            "width":  317,
+                                            "height":  349
+                                        },
+                                        {
+                                            "name":  "Home",
+                                            "x":  41,
+                                            "y":  70,
+                                            "width":  359,
+                                            "height":  326
+                                        },
+                                        {
+                                            "name":  "Trophy",
+                                            "x":  457,
+                                            "y":  62,
+                                            "width":  343,
+                                            "height":  346
+                                        },
+                                        {
+                                            "name":  "Decoration",
+                                            "x":  869,
+                                            "y":  64,
+                                            "width":  341,
+                                            "height":  346
+                                        }
+                                    ]
+                    }
+                ]
+}

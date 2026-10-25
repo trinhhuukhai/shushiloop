@@ -125,11 +125,11 @@ public class UIManager : MonoBehaviour
 
     //Close all UI
     //dong tat ca UI ngay lap tuc -> tranh truong hop dang mo UI nao dong ma bi chen 2 UI cung mot luc
-    public void CloseAll()
+    public void CloseAll(UICanvas except = null)
     {
         foreach (var item in uiCanvas)
         {
-            if (item.Value != null && item.Value.gameObject.activeInHierarchy)
+            if (item.Value != null && item.Value != except && item.Value.gameObject.activeInHierarchy)
             {
                 item.Value.CloseDirectly();
             }

@@ -25,6 +25,11 @@ public class LoadingScreen : MonoBehaviour
         ins = this;
     }
 
+    private void OnDestroy()
+    {
+        if (ins == this) ins = null;
+    }
+
     private void OnDisable()
     {
         if (imgProgress != null)
@@ -34,9 +39,10 @@ public class LoadingScreen : MonoBehaviour
     }
     public void SetPercent(float to, float time)
     {
+        if (imgProgress == null) return;
         imgProgress.DOKill();
 
-        imgProgress.DOFillAmount(to, time)
+        imgProgress.DOFillAmount(Mathf.Clamp01(to), time)
             .SetEase(Ease.Linear).SetUpdate(true);
     }
 
@@ -46,13 +52,13 @@ public class LoadingScreen : MonoBehaviour
         {
             if (txt_loading == null) yield break;
             txt_loading.text = "Loading";
-            yield return Cache.GetWFS(0.25f);
+            yield return new WaitForSecondsRealtime(0.25f);
             txt_loading.text = "Loading.";
-            yield return Cache.GetWFS(0.25f);
+            yield return new WaitForSecondsRealtime(0.25f);
             txt_loading.text = "Loading..";
-            yield return Cache.GetWFS(0.25f);
+            yield return new WaitForSecondsRealtime(0.25f);
             txt_loading.text = "Loading...";
-            yield return Cache.GetWFS(0.25f);
+            yield return new WaitForSecondsRealtime(0.25f);
         }
     }
 

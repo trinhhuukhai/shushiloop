@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -52,7 +52,7 @@ public class CanvasFail : UICanvas
     }
     public void CheckBtnRetry() => BtnNext();
     public void OnNextRetryWhenAddLive() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
-    public void BtnHome() => BtnNext();
+    public void BtnHome() { CloseDirectly(); GameManager.ins?.ReturnToMainMenu(); }
     public void OnHandTouchPanel() { if (grandCg != null) grandCg.alpha = 0.2f; }
     public void OnHAndReleasePanel() { if (grandCg != null) grandCg.alpha = 1; }
     public void Close() => CloseDirectly();

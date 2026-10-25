@@ -168,6 +168,9 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         }
         if (DataManager.ins != null)
             yield return new WaitUntil(() => DataManager.ins == null || DataManager.ins.isLoaded);
+        // GameManager owns normal app navigation; loading a scene must not start a game by itself.
+        // Standalone gameplay tests/dev scenes can still auto-start with the HUD disabled.
+        if (showGameplayHud && GameManager.ins != null) yield break;
         int index = GameDataFragment.cur != null && DataManager.ins != null &&
             (GameManager.ins == null || !GameManager.ins.isPlayTestingLevel)
             ? GameDataFragment.cur.dataPlayer.cur_level : currentLevelIndex;
@@ -211,9 +214,8 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
         if (showGameplayHud && UIManager.Ins != null)
         {
-            UIManager.Ins.CloseUI<CanvasVictory>();
-            UIManager.Ins.CloseUI<CanvasFail>();
-            UIManager.Ins.CloseUI<CanvasSetting>();
+            UIManager.Ins.CloseAll(UIManager.Ins.IsOpened<CanvasTransit>()
+                ? UIManager.Ins.GetUI<CanvasTransit>() : null);
         }
         rewardClaimed = false;
         totalPlayTime = 0;
@@ -330,6 +332,30 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         rewardClaimed = true;
         if (CanSaveProgress) GameDataFragment.cur.ChangeMoney(victoryReward, "win");
         return true;
+    }
+
+    public void EnterMainMenu()
+    {
+        IsPlaying = false;
+        isPlay = false;
+        HasWon = false;
+        PendingRevive = SushiReviveReason.None;
+        ExpiredCustomer = null;
+        awaitingAd = false;
+        rewardClaimed = false;
+        reviveCount = 0;
+        loadVersion++;
+        totalPlayTime = 0;
+        popupCount = 0;
+        if (pauseApplied) Time.timeScale = previousTimeScale;
+        pauseApplied = false;
+        previousTimeScale = 1;
+        CurrentLevel = null;
+        FindFirstObjectByType<FoodInputController>()?.CancelBooster();
+        // Release deliveries before destroying their customers and ingredient queues.
+        if (conveyorManager != null) conveyorManager.Clear();
+        if (customerManager != null) customerManager.ClearCustomers();
+        if (boardManager != null) boardManager.ClearBoard();
     }
 
     public void ReplayLevel()

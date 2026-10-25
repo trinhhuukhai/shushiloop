@@ -22,6 +22,12 @@ public class CanvasGamePlay : UICanvas
     [SerializeField] private Button nextLevel;
     private FoodInputController input;
 
+    private void Awake()
+    {
+        if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
+
+    }
+
     public override void Open()
     {
         base.Open();
