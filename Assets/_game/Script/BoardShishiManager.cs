@@ -74,36 +74,76 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return hasFood;
     }
 
+    public bool HasPendingMovement
+    {
+        get
+        {
+            foreach (FoodQueue column in foodQueues)
+                if (column.IsPickupPending || column.GetTopFood()?.IsRevealing == true) return true;
+            return false;
+        }
+    }
+
+    public bool HasAvailableTap(int freeSlots)
+    {
+        foreach (FoodQueue column in foodQueues)
+            if (TryBuildTap(column, null, false, out int requiredSlots) && requiredSlots <= freeSlots)
+                return true;
+        return false;
+    }
+
     public bool TryBuildTap(FoodQueue column, out List<FoodPickup> plan)
     {
         plan = new List<FoodPickup>();
+        return TryBuildTap(column, plan, true, out _);
+    }
+
+    // A null plan checks the same pickup rules without allocations or click feedback.
+    private bool TryBuildTap(FoodQueue column, List<FoodPickup> plan, bool showFeedback, out int requiredSlots)
+    {
+        requiredSlots = 0;
         if (column == null || column.Board != this || !column.isActiveAndEnabled || column.IsPickupPending) return false;
         FoodShushi top = column.GetTopFood();
         if (top == null) return false;
-        if (top.IceLayers > 0 || top.IsHidden || top.IsRevealing) { column.Shake(); return false; }
+        if (top.IceLayers > 0 || top.IsHidden || top.IsRevealing)
+        {
+            if (showFeedback) column.Shake();
+            return false;
+        }
         if (top.LinkId > 0)
         {
             FoodShushi partner = FindLinkPartner(top);
             if (partner == null || partner.Owner.IsPickupPending || partner.Owner.GetTopFood() != partner || !partner.CanPick())
             {
-                column.Shake();
-                partner?.Owner.Shake();
-                linkFlashUntil = Time.unscaledTime + 0.3f;
+                if (showFeedback)
+                {
+                    column.Shake();
+                    partner?.Owner.Shake();
+                    linkFlashUntil = Time.unscaledTime + 0.3f;
+                }
                 return false;
             }
-            plan.Add(new FoodPickup(top, top.Amount));
-            plan.Add(new FoodPickup(partner, partner.Amount));
+            requiredSlots = top.Amount + partner.Amount;
+            plan?.Add(new FoodPickup(top, top.Amount));
+            plan?.Add(new FoodPickup(partner, partner.Amount));
         }
         else if (top.TrayId > 0)
         {
             foreach (FoodShushi food in column.Foods)
             {
                 if (food.TrayId != top.TrayId) break;
-                plan.Add(new FoodPickup(food, food.Amount));
+                requiredSlots += food.Amount;
+                plan?.Add(new FoodPickup(food, food.Amount));
             }
         }
-        else if (top.CanPick()) plan.Add(new FoodPickup(top, top.Amount));
-        return plan.Count > 0;
+        else
+        {
+            if (!top.CanPick()) return false;
+            requiredSlots = top.Amount;
+            plan?.Add(new FoodPickup(top, top.Amount));
+        }
+        // Empty tray compartments left by a booster can still be cleared with zero slots.
+        return true;
     }
 
     public bool TryBuildChopsticks(FoodShushi food, out List<FoodPickup> plan)

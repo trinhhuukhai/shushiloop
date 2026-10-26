@@ -78,6 +78,35 @@ public partial class ConveyorManager : MonoBehaviour
 
     public int DeliveringCount => deliveringFoods.Count + servingDishes.Count;
     public CustomerManager Customers => customerManager;
+
+    public bool CanMakeProgress
+    {
+        get
+        {
+            if (deliveringFoods.Count > 0 || PreparingDishCount > 0 ||
+                (customerManager != null && customerManager.HasPendingTransitions)) return true;
+            // Partial dishes also live in servingDishes; only finished ones will leave on their own.
+            foreach (SushiPreparedDish dish in servingDishes)
+                if (dish != null && dish.IsReady) return true;
+            foreach (FoodShushi food in slotFoods.Values)
+            {
+                if (food == null) continue;
+                if (food.Location == FoodLocation.MovingToConveyor) return true;
+                if (food.Location != FoodLocation.Conveyor || customerManager == null) continue;
+                foreach (Customer customer in customerManager.ActiveCustomers)
+                {
+                    if (customer == null) continue;
+                    if (preparedDishPrefab != null && customer.Dishes.Count > 0)
+                    {
+                        foreach (SushiDishOrder dish in customer.Dishes)
+                            if (customer.CanReceivePreparedIngredient(dish, food.Type)) return true;
+                    }
+                    else if (customer.CanReceive(food.Type)) return true;
+                }
+            }
+            return false;
+        }
+    }
     public void Init(int count, float speed)
     {
         if (spline == null || slotPrefab == null || slotRoot == null || customerManager == null || flyingFoodRoot == null)

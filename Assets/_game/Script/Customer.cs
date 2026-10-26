@@ -38,13 +38,20 @@ public class Customer : MonoBehaviour
             !dish.IsComplete && !dish.IsOnTable;
     }
 
+    public bool CanReceivePreparedIngredient(SushiDishOrder dish, PoolType type)
+    {
+        if (!CanAssembleDish(dish) || dish.FindAvailableIngredient(type) == null) return false;
+        OrderItem order = FindOrder(type);
+        return order != null && order.CanReceive &&
+            (tableReservations.ContainsKey(dish) || FindFreeServingSlot() >= 0);
+    }
+
     public bool TryReservePreparedIngredient(SushiDishOrder dish, PoolType type, out Transform target)
     {
         target = null;
-        if (!CanAssembleDish(dish)) return false;
+        if (!CanReceivePreparedIngredient(dish, type)) return false;
         OrderItem ingredient = dish.FindAvailableIngredient(type);
         OrderItem order = FindOrder(type);
-        if (ingredient == null || order == null || !order.CanReceive) return false;
 
         if (!tableReservations.TryGetValue(dish, out int slotIndex))
         {

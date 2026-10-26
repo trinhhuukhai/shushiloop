@@ -58,6 +58,8 @@ public class CustomerManager : MonoBehaviour
     public int TotalCustomers { get; private set; }
     public int CompletedCustomers { get; private set; }
     public int WaitingCount => waitingCustomers.Count;
+    public bool HasPendingTransitions => finishingCustomers.Count > 0 ||
+        movingCustomers[0] != null || movingCustomers[1] != null;
 
     public bool AllCustomersCompleted =>
         TotalCustomers > 0 &&

@@ -37,6 +37,13 @@ public static class SushiGameplayRegression
         EditorApplication.isPlaying = true;
     }
 
+    public static void RunNoMovesBatch()
+    {
+        if (!Application.isBatchMode) throw new InvalidOperationException("Run gameplay checks in a separate batch-mode test project.");
+        SessionState.SetBool(PendingKey + ".NoMoves", true);
+        RunBatch();
+    }
+
     private static void OnPlayMode(PlayModeStateChange state)
     {
         if (state != PlayModeStateChange.EnteredPlayMode || !SessionState.GetBool(PendingKey, false)) return;
@@ -47,7 +54,44 @@ public static class SushiGameplayRegression
     {
         if (!EditorApplication.isPlaying || EditorApplication.isCompiling || !SessionState.GetBool(PendingKey, false)) return;
         SessionState.SetBool(PendingKey, false);
-        RunAll();
+        if (SessionState.GetBool(PendingKey + ".NoMoves", false))
+        {
+            SessionState.SetBool(PendingKey + ".NoMoves", false);
+            RunNoMovesChecks();
+        }
+        else RunAll();
+    }
+
+    private static void RunNoMovesChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            CreateFixture();
+            Run("quantity reserves separate slots and rejects overflow atomically", Quantity);
+            Run("rapid picks include in-flight reservations", RapidPicks);
+            Run("linked pair waits for both heads and takes total quantity", Linked);
+            Run("linked pair rejects insufficient capacity", LinkedOverflow);
+            Run("available taps count quantities, trays and ready links without feedback", AvailableTapRules);
+            Run("frozen heads require adjacent column taps", Frozen);
+            Run("rigid tray takes mixed quantities as one action", RigidTray);
+            Run("rush and popup pause gameplay", RushAndPopup);
+            Run("frozen revive waits for the deadlock grace period", Revive);
+            Run("deadlock delay resets for pause, valid moves and reload", NoMovesDelay);
+            Run("deliveries and customer transitions prevent premature failure", NoMovesProgress);
+            Run("partial plates cannot hide a permanent deadlock", PartialDishDeadlock);
+            Run("reload clears in-flight food and reservations", Reload);
+            Debug.Log("SUSHI_NO_MOVES_REGRESSION_OK: " + passed + " scenarios passed");
+            System.IO.File.WriteAllText("SushiNoMovesRegressionResults.txt", "PASS: " + passed + " scenarios\n");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            System.IO.File.WriteAllText("SushiNoMovesRegressionResults.txt", "FAIL after " + passed + " scenarios\n" + exception);
+            EditorApplication.Exit(1);
+        }
     }
 
     private static void RunAll()
@@ -67,6 +111,7 @@ public static class SushiGameplayRegression
             Run("pooled foods reset quantity, location and elements", PoolReset);
             Run("linked pair waits for both heads and takes total quantity", Linked);
             Run("linked pair rejects insufficient capacity without changing either column", LinkedOverflow);
+            Run("available taps count quantities, whole trays and ready links without click feedback", AvailableTapRules);
             Run("frozen tile loses one layer per adjacent column tap, only visible rows", Frozen);
             Run("chopsticks select visible non-frozen cells, reveal hidden food and release links", Chopsticks);
             Run("magnet completes the selected dish from a full belt and deep board ingredients", Magnet);
@@ -89,6 +134,9 @@ public static class SushiGameplayRegression
             Run("customer icons, waiting layout and deliveries follow the correct seat and moving target", CustomerDeliveryLayout);
             Run("rush timer starts at seat, continues during targeting and pauses in popup", RushAndPopup);
             Run("revive restores only expired customer, prices 300/600, or clears head ice", Revive);
+            Run("deadlock waits five seconds and resets for pause, valid moves and reload", NoMovesDelay);
+            Run("automatic deliveries and customer transitions prevent premature failure", NoMovesProgress);
+            Run("an incomplete serving plate cannot hide a full-belt deadlock", PartialDishDeadlock);
             Run("customer arrival order wins over rush status and seat index", ArrivalPriority);
             Run("level reload clears in-flight food and reservations", Reload);
             Run("booster selection, cancel, dish hit targets, immediate swap and reload follow the guide", BoosterControls);
@@ -430,6 +478,34 @@ public static class SushiGameplayRegression
         Check(!Tap(0), "linked overflow accepted");
         Check(Column(0).Count == 1 && Column(1).Count == 1 && conveyor.OccupiedSlotCount == 1, "partial linked pickup");
     }
+    private static void AvailableTapRules()
+    {
+        Load(6, new[] { Food(amount: 3) }, new[] { Food(ice: 1) });
+        Check(!board.HasAvailableTap(2) && board.HasAvailableTap(3), "quantity or ice ignored by move check");
+        Check(Get<Tween>(Column(1), "shakeTween") == null, "move check shook frozen column");
+
+        Load(6, new[] { Food(amount: 2, link: 1) }, new[] { Food(ice: 1), Food(amount: 3, link: 1) });
+        Check(!board.HasAvailableTap(6), "buried link partner counted as a move");
+        Check(Get<Tween>(Column(0), "shakeTween") == null &&
+            Get<Tween>(Column(1), "shakeTween") == null, "move check shook linked columns");
+
+        Load(6, new[] { Food(amount: 2, link: 1) }, new[] { Food(amount: 3, link: 1) });
+        Check(!board.HasAvailableTap(4) && board.HasAvailableTap(5), "link did not require both quantities");
+
+        Load(6, new[] { Food(amount: 2, tray: 1), Food(amount: 3, tray: 1) });
+        Check(!board.HasAvailableTap(4) && board.HasAvailableTap(5), "tray did not require the whole group");
+        foreach (FoodShushi food in Column(0).Foods) Set(food, "amount", 0);
+        Check(board.HasAvailableTap(0) && Tap(0), "empty booster tray could not be cleared");
+        Check(board.HasPendingMovement, "departing tray was treated as a settled board");
+        Advance();
+        Check(!board.HasPendingMovement && board.IsEmpty(), "empty tray failed to settle");
+
+        Load(1, new[] { Food(hidden: true) });
+        Check(board.HasPendingMovement && !board.HasAvailableTap(1), "reveal was treated as a ready move");
+        Advance();
+        Check(!board.HasPendingMovement && board.HasAvailableTap(1), "revealed head stayed blocked");
+    }
+
     private static void Frozen()
     {
         Load(8, new[] { Food(amount: 3), Food(PoolType.Egg), Food(), Food(), Food() },
@@ -1034,10 +1110,142 @@ public static class SushiGameplayRegression
         customers.TickRush(40); Check(!level.TryReviveWithCoins() && level.IsPopupOpen, "unpaid revive allowed");
         level.TryReviveWithAd(); Check(!level.IsPopupOpen && first.RushRemaining == 30, "rewarded revive failed");
         Load(6, new[] { Food(ice: 3), Food(ice: 4) }, new[] { Food(ice: 2) });
-        Invoke(level, "LateUpdate"); Check(level.PendingRevive == SushiReviveReason.FrozenHeads, "frozen deadlock undetected");
+        CheckLevelState(4);
+        Check(level.PendingRevive == SushiReviveReason.None, "frozen deadlock skipped the grace period");
+        CheckLevelState(1);
+        Check(level.PendingRevive == SushiReviveReason.FrozenHeads, "frozen deadlock undetected");
         level.TryReviveWithAd();
         Check(Column(0).Foods[0].IceLayers == 0 && Column(1).Foods[0].IceLayers == 0 && Column(0).Foods[1].IceLayers == 4, "revive cleared non-head ice");
     }
+    private static void CheckLevelState(float seconds) => typeof(LevelManager)
+        .GetMethod("CheckLevelState", BindingFlags.Instance | BindingFlags.NonPublic)
+        .Invoke(level, new object[] { seconds });
+
+    private static void NoMovesDelay()
+    {
+        level.LoadLevel(0);
+        Check(Get<float>(level, "noMovesLoseDelay") == 5f, "default loss delay is not five seconds");
+        Load(1, new[] { Food(PoolType.Shrimp), Food(PoolType.Shrimp) });
+        Check(Tap(0), "full belt setup failed");
+        CheckLevelState(20);
+        Check(level.IsPlaying && Get<float>(level, "noMovesElapsed") == 0, "pickup flight triggered loss");
+        Advance();
+        Check(!conveyor.CanMakeProgress && !board.HasAvailableTap(conveyor.FreeSlotCount), "belt is not blocked");
+        CheckLevelState(4);
+        Check(level.IsPlaying, "lost before five seconds");
+        level.SetPopupOpen(true);
+        CheckLevelState(20);
+        Check(level.IsPlaying && Get<float>(level, "noMovesElapsed") == 0, "popup did not reset countdown");
+        level.SetPopupOpen(false);
+        CheckLevelState(4);
+        Check(level.IsPlaying, "pause retained the previous countdown");
+        CheckLevelState(1);
+        Check(!level.IsPlaying && GameManager.CurrentGameState == GameState.Fail, "full belt did not lose at five seconds");
+        CheckLevelState(20);
+        Check(!level.IsPlaying, "failure resumed gameplay");
+
+        level.LoadLevel(0);
+        Load(3, new[] { Food(PoolType.Shrimp, 2) }, new[] { Food(PoolType.Egg, 2), Food() });
+        Check(Tap(0), "partial capacity setup failed");
+        Advance();
+        CheckLevelState(4);
+        Check(level.IsPlaying && Get<float>(level, "noMovesElapsed") == 4, "quantity overflow was not counted as blocked");
+        Check(board.SwapRow(), "swap did not expose a smaller pickup");
+        Advance();
+        CheckLevelState(1);
+        Check(level.IsPlaying && Get<float>(level, "noMovesElapsed") == 0, "legal booster move did not cancel loss");
+
+        Load(1, new[] { Food(PoolType.Shrimp), Food(PoolType.Shrimp) });
+        Check(Tap(0), "reload countdown setup failed");
+        Advance();
+        CheckLevelState(4);
+        level.ReplayLevel();
+        Check(Get<float>(level, "noMovesElapsed") == 0, "replay retained the old countdown");
+        Load(1, new[] { Food(PoolType.Shrimp), Food(PoolType.Shrimp) });
+        Check(Tap(0), "reloaded belt setup failed");
+        Advance();
+        CheckLevelState(4);
+        Check(level.IsPlaying, "old countdown leaked into replay");
+        CheckLevelState(1);
+        Check(!level.IsPlaying, "reloaded deadlock did not lose");
+        level.LoadLevel(0);
+    }
+
+    private static void NoMovesProgress()
+    {
+        level.LoadLevel(0);
+        Load(1, new[] { Food(), Food(PoolType.Shrimp) });
+        Check(Tap(0), "matching food setup failed");
+        Advance();
+        Check(conveyor.FreeSlotCount == 0 && conveyor.CanMakeProgress, "matching belt ingredient cannot progress");
+        CheckLevelState(20);
+        Check(level.IsPlaying && Get<float>(level, "noMovesElapsed") == 0,
+            "lost while matching food was waiting to reach its customer");
+
+        conveyor.Clear();
+        customers.Init(new List<CustomerOrderData> {
+            Order(PoolType.Shrimp, 1), Order(PoolType.Egg, 1), Order(PoolType.Salmon, 1)
+        });
+        Load(1, new[] { Food(PoolType.Salmon), Food(PoolType.Salmon) });
+        Check(Tap(0), "customer transition setup failed");
+        Advance();
+        Serve(customers.ActiveCustomers[0], PoolType.Shrimp);
+        Check(customers.HasPendingTransitions && conveyor.CanMakeProgress, "departing customer was not considered");
+        CheckLevelState(20);
+        Check(level.IsPlaying, "lost while a customer was leaving");
+        Advance();
+        Check(customers.HasPendingTransitions && conveyor.CanMakeProgress, "arriving customer was not considered");
+        CheckLevelState(20);
+        Check(level.IsPlaying, "lost while a customer was walking to a seat");
+        Advance();
+        Check(conveyor.CanMakeProgress, "new customer's matching food was not considered");
+        level.LoadLevel(0);
+    }
+
+    private static void PartialDishDeadlock()
+    {
+        level.LoadLevel(0);
+        Set(conveyor, "preparedDishPrefab", Prefab<SushiPreparedDish>("PreparedDish"));
+        try
+        {
+            customers.Init(new List<CustomerOrderData> {
+                new CustomerOrderData { dishes = new List<DishOrderData> {
+                    new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 }
+                } }
+            });
+            Load(1, new[] { Food(), Food(PoolType.Salmon), Food(PoolType.Shrimp) });
+            Check(Tap(0), "partial dish rice setup failed");
+            Advance();
+            var foods = Get<Dictionary<Transform, FoodShushi>>(conveyor, "slotFoods");
+            var pickup = new List<KeyValuePair<Transform, FoodShushi>>(foods)[0];
+            Customer customer = customers.ActiveCustomers[0];
+            SushiDishOrder order = customer.Dishes[0];
+            Check(customer.CanReceivePreparedIngredient(order, pickup.Value.Type), "matching partial ingredient was rejected");
+            Check(customer.TryReservePreparedIngredient(order, pickup.Value.Type, out Transform target), "rice reservation failed");
+            var dish = (SushiPreparedDish)typeof(ConveyorManager)
+                .GetMethod("GetOrCreatePreparedDish", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(conveyor, new object[] { customer, order, target });
+            foods.Remove(pickup.Key);
+            typeof(ConveyorManager).GetMethod("StartPreparedIngredientFlight", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(conveyor, new object[] { dish, pickup.Value, target });
+            Check(conveyor.CanMakeProgress, "ingredient flight was not considered progress");
+            Advance();
+            Check(conveyor.DeliveringCount > 0 && !dish.IsReady && !conveyor.CanMakeProgress,
+                "partial plate was incorrectly counted as an active delivery");
+            Check(Tap(0), "unrelated ingredient setup failed");
+            Advance();
+            CheckLevelState(4);
+            Check(level.IsPlaying, "partial plate deadlock lost too soon");
+            CheckLevelState(1);
+            Check(!level.IsPlaying, "partial plate hid a permanent full-belt deadlock");
+        }
+        finally
+        {
+            level.LoadLevel(0);
+            Set(conveyor, "preparedDishPrefab", null);
+        }
+    }
+
     private static void ArrivalPriority()
     {
         customers.Init(new List<CustomerOrderData> { Order(PoolType.SushiRice, 2), Order(PoolType.SushiRice, 2, true) });

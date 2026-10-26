@@ -24,6 +24,10 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     [Tooltip("Hiện nút chuyển màn để chơi thử bộ level mẫu.")]
     [SerializeField] private bool showLevelSelector;
 
+    [Header("Kiểm tra hết nước đi")]
+    [SerializeField, Min(0f)] private float noMovesLoseDelay = 5f;
+    private float noMovesElapsed;
+
     public SushiLevelData CurrentLevel { get; private set; }
     public bool IsPlaying { get; private set; }
     public bool IsPopupOpen => popupCount > 0 || PendingRevive != SushiReviveReason.None;
@@ -157,6 +161,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (PendingRevive == SushiReviveReason.RushCustomer) ExpiredCustomer?.ReviveRush();
         else boardManager.BreakHeadIce();
         reviveCount++;
+        noMovesElapsed = 0;
         if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.CloseUI<CanvasFail>();
         ExpiredCustomer = null;
         PendingRevive = SushiReviveReason.None;
@@ -233,6 +238,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
                 ? UIManager.Ins.GetUI<CanvasTransit>() : null);
         }
         rewardClaimed = false;
+        noMovesElapsed = 0;
         totalPlayTime = 0;
         IsPlaying = false;
         PendingRevive = SushiReviveReason.None;
@@ -274,24 +280,36 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         GetComponent<SushiLevelOneTutorial>()?.Prepare(this);
     }
 
-    private void LateUpdate()
-    {
-        if (!CanInteract)
-            return;
+    private void LateUpdate() => CheckLevelState(Time.unscaledDeltaTime);
 
-        if (boardManager.AllRemainingHeadsFrozen())
+    private void CheckLevelState(float deltaTime)
+    {
+        if (!CanInteract || SushiLevelOneTutorial.IsInputLocked)
         {
-            RequestRevive(SushiReviveReason.FrozenHeads);
+            noMovesElapsed = 0;
             return;
         }
 
-        if (!customerManager.AllCustomersCompleted)
+        if (customerManager.AllCustomersCompleted && boardManager.IsEmpty())
+        {
+            CompleteLevel();
             return;
+        }
 
-        if (!boardManager.IsEmpty())
+        if (conveyorManager.Capacity == 0 || boardManager.HasPendingMovement ||
+            boardManager.HasAvailableTap(conveyorManager.FreeSlotCount) || conveyorManager.CanMakeProgress)
+        {
+            noMovesElapsed = 0;
             return;
+        }
 
-        CompleteLevel();
+        // Require a continuous deadlock; a pickup, delivery, booster or pause cancels the countdown.
+        noMovesElapsed += Mathf.Max(0, deltaTime);
+        if (noMovesElapsed < noMovesLoseDelay) return;
+        noMovesElapsed = 0;
+
+        if (boardManager.AllRemainingHeadsFrozen()) RequestRevive(SushiReviveReason.FrozenHeads);
+        else LoseLevel();
     }
 
     private void CompleteLevel()
@@ -299,6 +317,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         // Đánh dấu trước để chỉ xử lý thắng một lần.
         IsPlaying = false;
         HasWon = true;
+        noMovesElapsed = 0;
         isPlay = false;
         GameManager.ChangeState(GameState.Victory);
         if (CanSaveProgress)
@@ -328,6 +347,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
             return;
 
         IsPlaying = false;
+        noMovesElapsed = 0;
         conveyorManager.SetPaused(true);
         PendingRevive = SushiReviveReason.None;
         ExpiredCustomer = null;
@@ -371,6 +391,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         ExpiredCustomer = null;
         awaitingAd = false;
         rewardClaimed = false;
+        noMovesElapsed = 0;
         reviveCount = 0;
         loadVersion++;
         totalPlayTime = 0;
