@@ -209,6 +209,9 @@ public class CanvasMainMenu : UICanvas
     public void OpenLeaderboard() => SelectTab(2);
     public void OpenDecoration() { if (!starting && selectedTab != 3) SwitchPage(3); }
     public void OpenSettings() => UIManager.Ins?.OpenUI<CanvasSetting>();
+    public void OpenDailYLogin() => UIManager.Ins?.OpenUI<CanvasDailyLogin>();
+    public void OpenDailyReward() => UIManager.Ins?.OpenUI<CanvasDailyReward>();
+    public void OpenDailySpin() => UIManager.Ins?.OpenUI<CanvasSpin>();
     public void OpenProfile() { if (profilePanel != null) profilePanel.SetActive(true); }
     public void CloseProfile() { if (profilePanel != null) profilePanel.SetActive(false); }
     public override void BackKey()

@@ -99,18 +99,18 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     private void ApplyPopupPause()
     {
-        if ((IsPopupOpen || tutorialHold) && !pauseApplied)
-        {
-            previousTimeScale = Time.timeScale;
-            Time.timeScale = 0;
-            pauseApplied = true;
-        }
-        else if (!IsPopupOpen && !tutorialHold && pauseApplied)
-        {
-            Time.timeScale = previousTimeScale;
-            pauseApplied = false;
-        }
-        if (conveyorManager != null) conveyorManager.SetPaused(IsPopupOpen || tutorialHold || !IsPlaying);
+        //if ((IsPopupOpen || tutorialHold) && !pauseApplied)
+        //{
+        //    previousTimeScale = Time.timeScale;
+        //    Time.timeScale = 0;
+        //    pauseApplied = true;
+        //}
+        //else if (!IsPopupOpen && !tutorialHold && pauseApplied)
+        //{
+        //    Time.timeScale = previousTimeScale;
+        //    pauseApplied = false;
+        //}
+        //if (conveyorManager != null) conveyorManager.SetPaused(IsPopupOpen || tutorialHold || !IsPlaying);
     }
 
     private void HandleRushExpired(Customer customer)
@@ -310,7 +310,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasVictory>();
 
         conveyorManager.SetPaused(true);
-
+        SpinDataFragment.cur.PassedLevel();
         Debug.Log("WIN: Tất cả khách đã nhận đủ món.");
 
         // Hiển thị popup thắng tại đây.

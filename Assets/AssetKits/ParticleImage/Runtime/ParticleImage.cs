@@ -9,7 +9,6 @@ using Random = UnityEngine.Random;
 using AssetKits.ParticleImage.Enumerations;
 using UnityEngine.Serialization;
 using PlayMode = AssetKits.ParticleImage.Enumerations.PlayMode;
-using static UnityEngine.ParticleSystem;
 
 namespace AssetKits.ParticleImage
 {

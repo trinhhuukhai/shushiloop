@@ -747,6 +747,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 397b5765641bcb64e88a4c77046f38b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ConveyorManager
+  preparedDishPrefab: {fileID: 0}
+  assemblyDuration: 0.24
+  tableHoldDuration: 0.3
+  orderJumpDuration: 0.38
   spline: {fileID: 900714857}
   slotPrefab: {fileID: 6353025194780699081, guid: 3fec895e3ee0e254bac75cf9474b2593, type: 3}
   slotRoot: {fileID: 900714858}
@@ -754,6 +758,7 @@ MonoBehaviour:
   loopsPerSecond: 0.08
   positionZ: 0
   playOnStart: 1
+  capacityLabel: {fileID: 0}
   jumpDuration: 0.42
   jumpHeight: 0.95
   pickupStagger: 0.055
@@ -961,7 +966,6 @@ GameObject:
   - component: {fileID: 1344788577}
   - component: {fileID: 990000002}
   - component: {fileID: 1344788579}
-  - component: {fileID: 1344788580}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -1020,22 +1024,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c336054c884c4587c22a2f2309f278, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SushiProfileReviveProvider
---- !u!114 &1344788580
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1344788576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9dedae842974f94e9362786d7fc53cf, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::SushiLevelOneTutorial
-  targetColumn: 1
-  targetIngredient: 2
-  targetCustomerIndex: 0
-  targetDishIndex: 0
 --- !u!1 &1396798785
 GameObject:
   m_ObjectHideFlags: 0

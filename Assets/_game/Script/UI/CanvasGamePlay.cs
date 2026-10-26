@@ -20,12 +20,15 @@ public class CanvasGamePlay : UICanvas
     [SerializeField] private GameObject levelSelector;
     [SerializeField] private Button previousLevel;
     [SerializeField] private Button nextLevel;
+    [SerializeField] private TMP_Text customerProgress;
+    [SerializeField] private Image customerProgressFill;
+    [SerializeField] private TMP_Text difficulty;
     private FoodInputController input;
 
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
-        if (occupancy != null) occupancy.gameObject.SetActive(false);
+        //if (occupancy != null) occupancy.gameObject.SetActive(false);
 
     }
 
@@ -43,6 +46,17 @@ public class CanvasGamePlay : UICanvas
         LevelManager level = LevelManager.Ins;
         if (level == null || level.CurrentLevel == null) return;
         txtLevvel.text = "Level " + (level.CurrentLevelIndex + 1);
+        if (customerProgress != null)
+        {
+            var customers = level.Conveyor.Customers;
+            customerProgress.text = customers.CompletedCustomers + "/" + customers.TotalCustomers;
+            customerProgressFill.fillAmount = customers.TotalCustomers > 0 ? (float)customers.CompletedCustomers / customers.TotalCustomers : 0;
+        }
+        if (difficulty != null)
+        {
+            difficulty.gameObject.SetActive(level.CurrentLevel.TypeLevel != TypeLevel.Normal);
+            difficulty.text = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? "SUPER HARD" : "HARD";
+        }
         occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
         speedText.text = level.Conveyor.IsDoubleSpeed ? "2×" : "1×";
         setTxtGold();
