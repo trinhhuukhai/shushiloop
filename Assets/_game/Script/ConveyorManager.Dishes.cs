@@ -116,17 +116,31 @@ public partial class ConveyorManager
     private void StartPreparedIngredientFlight(SushiPreparedDish plated, FoodShushi food, Transform destination)
     {
         if (food.Location == FoodLocation.MovingToConveyor) food.ArriveAtConveyor();
-        if (!food.TryMoveToCustomerPlate())
-        {
-            Debug.LogError($"Không thể đặt nguyên liệu {food.Type} lên đĩa đang ghép.", food);
-            return;
-        }
         List<FoodShushi> flights = assemblyFoods[plated];
-        float delay = flights.Count * assemblyIngredientStagger;
         flights.Add(food);
         food.transform.DOKill();
         food.transform.SetParent(flyingFoodRoot, true);
-        AnimateFlight(food, destination, assemblyDuration, 0.3f, 0.55f, delay, 0, dishTweenId, () =>
+        LaunchReadyPreparedIngredients(plated);
+    }
+
+    private void LaunchReadyPreparedIngredients(SushiPreparedDish plated)
+    {
+        if (!assemblyFoods.TryGetValue(plated, out var flights)) return;
+        int launched = 0;
+        foreach (FoodShushi food in flights)
+        {
+            // Magnet reserves the whole recipe atomically, but toppings wait for the base to land.
+            if (food.Location != FoodLocation.Conveyor || !plated.Order.CanStartIngredient(food.Type)) continue;
+            LaunchPreparedIngredient(plated, food, flights, launched++ * assemblyIngredientStagger);
+        }
+    }
+
+    private void LaunchPreparedIngredient(SushiPreparedDish plated, FoodShushi food, List<FoodShushi> flights, float delay)
+    {
+        if (!food.TryMoveToCustomerPlate()) return;
+        plated.ApplyIngredientArtwork(food, true);
+        Transform destination = plated.IngredientTarget(food.Type);
+        AnimateFlight(food, destination, assemblyDuration, 0.3f, 1f, delay, 0, dishTweenId, () =>
         {
             flights.Remove(food);
             food.ArriveAtCustomerPlate();
@@ -136,7 +150,11 @@ public partial class ConveyorManager
                 Debug.LogError($"Nguyên liệu {food.Type} đáp lên đĩa nhưng reservation không hợp lệ.", plated);
                 return;
             }
-            if (!complete) return;
+            if (!complete)
+            {
+                LaunchReadyPreparedIngredients(plated);
+                return;
+            }
             assemblyFoods.Remove(plated);
             plated.Order.IsOnTable = true;
             plated.FinishAssembly();
@@ -156,6 +174,7 @@ public partial class ConveyorManager
         {
             servingDishes.Remove(plated);
             plated.Owner.CompletePreparedDish(plated.Order);
+            plated.ClearAssemblyIngredients();
             Destroy(plated.gameObject);
         });
     }
@@ -246,11 +265,15 @@ public partial class ConveyorManager
             Debug.LogException(error, this); return false;
         }
 
+        var selectedFoods = new List<FoodShushi>(units);
+        foreach (var pickup in beltPlan) selectedFoods.Add(pickup.Value);
+        PoolType foundation = order.FoundationType;
+        selectedFoods.Sort((a, b) => (a.Type == foundation ? 0 : 1).CompareTo(b.Type == foundation ? 0 : 1));
         var newlyReserved = new List<FoodShushi>();
         Transform target = null;
-        foreach (FoodShushi food in units.Concat(beltPlan.Select(pickup => pickup.Value)))
+        foreach (FoodShushi food in selectedFoods)
         {
-            if (!customer.TryReservePreparedIngredient(order, food.Type, out Transform reservedTarget))
+            if (!customer.TryReservePreparedIngredient(order, food.Type, out Transform reservedTarget, includeIncomingFoundation: true))
             {
                 foreach (FoodShushi reservedFood in newlyReserved)
                     customer.CancelPreparedIngredientReservation(order, reservedFood.Type);
@@ -267,11 +290,10 @@ public partial class ConveyorManager
             pickup.Value.transform.DOKill();
             pickup.Value.RevealForMagnet();
             pickup.Value.transform.SetParent(flyingFoodRoot, true);
-            units.Add(pickup.Value);
         }
         if (boardPlan.Count > 0) board.CommitPickup(boardPlan, FoodPickMode.Magnet, 0);
         SushiPreparedDish dish = GetOrCreatePreparedDish(customer, order, target);
-        foreach (FoodShushi food in units) StartPreparedIngredientFlight(dish, food, target);
+        foreach (FoodShushi food in selectedFoods) StartPreparedIngredientFlight(dish, food, target);
         NotifyOccupancy();
         return true;
     }

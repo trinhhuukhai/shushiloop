@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 public sealed class SushiDishOrder
 {
@@ -20,6 +20,28 @@ public sealed class SushiDishOrder
             if (ingredient == null) ingredients.Add(ingredient = new OrderItem { typeFood = type });
             ingredient.requiredAmount++;
         }
+    }
+
+    public PoolType FoundationType
+    {
+        get
+        {
+            foreach (OrderItem ingredient in ingredients)
+                if (ingredient.typeFood == PoolType.SushiRice) return PoolType.SushiRice;
+            foreach (OrderItem ingredient in ingredients)
+                if (ingredient.typeFood == PoolType.EmptyCup) return PoolType.EmptyCup;
+            return PoolType.None;
+        }
+    }
+
+    public bool CanStartIngredient(PoolType type, bool includeIncomingFoundation = false)
+    {
+        PoolType foundation = FoundationType;
+        if (foundation == PoolType.None || type == foundation) return true;
+        foreach (OrderItem ingredient in ingredients)
+            if (ingredient.typeFood == foundation)
+                return ingredient.receivedAmount + (includeIncomingFoundation ? ingredient.incomingAmount : 0) >= ingredient.requiredAmount;
+        return false;
     }
 
     public OrderItem FindAvailableIngredient(PoolType type)

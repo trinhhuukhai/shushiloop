@@ -5,6 +5,7 @@ using UnityEngine;
 public sealed class SushiArtCatalog : ScriptableObject
 {
     public SushiIngredientArtLibrary ingredientImages;
+    public SushiPlatedIngredientArtLibrary platedIngredientImages;
     public SushiDishArtLibrary dishImages;
     public Sprite hiddenTile;
     public Sprite frozenTile;

@@ -38,18 +38,20 @@ public class Customer : MonoBehaviour
             !dish.IsComplete && !dish.IsOnTable;
     }
 
-    public bool CanReceivePreparedIngredient(SushiDishOrder dish, PoolType type)
+    public bool CanReceivePreparedIngredient(SushiDishOrder dish, PoolType type, bool includeIncomingFoundation = false)
     {
-        if (!CanAssembleDish(dish) || dish.FindAvailableIngredient(type) == null) return false;
+        if (!CanAssembleDish(dish) || !dish.CanStartIngredient(type, includeIncomingFoundation) ||
+            dish.FindAvailableIngredient(type) == null) return false;
         OrderItem order = FindOrder(type);
         return order != null && order.CanReceive &&
             (tableReservations.ContainsKey(dish) || FindFreeServingSlot() >= 0);
     }
 
-    public bool TryReservePreparedIngredient(SushiDishOrder dish, PoolType type, out Transform target)
+    public bool TryReservePreparedIngredient(SushiDishOrder dish, PoolType type, out Transform target,
+        bool includeIncomingFoundation = false)
     {
         target = null;
-        if (!CanReceivePreparedIngredient(dish, type)) return false;
+        if (!CanReceivePreparedIngredient(dish, type, includeIncomingFoundation)) return false;
         OrderItem ingredient = dish.FindAvailableIngredient(type);
         OrderItem order = FindOrder(type);
 
@@ -241,8 +243,45 @@ public class Customer : MonoBehaviour
                 }
             }
         }
+        ConfigureServingSlots(dishes.Count);
         ConfigureRush(data);
         OnOrderChanged?.Invoke(this);
+    }
+
+    private void ConfigureServingSlots(int count)
+    {
+        if (servingRoot == null) return;
+
+        var slots = new List<Transform>(servingSlots ?? Array.Empty<Transform>());
+        Transform template = slots.Find(slot => slot != null);
+        if (count > slots.Count && template == null)
+        {
+            Debug.LogError("Customer needs at least one serving slot to create dish plates.", this);
+            return;
+        }
+
+        while (slots.Count < count)
+        {
+            Transform slot = Instantiate(template, servingRoot, false);
+            slot.name = "Plate " + (slots.Count + 1);
+            slots.Add(slot);
+        }
+
+        servingSlots = slots.ToArray();
+        float center = (count - 1) * 0.5f;
+        for (int i = 0; i < servingSlots.Length; i++)
+        {
+            Transform slot = servingSlots[i];
+            if (slot == null) continue;
+
+            bool active = i < count;
+            slot.gameObject.SetActive(active);
+            if (!active) continue;
+
+            Vector3 position = slot.localPosition;
+            position.x = (i - center) * 0.98f;
+            slot.localPosition = position;
+        }
     }
 
     public void ConfigureRush(CustomerOrderData data)
@@ -306,6 +345,7 @@ public class Customer : MonoBehaviour
         occupiedSlots.Clear();
         tableReservations.Clear();
         if (servingRoot != null) servingRoot.gameObject.SetActive(false);
+        ConfigureServingSlots(0);
 
         if (avatarImage != null)
         {

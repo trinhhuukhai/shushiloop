@@ -88,7 +88,10 @@ public static class SushiServingSetup
         var dish = World(root.transform, "Finished dish", SushiArtCatalog.Default.GetDish(SushiDishId.NigiriShrimp),
             new Vector2(0.86f, 0.7f), Color.white, 4);
         dish.transform.localPosition = new Vector3(0, 0.07f, 0);
-        Bind(view, "plate", plate); Bind(view, "dishImage", dish); Save(root, "PreparedDish");
+        Bind(view, "plate", plate); Bind(view, "dishImage", dish);
+        Bind(view, "ingredientArt", SushiArtCatalog.Default.platedIngredientImages);
+        Bind(view, "ingredientRoot", Node(root.transform, "Ingredients", Vector3.zero));
+        Save(root, "PreparedDish");
     }
 
     private static void EditCard()

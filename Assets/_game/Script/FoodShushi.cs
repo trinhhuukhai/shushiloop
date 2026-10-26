@@ -43,6 +43,9 @@ public class FoodShushi : GameUnit
     private Vector3 coverScale = Vector3.one;
     private bool boardVisible = true;
     private Tween revealTween;
+    private Sprite platedSprite;
+    private Vector2 platedSize;
+    private int platedSortingOrder;
     private void Awake()
     {
         if (cover != null) coverScale = cover.transform.localScale;
@@ -129,6 +132,7 @@ public class FoodShushi : GameUnit
         revealTween?.Kill();
         revealTween = null;
         foodLocation = FoodLocation.Board;
+        platedSprite = null;
         Owner = null;
         poolType = data.typeFood;
         amount = Mathf.Max(0, data.amount);
@@ -152,15 +156,27 @@ public class FoodShushi : GameUnit
         if (foodRenderer == null) foodRenderer = GetComponentInChildren<SpriteRenderer>(true);
         if (foodRenderer == null) return;
         if (ingredientArt == null && SushiArtCatalog.Default != null) ingredientArt = SushiArtCatalog.Default.ingredientImages;
-        Sprite sprite = ingredientArt != null ? ingredientArt.GetSprite(Type) : null;
+        Sprite sprite = platedSprite != null ? platedSprite : ingredientArt != null ? ingredientArt.GetSprite(Type) : null;
         if (sprite == null && SushiArtCatalog.Default != null) sprite = SushiArtCatalog.Default.GetIngredient(Type);
         foodRenderer.sprite = sprite;
         if (sprite == null) return;
         if (foodRenderer.transform == transform) return;
         Bounds bounds = foodRenderer.sprite.bounds;
-        float scale = 1.05f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y));
+        float scale = platedSprite != null
+            ? Mathf.Min(Mathf.Max(0.01f, platedSize.x) / Mathf.Max(0.01f, bounds.size.x),
+                Mathf.Max(0.01f, platedSize.y) / Mathf.Max(0.01f, bounds.size.y))
+            : 1.05f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y));
         foodRenderer.transform.localScale = Vector3.one * scale;
         foodRenderer.transform.localPosition = -bounds.center * scale;
+    }
+
+    public void SetPlatedArtwork(Sprite sprite, Vector2 size, int sortingOrder)
+    {
+        platedSprite = sprite;
+        platedSize = size;
+        platedSortingOrder = sortingOrder;
+        ApplyIngredientArt();
+        RefreshVisual();
     }
 
     public bool CanPick()
@@ -219,7 +235,8 @@ public class FoodShushi : GameUnit
         if (foodRenderer != null)
         {
             foodRenderer.enabled = visible && !hidden && amount > 0;
-            foodRenderer.sortingOrder = foodLocation == FoodLocation.MovingToCustomerPlate || foodLocation == FoodLocation.MovingToConveyor ? 30 :
+            foodRenderer.sortingOrder = platedSprite != null ? platedSortingOrder :
+                foodLocation == FoodLocation.MovingToCustomerPlate || foodLocation == FoodLocation.MovingToConveyor ? 30 :
                 foodLocation == FoodLocation.CustomerPlate ? 18 : 1;
         }
         if (quantityLabel == null) return;

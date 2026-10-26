@@ -49,6 +49,9 @@ public static class SushiServingChecks
             var first = belt.Customers.ActiveCustomers[0];
             var second = belt.Customers.ActiveCustomers[1];
             var recipes = first.GetComponent<CustomerRecipeView>();
+            Check(first.transform.Find("Serving slots").Cast<Transform>().Count(slot => slot.gameObject.activeSelf) == 2 &&
+                second.transform.Find("Serving slots").Cast<Transform>().Count(slot => slot.gameObject.activeSelf) == 1,
+                "each customer should show one circular serving plate per ordered dish portion.");
             Check(recipes.CardAt(0) == recipes.CardAt(1) && recipes.CardAt(0).PortionProgress == "0/2",
                 "identical recipe portions must share one 0/2 order icon.");
             // A matching ingredient should start assembling before the full recipe reaches the belt.
