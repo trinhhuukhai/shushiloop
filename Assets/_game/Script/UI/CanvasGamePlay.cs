@@ -45,7 +45,7 @@ public class CanvasGamePlay : UICanvas
     {
         LevelManager level = LevelManager.Ins;
         if (level == null || level.CurrentLevel == null) return;
-        txtLevvel.text = "Level " + (level.CurrentLevelIndex + 1);
+        txtLevvel.text = "LV\n" + (level.CurrentLevelIndex + 1);
         if (customerProgress != null)
         {
             var customers = level.Conveyor.Customers;
@@ -57,7 +57,7 @@ public class CanvasGamePlay : UICanvas
             difficulty.gameObject.SetActive(level.CurrentLevel.TypeLevel != TypeLevel.Normal);
             difficulty.text = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? "SUPER HARD" : "HARD";
         }
-        occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
+        if (occupancy != null) occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
         speedText.text = level.Conveyor.IsDoubleSpeed ? "2×" : "1×";
         setTxtGold();
         FoodPickMode mode = input != null ? input.PickMode : FoodPickMode.Tap;

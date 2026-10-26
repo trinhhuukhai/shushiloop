@@ -88,6 +88,17 @@ public class FoodInputController : MonoBehaviour
             if (uiHits.Count > 0) return;
         }
         Ray ray = gameCamera.ScreenPointToRay(screenPosition);
+        if (PickMode == FoodPickMode.Tap && conveyorManager.Customers != null)
+        {
+            foreach (Customer customer in conveyorManager.Customers.ActiveCustomers)
+            {
+                if (customer == null) continue;
+                var plane = new Plane(Vector3.forward, customer.transform.position);
+                if (!plane.Raycast(ray, out float distance)) continue;
+                if (customer.GetComponent<CustomerRecipeView>()?.ToggleRecipeDetailsAtWorldPosition(ray.GetPoint(distance)) == true)
+                    return;
+            }
+        }
         if (PickMode == FoodPickMode.Magnet)
         {
             if (conveyorManager.Customers == null) return;

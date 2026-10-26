@@ -7,6 +7,7 @@ using DG.Tweening;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 // Chạy trong project test riêng: Unity -batchmode -nographics -projectPath ...
@@ -210,6 +211,11 @@ public static class SushiGameplayRegression
                 Vector3 center = card.Rect.TransformPoint(card.Rect.rect.center);
                 Check(card.Rect.rect.width > 0 && card.Rect.rect.height > 0 && view.DishAtWorldPosition(center) == customer.Dishes[i],
                     "prefab layout or hit area failed for " + count + " dishes");
+                GameObject ingredientDetails = card.IngredientAt(0).transform.parent.gameObject;
+                Check(!ingredientDetails.activeSelf &&
+                    view.ToggleRecipeDetailsAtWorldPosition(center) && ingredientDetails.activeSelf &&
+                    view.ToggleRecipeDetailsAtWorldPosition(center) && !ingredientDetails.activeSelf,
+                    "tapping the order did not toggle its ingredient recipe");
                 var corners = new Vector3[4]; card.Rect.GetWorldCorners(corners);
                 foreach (Vector3 corner in corners)
                 {
@@ -234,6 +240,62 @@ public static class SushiGameplayRegression
                 "binding rewrote authored font settings or image scale");
             Object.Destroy(customer.gameObject);
         }
+        Customer multiDishCustomer = RecipeCustomer(
+            new DishOrderData { dish = SushiDishId.MakiAvocado },
+            new DishOrderData { dish = SushiDishId.NigiriShrimp },
+            new DishOrderData { dish = SushiDishId.GunkanSalmon });
+        multiDishCustomer.SitDown();
+        CustomerRecipeView multiDishView = multiDishCustomer.GetComponent<CustomerRecipeView>();
+        RectTransform multiDishOrderRoot = Get<RectTransform>(multiDishView, "orderRoot");
+        SushiDishCardView firstDishCard = multiDishView.CardAt(0);
+        SushiDishCardView secondDishCard = multiDishView.CardAt(1);
+        SushiDishCardView thirdDishCard = multiDishView.CardAt(2);
+        Vector3 firstDishCenter = firstDishCard.Rect.TransformPoint(firstDishCard.Rect.rect.center);
+        float collapsedOrderHeight = multiDishOrderRoot.rect.height;
+        Check(firstDishCard.transform.parent == thirdDishCard.transform.parent &&
+            firstDishCard.transform.parent != secondDishCard.transform.parent,
+            "customer orders should remain split between the left and right columns");
+        Check(multiDishView.ToggleRecipeDetailsAtWorldPosition(firstDishCenter) && firstDishCard.IsRecipeExpanded,
+            "first recipe did not expand");
+        Vector3 secondDishCenter = secondDishCard.Rect.TransformPoint(secondDishCard.Rect.rect.center);
+        Check(multiDishView.ToggleRecipeDetailsAtWorldPosition(secondDishCenter) && !firstDishCard.IsRecipeExpanded &&
+            secondDishCard.IsRecipeExpanded, "opening a second recipe did not close the first");
+        Vector3 thirdDishCenter = thirdDishCard.Rect.TransformPoint(thirdDishCard.Rect.rect.center);
+        Check(multiDishView.ToggleRecipeDetailsAtWorldPosition(thirdDishCenter) &&
+            !firstDishCard.IsRecipeExpanded && !secondDishCard.IsRecipeExpanded && thirdDishCard.IsRecipeExpanded,
+            "opening a third recipe did not close the others");
+        Check(!thirdDishCard.DishImage.enabled &&
+            !Get<TMPro.TMP_Text>(thirdDishCard, "dishName").gameObject.activeSelf &&
+            !Get<TMPro.TMP_Text>(thirdDishCard, "portionCount").gameObject.activeSelf &&
+            thirdDishCard.IngredientAt(0).transform.parent.GetComponent<VerticalLayoutGroup>().enabled &&
+            !thirdDishCard.IngredientAt(0).transform.parent.GetComponent<HorizontalLayoutGroup>().enabled &&
+            multiDishOrderRoot.rect.height > collapsedOrderHeight,
+            "expanded recipe should hide the dish art and show a vertical ingredient list without overlap");
+        SushiOrderIngredientView expandedIngredient = thirdDishCard.IngredientAt(0);
+        Check(!Get<TMPro.TMP_Text>(expandedIngredient, "progress").gameObject.activeSelf &&
+            Mathf.Approximately(expandedIngredient.Image.color.a, 1) &&
+            expandedIngredient.Image.GetComponent<LayoutElement>().preferredHeight > 30,
+            "expanded recipe should show only full-opacity, enlarged ingredient images");
+        LayoutRebuilder.ForceRebuildLayoutImmediate(
+            (RectTransform)thirdDishCard.IngredientAt(0).transform.parent);
+        float firstIngredientY = thirdDishCard.IngredientAt(0).transform.localPosition.y;
+        float secondIngredientY = thirdDishCard.IngredientAt(1).transform.localPosition.y;
+        float thirdIngredientY = thirdDishCard.IngredientAt(2).transform.localPosition.y;
+        Check(Mathf.Abs(firstIngredientY - secondIngredientY) > 1 &&
+            Mathf.Abs(secondIngredientY - thirdIngredientY) > 1 &&
+            Mathf.Abs(firstIngredientY - thirdIngredientY) > 1 &&
+            Mathf.Abs(firstIngredientY - secondIngredientY) >= 52 &&
+            Mathf.Abs(secondIngredientY - thirdIngredientY) >= 52,
+            "expanded ingredient icons should have visible vertical spacing");
+        Vector3 expandedDishCenter = thirdDishCard.Rect.TransformPoint(thirdDishCard.Rect.rect.center);
+        Check(multiDishView.ToggleRecipeDetailsAtWorldPosition(expandedDishCenter) &&
+            !thirdDishCard.IsRecipeExpanded && thirdDishCard.DishImage.enabled &&
+            Get<TMPro.TMP_Text>(thirdDishCard, "portionCount").gameObject.activeSelf &&
+            Get<TMPro.TMP_Text>(expandedIngredient, "progress").gameObject.activeSelf &&
+            expandedIngredient.Image.GetComponent<LayoutElement>().preferredHeight == 30 &&
+            Mathf.Approximately(multiDishOrderRoot.rect.height, collapsedOrderHeight),
+            "closing the recipe should restore the order card layout");
+        Object.Destroy(multiDishCustomer.gameObject);
         Customer rushCustomer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
         rushCustomer.ConfigureRush(new CustomerOrderData { rushCustomer = true, rushSeconds = 30 });
         rushCustomer.SitDown();
@@ -930,14 +992,16 @@ public static class SushiGameplayRegression
         var deliveries = Get<Dictionary<FoodShushi, Customer>>(conveyor, "deliveringFoods");
         Check(deliveries.TryGetValue(unit, out Customer receiver) && receiver == second && first.ReceivedFoods.Count == 0,
             "ingredient jumped to wrong customer");
+        Vector3 deliveryScale = unit.transform.lossyScale;
         Advance(0.2f);
-        Check(unit.transform.localScale.x < 1 && unit.transform.localScale.x > second.ReceivingFoodScale,
-            "delivery does not scale smoothly into the order card");
+        Check((unit.transform.lossyScale - deliveryScale).sqrMagnitude < 0.0001f,
+            "ingredient changed scale while flying to the order card");
         second.transform.position += Vector3.right * 0.25f;
         Advance();
         Check(second.ReceivedFoods.Count == 1 && first.ReceivedFoods.Count == 0 && unit.transform.parent == recipeSlots[1] &&
             (unit.transform.position - recipeSlots[1].position).sqrMagnitude < 0.00001f, "jump did not follow customer's current position");
-        Check(Mathf.Abs(unit.transform.localScale.x - second.ReceivingFoodScale) < 0.001f, "received ingredient has wrong size");
+        Check((unit.transform.lossyScale - deliveryScale).sqrMagnitude < 0.0001f,
+            "ingredient changed scale when it landed in the order card");
         conveyor.Clear(); customers.ClearCustomers();
         firstSeat.position = firstPosition; secondSeat.position = secondPosition;
         Set(customers, "customerPrefab", originalPrefab);

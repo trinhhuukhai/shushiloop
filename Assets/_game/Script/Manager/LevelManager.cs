@@ -99,18 +99,21 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     private void ApplyPopupPause()
     {
-        //if ((IsPopupOpen || tutorialHold) && !pauseApplied)
-        //{
-        //    previousTimeScale = Time.timeScale;
-        //    Time.timeScale = 0;
-        //    pauseApplied = true;
-        //}
-        //else if (!IsPopupOpen && !tutorialHold && pauseApplied)
-        //{
-        //    Time.timeScale = previousTimeScale;
-        //    pauseApplied = false;
-        //}
-        //if (conveyorManager != null) conveyorManager.SetPaused(IsPopupOpen || tutorialHold || !IsPlaying);
+        bool held = IsPopupOpen || tutorialHold;
+        if (held)
+        {
+            if (!pauseApplied) previousTimeScale = Time.timeScale;
+            // A second popup (such as replay's transition) may still own the pause
+            // after Settings requests resume. Keep dish and ingredient flights frozen.
+            Time.timeScale = 0;
+            pauseApplied = true;
+        }
+        else if (pauseApplied)
+        {
+            Time.timeScale = previousTimeScale;
+            pauseApplied = false;
+        }
+        if (conveyorManager != null) conveyorManager.SetPaused(held || !IsPlaying);
     }
 
     private void HandleRushExpired(Customer customer)

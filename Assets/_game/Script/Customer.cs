@@ -20,6 +20,151 @@ public class Customer : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image avatarImage;
     [SerializeField] private SushiIngredientArtLibrary ingredientArt;
     [SerializeField] private CustomerRecipeView recipeView;
+    [SerializeField] private Transform servingRoot;
+    [SerializeField] private Transform[] servingSlots;
+    private readonly Dictionary<SushiDishOrder, int> tableReservations = new Dictionary<SushiDishOrder, int>();
+
+    public bool CanPrepareDish(SushiDishOrder dish)
+    {
+        if (dish == null || !dishes.Contains(dish) || completed || RushExpired || dish.IsComplete || dish.IsPrepared) return false;
+        foreach (var ingredient in dish.Ingredients)
+            if (ingredient.receivedAmount != 0 || ingredient.incomingAmount != 0) return false;
+        return true;
+    }
+
+    public bool CanAssembleDish(SushiDishOrder dish)
+    {
+        return IsSeated && !completed && !RushExpired && dish != null && dishes.Contains(dish) &&
+            !dish.IsComplete && !dish.IsOnTable;
+    }
+
+    public bool TryReservePreparedIngredient(SushiDishOrder dish, PoolType type, out Transform target)
+    {
+        target = null;
+        if (!CanAssembleDish(dish)) return false;
+        OrderItem ingredient = dish.FindAvailableIngredient(type);
+        OrderItem order = FindOrder(type);
+        if (ingredient == null || order == null || !order.CanReceive) return false;
+
+        if (!tableReservations.TryGetValue(dish, out int slotIndex))
+        {
+            slotIndex = FindFreeServingSlot();
+            if (slotIndex < 0) return false;
+            tableReservations.Add(dish, slotIndex);
+        }
+
+        dish.IsPrepared = true;
+        ingredient.incomingAmount++;
+        order.incomingAmount++;
+        target = servingSlots[slotIndex];
+        OnOrderChanged?.Invoke(this);
+        return true;
+    }
+
+    public bool CancelPreparedIngredientReservation(SushiDishOrder dish, PoolType type)
+    {
+        if (dish == null || !dish.IsPrepared) return false;
+        OrderItem ingredient = null;
+        foreach (OrderItem item in dish.Ingredients)
+            if (item.typeFood == type) { ingredient = item; break; }
+        OrderItem order = FindOrder(type);
+        if (ingredient == null || order == null || ingredient.incomingAmount <= 0 || order.incomingAmount <= 0)
+            return false;
+
+        ingredient.incomingAmount--;
+        order.incomingAmount--;
+        bool hasAssembly = false;
+        foreach (OrderItem item in dish.Ingredients)
+            hasAssembly |= item.receivedAmount > 0 || item.incomingAmount > 0;
+        if (!hasAssembly && tableReservations.ContainsKey(dish))
+        {
+            tableReservations.Remove(dish);
+            dish.IsPrepared = false;
+        }
+        OnOrderChanged?.Invoke(this);
+        return true;
+    }
+
+    public bool CompletePreparedIngredient(SushiDishOrder dish, PoolType type, out bool dishComplete)
+    {
+        dishComplete = false;
+        if (dish == null || !dish.IsPrepared || !tableReservations.ContainsKey(dish)) return false;
+        OrderItem ingredient = null;
+        foreach (OrderItem item in dish.Ingredients)
+            if (item.typeFood == type) { ingredient = item; break; }
+        OrderItem order = FindOrder(type);
+        if (ingredient == null || order == null || ingredient.incomingAmount <= 0 || order.incomingAmount <= 0)
+            return false;
+
+        ingredient.incomingAmount--;
+        ingredient.receivedAmount++;
+        order.incomingAmount--;
+        order.receivedAmount++;
+        dishComplete = dish.HasAllIngredients();
+        OnOrderChanged?.Invoke(this);
+        return true;
+    }
+
+    public bool ReservePreparedDish(SushiDishOrder dish)
+    {
+        if (!CanPrepareDish(dish)) return false;
+        dish.IsPrepared = true;
+        foreach (var ingredient in dish.Ingredients)
+        {
+            ingredient.incomingAmount = ingredient.requiredAmount;
+            FindOrder(ingredient.typeFood).incomingAmount += ingredient.requiredAmount;
+        }
+        OnOrderChanged?.Invoke(this);
+        return true;
+    }
+
+    public bool TryReserveTable(SushiDishOrder dish, out Transform target)
+    {
+        target = null;
+        if (!IsSeated || completed || RushExpired || !dish.IsPrepared || tableReservations.ContainsKey(dish) || servingSlots == null) return false;
+        int slotIndex = FindFreeServingSlot();
+        if (slotIndex < 0) return false;
+        tableReservations.Add(dish, slotIndex);
+        target = servingSlots[slotIndex];
+        return true;
+    }
+
+    private int FindFreeServingSlot()
+    {
+        if (servingSlots == null) return -1;
+        for (int i = 0; i < servingSlots.Length; i++)
+            if (servingSlots[i] != null && !tableReservations.ContainsValue(i)) return i;
+        return -1;
+    }
+
+    public Transform DishOrderTarget(SushiDishOrder dish) => recipeView.CardAt(dish.Index).DishDeliverySlot;
+
+    public void CancelPreparedDish(SushiDishOrder dish)
+    {
+        if (dish == null || !dish.IsPrepared || dish.IsComplete) return;
+        foreach (var ingredient in dish.Ingredients)
+        {
+            OrderItem order = FindOrder(ingredient.typeFood);
+            order.incomingAmount = Mathf.Max(0, order.incomingAmount - ingredient.incomingAmount);
+            order.receivedAmount = Mathf.Max(0, order.receivedAmount - ingredient.receivedAmount);
+            ingredient.incomingAmount = 0;
+            ingredient.receivedAmount = 0;
+        }
+        tableReservations.Remove(dish);
+        dish.IsPrepared = dish.IsOnTable = false;
+        OnOrderChanged?.Invoke(this);
+    }
+
+    public bool CompletePreparedDish(SushiDishOrder dish)
+    {
+        if (dish == null || !dish.IsPrepared || dish.IsComplete || !dish.HasAllIngredients() ||
+            !tableReservations.Remove(dish)) return false;
+        dish.IsPrepared = dish.IsOnTable = false;
+        CompleteDish(dish);
+        OnOrderChanged?.Invoke(this);
+        if (!completed && IsOrderComplete()) { completed = true; OnCompleted?.Invoke(this); }
+        return true;
+    }
 
     [Header("Các vị trí đặt Food trên đĩa")]
     [SerializeField]
@@ -50,7 +195,7 @@ public class Customer : MonoBehaviour
     public float RushRemaining { get; private set; }
     public float RushDuration { get; private set; }
     public bool IsCompleted => completed;
-    public float ReceivingFoodScale => dishes.Count > 0 ? recipeView.CardAt(0).IngredientAt(0).ReceivingFoodScale : 0.35f;
+    public float ReceivingFoodScale => dishes.Count > 0 ? recipeView.CardAt(0).IngredientAt(0).ReceivingFoodScale : 0.42f;
     public float GetReceivingFoodScale(FoodShushi food)
     {
         if (reservations.TryGetValue(food, out Reservation reservation) && reservation.dish != null)
@@ -108,6 +253,7 @@ public class Customer : MonoBehaviour
     {
         IsSeated = true;
         GetComponent<CustomerRecipeView>()?.SetSeated(true);
+        if (servingRoot != null) servingRoot.gameObject.SetActive(true);
     }
 
     public void TickRush(float deltaTime)
@@ -151,6 +297,8 @@ public class Customer : MonoBehaviour
         receivedFoods.Clear();
         reservations.Clear();
         occupiedSlots.Clear();
+        tableReservations.Clear();
+        if (servingRoot != null) servingRoot.gameObject.SetActive(false);
 
         if (avatarImage != null)
         {
@@ -261,7 +409,6 @@ public class Customer : MonoBehaviour
 
         food.transform.SetParent(target, true);
         food.transform.localPosition = Vector3.zero;
-        food.transform.localScale = Vector3.one * GetReceivingFoodScale(food);
         food.ArriveAtCustomerPlate();
 
         reservations.Remove(food);

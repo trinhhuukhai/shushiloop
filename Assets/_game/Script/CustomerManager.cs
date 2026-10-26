@@ -41,6 +41,20 @@ public class CustomerManager : MonoBehaviour
 
     public IReadOnlyList<Customer> ActiveCustomers => activeCustomers;
 
+    public IEnumerable<Customer> FulfillmentPriority()
+    {
+        Customer first = activeCustomers[0], second = activeCustomers[1];
+        if (first != null && second != null && second.id < first.id)
+        { var swap = first; first = second; second = swap; }
+        if (first != null) yield return first;
+        if (second != null) yield return second;
+        // A guest walking to a seat keeps their place ahead of the waiting line.
+        var queued = new List<Customer>(waitingCustomers);
+        foreach (var customer in movingCustomers) if (customer != null) queued.Add(customer);
+        queued.Sort((a, b) => a.id.CompareTo(b.id));
+        foreach (var customer in queued) yield return customer;
+    }
+
     public int TotalCustomers { get; private set; }
     public int CompletedCustomers { get; private set; }
     public int WaitingCount => waitingCustomers.Count;

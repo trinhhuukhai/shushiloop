@@ -1,0 +1,66 @@
+RUNNING
+Level 01: 2 customers, 4 ingredients, 3 columns; hidden 0, ice 0, linked cells 0, tray cells 0; 4 taps; peak reserved 2/8; searched 3 states.
+Level 02: 3 customers, 6 ingredients, 3 columns; hidden 0, ice 0, linked cells 0, tray cells 0; 6 taps; peak reserved 2/8; searched 6 states.
+Level 03: 4 customers, 8 ingredients, 3 columns; hidden 0, ice 0, linked cells 0, tray cells 0; 8 taps; peak reserved 2/8; searched 8 states.
+Level 04: 4 customers, 12 ingredients, 4 columns; hidden 0, ice 0, linked cells 0, tray cells 0; 10 taps; peak reserved 3/8; searched 10 states.
+Level 05: 4 customers, 16 ingredients, 4 columns; hidden 2, ice 0, linked cells 0, tray cells 0; 12 taps; peak reserved 3/9; searched 12 states.
+Level 06: 5 customers, 22 ingredients, 4 columns; hidden 3, ice 0, linked cells 0, tray cells 0; 17 taps; peak reserved 4/9; searched 17 states.
+Level 07: 5 customers, 22 ingredients, 4 columns; hidden 3, ice 1, linked cells 0, tray cells 0; 17 taps; peak reserved 4/10; searched 17 states.
+Level 08: 6 customers, 28 ingredients, 4 columns; hidden 4, ice 2, linked cells 0, tray cells 0; 22 taps; peak reserved 5/10; searched 22 states.
+Level 09: 6 customers, 28 ingredients, 5 columns; hidden 4, ice 2, linked cells 2, tray cells 0; 21 taps; peak reserved 4/10; searched 21 states.
+Level 10: 7 customers, 34 ingredients, 5 columns; hidden 5, ice 3, linked cells 2, tray cells 0; 25 taps; peak reserved 5/10; searched 25 states.
+Level 11: 7 customers, 34 ingredients, 5 columns; hidden 5, ice 3, linked cells 2, tray cells 2; 24 taps; peak reserved 6/10; searched 24 states.
+Level 12: 8 customers, 40 ingredients, 5 columns; hidden 6, ice 4, linked cells 2, tray cells 2; 30 taps; peak reserved 6/10; searched 30 states.
+Level 13: 8 customers, 40 ingredients, 5 columns; hidden 6, ice 4, linked cells 4, tray cells 2; 28 taps; peak reserved 6/10; searched 28 states.
+Level 14: 9 customers, 46 ingredients, 5 columns; hidden 7, ice 5, linked cells 4, tray cells 4; 29 taps; peak reserved 8/9; searched 29 states.
+Level 15: 9 customers, 46 ingredients, 5 columns; hidden 7, ice 5, linked cells 4, tray cells 5; 30 taps; peak reserved 6/9; searched 30 states.
+Level 16: 10 customers, 52 ingredients, 5 columns; hidden 8, ice 6, linked cells 4, tray cells 5; 34 taps; peak reserved 8/9; searched 34 states.
+Level 17: 10 customers, 52 ingredients, 5 columns; hidden 8, ice 6, linked cells 4, tray cells 5; 35 taps; peak reserved 6/8; searched 35 states.
+Level 18: 11 customers, 58 ingredients, 5 columns; hidden 9, ice 7, linked cells 6, tray cells 8; 36 taps; peak reserved 7/8; searched 36 states.
+Level 19: 11 customers, 58 ingredients, 5 columns; hidden 10, ice 7, linked cells 6, tray cells 8; 36 taps; peak reserved 7/8; searched 36 states.
+Level 20: 12 customers, 64 ingredients, 5 columns; hidden 10, ice 8, linked cells 6, tray cells 8; 40 taps; peak reserved 8/8; searched 40 states.
+All 20 assets validate, have exact ingredient balances, and have a legal normal-tap solution.
+Runtime level 01 WON with 4 normal taps; peak 2/8; no boosts or revive.
+Runtime level 02 WON with 6 normal taps; peak 2/8; no boosts or revive.
+Runtime level 03 WON with 8 normal taps; peak 2/8; no boosts or revive.
+Runtime level 04 WON with 10 normal taps; peak 3/8; no boosts or revive.
+Runtime level 05 WON with 12 normal taps; peak 3/9; no boosts or revive.
+Runtime level 06 WON with 17 normal taps; peak 4/9; no boosts or revive.
+Runtime level 07 WON with 17 normal taps; peak 4/10; no boosts or revive.
+Runtime level 08 WON with 22 normal taps; peak 5/10; no boosts or revive.
+Runtime level 09 WON with 21 normal taps; peak 4/10; no boosts or revive.
+Runtime level 10 WON with 25 normal taps; peak 5/10; no boosts or revive.
+Runtime level 11 WON with 24 normal taps; peak 6/10; no boosts or revive.
+Runtime level 12 WON with 30 normal taps; peak 6/10; no boosts or revive.
+Runtime level 13 WON with 28 normal taps; peak 6/10; no boosts or revive.
+Runtime level 14 WON with 29 normal taps; peak 8/9; no boosts or revive.
+Runtime level 15 WON with 30 normal taps; peak 6/9; no boosts or revive.
+Runtime level 16 WON with 34 normal taps; peak 8/9; no boosts or revive.
+Runtime level 17 WON with 35 normal taps; peak 6/8; no boosts or revive.
+Runtime level 18 WON with 36 normal taps; peak 7/8; no boosts or revive.
+Runtime level 19 WON with 36 normal taps; peak 7/8; no boosts or revive.
+Runtime level 20 WON with 40 normal taps; peak 8/8; no boosts or revive.
+
+PASS
+Plated serving checks: recipe assembly, seated/waiting priority, grouped quantities, table/order flights, pause, magnet, and reload.
+Settings replay covers the old board before reload, rejects repeated clicks, and restores gameplay after reveal.
+Runtime level 01 WON with 4 normal taps; peak 2/8; no boosts or revive.
+Runtime level 02 WON with 6 normal taps; peak 2/8; no boosts or revive.
+Runtime level 03 WON with 8 normal taps; peak 2/8; no boosts or revive.
+Runtime level 04 WON with 10 normal taps; peak 3/8; no boosts or revive.
+Runtime level 05 WON with 12 normal taps; peak 3/9; no boosts or revive.
+Runtime level 06 WON with 17 normal taps; peak 4/9; no boosts or revive.
+Runtime level 07 WON with 17 normal taps; peak 4/10; no boosts or revive.
+Runtime level 08 WON with 22 normal taps; peak 5/10; no boosts or revive.
+Runtime level 09 WON with 21 normal taps; peak 4/10; no boosts or revive.
+Runtime level 10 WON with 25 normal taps; peak 5/10; no boosts or revive.
+Runtime level 11 WON with 24 normal taps; peak 6/10; no boosts or revive.
+Runtime level 12 WON with 30 normal taps; peak 6/10; no boosts or revive.
+Runtime level 13 WON with 28 normal taps; peak 6/10; no boosts or revive.
+Runtime level 14 WON with 29 normal taps; peak 8/9; no boosts or revive.
+Runtime level 15 WON with 30 normal taps; peak 6/9; no boosts or revive.
+Runtime level 16 WON with 34 normal taps; peak 8/9; no boosts or revive.
+Runtime level 17 WON with 35 normal taps; peak 6/8; no boosts or revive.
+Runtime level 18 WON with 36 normal taps; peak 7/8; no boosts or revive.
+Runtime level 19 WON with 36 normal taps; peak 7/8; no boosts or revive.
+Runtime level 20 WON with 40 normal taps; peak 8/8; no boosts or revive.

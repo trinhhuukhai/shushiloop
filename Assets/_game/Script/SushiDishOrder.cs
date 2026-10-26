@@ -6,6 +6,9 @@ public sealed class SushiDishOrder
     public SushiRecipe Recipe { get; }
     public IReadOnlyList<OrderItem> Ingredients => ingredients;
     public bool IsComplete { get; internal set; }
+    // Reserved from assembly until the plated dish reaches the order panel.
+    public bool IsPrepared { get; internal set; }
+    public bool IsOnTable { get; internal set; }
     private readonly List<OrderItem> ingredients = new List<OrderItem>();
 
     public SushiDishOrder(int index, SushiRecipe recipe)

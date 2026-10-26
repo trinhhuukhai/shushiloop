@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class ConveyorManager : MonoBehaviour
+public partial class ConveyorManager : MonoBehaviour
 {
     [Header("Tham chiếu")]
     [SerializeField] private ConveyorSpline spline;
@@ -19,6 +19,7 @@ public class ConveyorManager : MonoBehaviour
 
     [SerializeField] private float positionZ;
     [SerializeField] private bool playOnStart = true;
+    [SerializeField] private TextMeshPro capacityLabel;
 
     private readonly List<Transform> slots = new List<Transform>();
 
@@ -75,7 +76,7 @@ public class ConveyorManager : MonoBehaviour
 
     private readonly object deliveryTweenId = new object();
 
-    public int DeliveringCount => deliveringFoods.Count;
+    public int DeliveringCount => deliveringFoods.Count + servingDishes.Count;
     public CustomerManager Customers => customerManager;
     public void Init(int count, float speed)
     {
@@ -109,15 +110,6 @@ public class ConveyorManager : MonoBehaviour
             Transform slot = Instantiate(slotPrefab, slotRoot);
             slot.name = "Slot_" + i;
             slot.gameObject.SetActive(true);
-            Sprite plate = SushiArtCatalog.Default != null ? SushiArtCatalog.Default.plate : null;
-            SpriteRenderer plateRenderer = slot.GetComponent<SpriteRenderer>();
-            if (plate != null && plateRenderer != null)
-            {
-                // Keep the slot at unit scale; only the plate visual is resized.
-                plateRenderer.enabled = false;
-                var visual = SushiWorldVisual.Panel(slot, "Ceramic plate", 0);
-                SushiWorldVisual.FitSprite(visual, plate, new Vector2(1.03f, 0.82f));
-            }
             slots.Add(slot);
         }
 
@@ -142,6 +134,7 @@ public class ConveyorManager : MonoBehaviour
         progress = Mathf.Repeat(progress + advance, 1f);
 
         UpdateSlotPositions();
+        AssembleAvailableDishes(previousProgress);
         CheckCustomerOrders(previousProgress, advance);
     }
 
@@ -176,6 +169,7 @@ public class ConveyorManager : MonoBehaviour
     {
         isRunning = false;
         DOTween.Kill(pickupTweenId);
+        ClearPreparedDishes();
         ClearDeliveringFoods();
         foreach (FoodShushi food in slotFoods.Values)
         {
@@ -207,11 +201,19 @@ public class ConveyorManager : MonoBehaviour
 
 
     public int OccupiedSlotCount => slotFoods.Count;
-    public int FreeSlotCount => slots.Count - slotFoods.Count;
+    public int FreeSlotCount => slots.Count - OccupiedSlotCount;
     public int Capacity => slots.Count;
     private readonly object pickupTweenId = new object();
     public event System.Action<int, int> OnOccupancyChanged;
-    private void NotifyOccupancy() => OnOccupancyChanged?.Invoke(OccupiedSlotCount, Capacity);
+    private void NotifyOccupancy()
+    {
+        if (capacityLabel != null)
+        {
+            capacityLabel.gameObject.SetActive(Capacity > 0);
+            capacityLabel.text = OccupiedSlotCount + "/" + Capacity;
+        }
+        OnOccupancyChanged?.Invoke(OccupiedSlotCount, Capacity);
+    }
     private bool CanInteract => isRunning && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
 
     public bool TryTakeFromQueue(FoodQueue queue)
@@ -240,6 +242,7 @@ public class ConveyorManager : MonoBehaviour
         foreach (Customer seated in customerManager.ActiveCustomers) active |= seated == customer;
         foreach (SushiDishOrder order in customer.Dishes) ownsDish |= order == dish;
         if (!active || !ownsDish) return false;
+        if (preparedDishPrefab != null) return TryMagnetPreparedDish(board, customer, dish);
 
         var boardPlan = new List<FoodPickup>();
         var beltPlan = new List<KeyValuePair<Transform, FoodShushi>>();
@@ -427,7 +430,8 @@ public class ConveyorManager : MonoBehaviour
             {
                 Customer customer = customers[i];
 
-                if (customer == null || customerManager.FirstCustomerFor(food.Type) != customer)
+                if (customer == null || (preparedDishPrefab != null && customer.Dishes.Count > 0) ||
+                    customerManager.FirstCustomerFor(food.Type) != customer)
                     continue;
 
                 float gateProgress = deliveryProgresses[i];
@@ -478,7 +482,7 @@ public class ConveyorManager : MonoBehaviour
         deliveringFoods.Add(food, customer);
 
         AnimateFlight(food, target, TravelDuration(deliveryDuration, food.transform.position, target.position),
-            deliveryHeight, customer.GetReceivingFoodScale(food), 0, 0, deliveryTweenId, () =>
+            deliveryHeight, 1f, 0, 0, deliveryTweenId, () =>
         {
             if (food == null || customer == null || target == null)
             {
@@ -500,7 +504,7 @@ public class ConveyorManager : MonoBehaviour
 
                 Debug.LogError("Không xác nhận được Food đã tới đĩa.", this);
             }
-        });
+        }, preserveScale: true);
     }
 
     private static float TravelDuration(float duration, Vector3 start, Vector3 end) =>
@@ -515,7 +519,7 @@ public class ConveyorManager : MonoBehaviour
     private static float Nonzero(float value) => Mathf.Abs(value) < 0.0001f ? 1f : value;
 
     private void AnimateFlight(FoodShushi food, Transform target, float duration, float height, float endScale,
-        float delay, float anticipation, object tweenId, System.Action onComplete)
+        float delay, float anticipation, object tweenId, System.Action onComplete, bool preserveScale = false)
     {
         Transform subject = food.transform;
         Vector3 origin = subject.position;
@@ -528,7 +532,8 @@ public class ConveyorManager : MonoBehaviour
             {
                 if (subject == null) return;
                 subject.position = origin;
-                SetWorldScale(subject, Vector3.Scale(startScale, new Vector3(1 + 0.08f * t, 1 - 0.08f * t, 1)));
+                if (!preserveScale)
+                    SetWorldScale(subject, Vector3.Scale(startScale, new Vector3(1 + 0.08f * t, 1 - 0.08f * t, 1)));
             }).SetEase(Ease.OutSine));
         sequence.Append(DOVirtual.Float(0, 1, duration, t =>
         {
@@ -536,9 +541,12 @@ public class ConveyorManager : MonoBehaviour
             // Đọc đích mỗi frame: bám đúng đĩa đang chạy và ô order của khách đang di chuyển.
             subject.position = Vector3.Lerp(origin, target.position, t) + Vector3.up * (4 * lift * t * (1 - t));
             float arc = Mathf.Sin(Mathf.PI * t);
-            float squash = anticipation > 0 ? 0.08f * (1 - Mathf.Clamp01(t * 5)) : 0;
-            Vector3 shape = new Vector3(1 + squash - 0.035f * arc, 1 - squash + 0.07f * arc, 1);
-            SetWorldScale(subject, Vector3.Scale(Vector3.Lerp(startScale, target.lossyScale * endScale, t), shape));
+            if (!preserveScale)
+            {
+                float squash = anticipation > 0 ? 0.08f * (1 - Mathf.Clamp01(t * 5)) : 0;
+                Vector3 shape = new Vector3(1 + squash - 0.035f * arc, 1 - squash + 0.07f * arc, 1);
+                SetWorldScale(subject, Vector3.Scale(Vector3.Lerp(startScale, target.lossyScale * endScale, t), shape));
+            }
             float tilt = -Mathf.Sign(target.position.x - origin.x) * 11f * arc;
             subject.rotation = Quaternion.Slerp(startRotation, target.rotation, t) * Quaternion.Euler(0, 0, tilt);
         }).SetEase(Ease.InOutSine));
@@ -547,8 +555,11 @@ public class ConveyorManager : MonoBehaviour
             if (subject == null || target == null) return;
             subject.position = target.position;
             subject.rotation = target.rotation;
-            float squash = Mathf.Sin(Mathf.PI * t);
-            SetWorldScale(subject, Vector3.Scale(target.lossyScale * endScale, new Vector3(1 + 0.09f * squash, 1 - 0.08f * squash, 1)));
+            if (!preserveScale)
+            {
+                float squash = Mathf.Sin(Mathf.PI * t);
+                SetWorldScale(subject, Vector3.Scale(target.lossyScale * endScale, new Vector3(1 + 0.09f * squash, 1 - 0.08f * squash, 1)));
+            }
         }).SetEase(Ease.Linear));
         sequence.SetTarget(subject).SetId(tweenId).OnComplete(() => onComplete?.Invoke());
     }

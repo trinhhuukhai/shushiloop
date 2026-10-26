@@ -18,6 +18,7 @@ public class CanvasSetting : UICanvas
     public override void Open()
     {
         base.Open();
+        Time.timeScale = 0f;
         bool inGame = LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null;
         bool allowHome = inGame && GameManager.ins != null && GameManager.ins.CanReturnHome;
         if (back_Bt != null) back_Bt.gameObject.SetActive(inGame);
@@ -33,7 +34,11 @@ public class CanvasSetting : UICanvas
             if (title != null) title.text = inGame ? "Tạm dừng" : "Cài đặt";
         }
     }
-    public void OnResume() => CloseDirectly();
+    public void OnResume()
+    {
+        Time.timeScale = 1f;
+        CloseDirectly();
+    }
     public void OnReplayLevel() => OnReplay();
     public void OnReplay()
     {
@@ -44,12 +49,17 @@ public class CanvasSetting : UICanvas
     public void OnBackHome()
     {
         // Also protect the callback against stale UI events and direct invocation.
+
         if (GameManager.ins == null || !GameManager.ins.CanReturnHome || GameManager.ins.IsLoadingLevel) return;
+         Time.timeScale = 1f;
         GameManager.ins.ReturnToMainMenu();
     }
     public void OnSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(true); }
     public void CloseSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(false); }
-    public void BackInHome() => CloseDirectly();
+    public void BackInHome()
+    {
+        Time.timeScale = 1f;CloseDirectly();
+    }
     public void Close() => CloseDirectly();
     public override void BackKey() => CloseDirectly();
 }

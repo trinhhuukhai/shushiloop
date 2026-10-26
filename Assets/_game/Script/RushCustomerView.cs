@@ -24,9 +24,18 @@ public class RushCustomerView : MonoBehaviour
 
     private void Update()
     {
-        bool visible = customer.IsRush && customer.IsSeated && !customer.IsCompleted;
+        bool visible = customer.IsSeated && (customer.IsRush || customer.Dishes.Count > 0);
         indicator.SetActive(visible);
         if (!visible) return;
+        timer.transform.parent.gameObject.SetActive(customer.IsRush && !customer.IsCompleted);
+        if (!customer.IsRush)
+        {
+            int completed = 0;
+            foreach (var dish in customer.Dishes) if (dish.IsComplete) completed++;
+            countdown.fillAmount = (float)completed / Mathf.Max(1, customer.Dishes.Count);
+            countdown.color = normalColor;
+            return;
+        }
         float fraction = Mathf.Clamp01(customer.RushRemaining / Mathf.Max(0.01f, customer.RushDuration));
         Color color = fraction < 0.2f ? urgentColor : fraction < 0.5f ? warningColor : normalColor;
         timer.color = countdown.color = color;

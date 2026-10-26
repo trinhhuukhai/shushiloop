@@ -192,6 +192,10 @@ public static class SushiCampaignRegression
         float previousMaximumDelta = Time.maximumDeltaTime;
         try
         {
+            IEnumerator servingChecks = SushiServingChecks.Run(level);
+            try { while (servingChecks.MoveNext()) yield return servingChecks.Current; }
+            finally { (servingChecks as IDisposable)?.Dispose(); }
+            Pass("Plated serving checks: recipe assembly, seated/waiting priority, grouped quantities, table/order flights, pause, magnet, and reload.");
             // Replay must use the currently played level, even if saved progress points elsewhere.
             var replayProfile = GameDataFragment.cur.dataPlayer;
             int savedProgress = replayProfile.cur_level;
@@ -212,6 +216,8 @@ public static class SushiCampaignRegression
                 level.LoadLevel(index);
                 Check(level.CurrentLevel == data && level.IsPlaying && !SushiLevelOneTutorial.IsInputLocked,
                     "Cannot enter campaign level " + (index + 1) + ".");
+                if (index == 19 && SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
+                    SushiVisualCapture.CaptureSet("PlatedLayout", level);
                 Time.timeScale = 30; // Test clock only; use the authored conveyor speed and normal taps.
                 int peak = 0;
                 double deadline = EditorApplication.timeSinceStartup + 120;
@@ -266,7 +272,7 @@ public static class SushiCampaignRegression
             if (head != null && (head.IsHidden || head.IsRevealing)) return false;
         }
         ConveyorManager belt = level.Conveyor;
-        if (belt.DeliveringCount > 0) return false;
+        if (belt.DeliveringCount > 0 || belt.HasCompleteRecipeOnBelt()) return false;
         CustomerManager customers = belt.Customers;
         int seated = 0;
         foreach (Customer customer in customers.ActiveCustomers)
@@ -281,7 +287,12 @@ public static class SushiCampaignRegression
         {
             FoodShushi food = slot != null ? slot.GetComponentInChildren<FoodShushi>() : null;
             if (food == null) continue;
-            if (food.Location != FoodLocation.Conveyor || customers.FirstCustomerFor(food.Type) != null) return false;
+            if (food.Location != FoodLocation.Conveyor) return false;
+            settled++;
+        }
+        foreach (var plated in belt.PlatedDishes.Values)
+        {
+            if (!plated.IsReady || plated.Owner.IsSeated) return false;
             settled++;
         }
         return settled == belt.OccupiedSlotCount;
@@ -324,6 +335,7 @@ public static class SushiCampaignRegression
         private readonly bool startsWithTutorial;
         private readonly int typeCount;
         private readonly int[][] orders;
+        private readonly int[][][] recipes;
         private readonly HashSet<string> visited = new HashSet<string>();
         private const int SearchLimit = 200000;
         public int Visited => visited.Count;
@@ -333,15 +345,18 @@ public static class SushiCampaignRegression
         {
             public int[] heads, ice, belt;
             public int[][] remaining;
+            public int[][] servings; // 0: ingredients pending, 1: plated on belt, 2: delivered.
             public int peak;
             public State Clone()
             {
                 var copy = new State
                 {
                     heads = (int[])heads.Clone(), ice = (int[])ice.Clone(),
-                    belt = (int[])belt.Clone(), remaining = new int[remaining.Length][], peak = peak
+                    belt = (int[])belt.Clone(), remaining = new int[remaining.Length][],
+                    servings = new int[servings.Length][], peak = peak
                 };
                 for (int i = 0; i < remaining.Length; i++) copy.remaining[i] = (int[])remaining[i].Clone();
+                for (int i = 0; i < servings.Length; i++) copy.servings[i] = (int[])servings[i].Clone();
                 return copy;
             }
         }
@@ -365,11 +380,21 @@ public static class SushiCampaignRegression
                 offsets[c + 1] = offsets[c] + columns[c].Length;
             }
             orders = new int[level.customers.Count][];
+            recipes = new int[level.customers.Count][][];
             for (int i = 0; i < orders.Length; i++)
             {
                 orders[i] = new int[typeCount];
                 foreach (var order in level.customers[i].CreateIngredientOrders())
                     orders[i][(int)order.typeFood] += order.amount;
+                var portions = new List<int[]>();
+                foreach (var dish in level.customers[i].dishes)
+                    for (int portion = 0; portion < dish.amount; portion++)
+                    {
+                        var needs = new int[typeCount];
+                        foreach (var type in SushiRecipeCatalog.Get(dish.dish).Ingredients) needs[(int)type]++;
+                        portions.Add(needs);
+                    }
+                recipes[i] = portions.ToArray();
             }
         }
 
@@ -378,12 +403,13 @@ public static class SushiCampaignRegression
             var state = new State
             {
                 heads = new int[columns.Length], ice = new int[offsets[columns.Length]],
-                belt = new int[typeCount], remaining = new int[orders.Length][]
+                belt = new int[typeCount], remaining = new int[orders.Length][], servings = new int[orders.Length][]
             };
             for (int c = 0; c < columns.Length; c++)
                 for (int row = 0; row < columns[c].Length; row++)
                     state.ice[offsets[c] + row] = columns[c][row].iceLayers;
             for (int i = 0; i < orders.Length; i++) state.remaining[i] = (int[])orders[i].Clone();
+            for (int i = 0; i < orders.Length; i++) state.servings[i] = new int[recipes[i].Length];
             if (startsWithTutorial)
             {
                 // Preserve a valid route from the configured first pickup if the tutorial is re-enabled.
@@ -464,6 +490,7 @@ public static class SushiCampaignRegression
             for (int c = 0; c < columns.Length; c++)
                 for (int r = 0; r < removed[c]; r++) amount += columns[c][state.heads[c] + r].amount;
             int occupied = Sum(state.belt) + amount;
+            foreach (var customer in state.servings) foreach (int dish in customer) if (dish == 1) occupied++;
             if (occupied > capacity) return null;
             State next = state.Clone();
             next.peak = Math.Max(next.peak, occupied);
@@ -492,24 +519,34 @@ public static class SushiCampaignRegression
             return next;
         }
 
-        private static void Settle(State state)
+        private void Settle(State state)
         {
             bool moved;
             do
             {
                 moved = false;
                 int seated = 0;
-                for (int customer = 0; customer < state.remaining.Length && seated < 2; customer++)
+                for (int customer = 0; customer < state.remaining.Length; customer++)
                 {
                     int[] needs = state.remaining[customer];
                     if (Sum(needs) == 0) continue;
-                    seated++;
-                    for (int type = 0; type < needs.Length; type++)
+                    bool atTable = seated++ < 2;
+                    for (int serving = 0; serving < recipes[customer].Length; serving++)
                     {
-                        int count = Math.Min(needs[type], state.belt[type]);
-                        if (count == 0) continue;
-                        needs[type] -= count;
-                        state.belt[type] -= count;
+                        if (state.servings[customer][serving] == 2) continue;
+                        int[] recipe = recipes[customer][serving];
+                        if (state.servings[customer][serving] == 0)
+                        {
+                            bool enough = true;
+                            for (int type = 0; type < recipe.Length; type++) enough &= state.belt[type] >= recipe[type];
+                            if (!enough) continue;
+                            for (int type = 0; type < recipe.Length; type++) state.belt[type] -= recipe[type];
+                            state.servings[customer][serving] = 1;
+                            moved = true;
+                        }
+                        if (!atTable) continue;
+                        for (int type = 0; type < recipe.Length; type++) needs[type] -= recipe[type];
+                        state.servings[customer][serving] = 2;
                         moved = true;
                     }
                 }
@@ -522,6 +559,7 @@ public static class SushiCampaignRegression
             var text = new StringBuilder();
             Append(text, state.heads); Append(text, state.ice); Append(text, state.belt);
             foreach (int[] customer in state.remaining) Append(text, customer);
+            foreach (int[] customer in state.servings) Append(text, customer);
             return text.ToString();
         }
         private static void Append(StringBuilder text, int[] values)
