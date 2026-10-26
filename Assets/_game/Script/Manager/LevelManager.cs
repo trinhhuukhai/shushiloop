@@ -315,7 +315,10 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
         // Hiển thị popup thắng tại đây.
     }
-
+    public void OnWIn()
+    {
+        CompleteLevel();
+    }
     public void LoseLevel()
     {
         if (!IsPlaying)

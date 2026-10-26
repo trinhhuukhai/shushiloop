@@ -13,15 +13,10 @@ public class UICheat : MonoBehaviour
 
     [Header("Inputs")] public TMP_InputField inputLevel; // ô nhập LevelIndex (0-based)
     public TMP_InputField inputMoney; // ô nhập số tiền muốn set tuyệt đối
-    public TMP_InputField inputCrystal; // ô nhập số tiền muốn set tuyệt đối
 
-    public TMP_InputField inputLvAddUnit;
-    public TMP_InputField inputLvDamage;
-    public TMP_InputField inputLvFirerate;
-    public TMP_InputField inputEnergy;
-    public TMP_InputField inputKey;
-    public TMP_InputField inputbankPass;
-    public TMP_InputField inputCampName;
+    public TMP_InputField inputBsClick;
+    public TMP_InputField inputShuffle;
+    public TMP_InputField inputMagnet;
 
     public Toggle toggleCheat;
 
@@ -100,7 +95,7 @@ public class UICheat : MonoBehaviour
 
     public void Win()
     {
-        //LevelManager.Ins.OnWin();
+        LevelManager.Ins.OnWIn();
         CloseCheat();
     }
 
@@ -121,7 +116,7 @@ public class UICheat : MonoBehaviour
 
     public void Lose()
     {
-        //LevelManager.Ins.OnLose();
+        LevelManager.Ins.LoseLevel();
         CloseCheat();
     }
 
@@ -129,7 +124,7 @@ public class UICheat : MonoBehaviour
     {
         canvasCheat.SetActive(false);
         canvasGroup.alpha = 0f;
-        //MaxManager.Ins.HideBanner();
+        //MaxManager.Ins.HideBanner()
     }
 
     private bool check = false;
@@ -149,8 +144,11 @@ public class UICheat : MonoBehaviour
     {
         ApplyLevelFromInput();
         ApplyMoneyFromInput();
+        ApplyBoosterClickFromInput();
+        ApplyBoosterShuffleFromInput();
+        ApplyBoosterMagnetFromInput();
         // Gọi OnHome để LevelManager tự LoadData() + Update UI
-        ToLevel();
+        // ToLevel();
         //LevelManager.Ins.OnHome();
         RefreshInputsFromData();
         CloseCheat();
@@ -179,14 +177,6 @@ public class UICheat : MonoBehaviour
                     var sync = SceneManager.LoadSceneAsync("GamePlay");
                     yield return new WaitUntil(() => sync.isDone);
                 }
-
-                UIManager.Ins.GetUI<CanvasGamePlay>().Close();
-                //SceneManager.LoadScene("GamePlay");
-                //Debug.LogError(GameDataFragment.cur.dataPlayer.cur_level + "===========");
-                //if (UIManager.Ins.IsOpened<CanvasShop>()) UIManager.Ins.CloseUI<CanvasShop>();
-                if(UIManager.Ins.IsOpened<CanvasFloating>())
-                {
-                }
             });
         });
     }
@@ -214,22 +204,6 @@ public class UICheat : MonoBehaviour
         }
     }
 
-  
-    private void ApplyKeyFromInput()
-    {
-
-        //energy
-       
-
-        int newMoney = 0;
-        if (inputKey != null && int.TryParse(inputKey.text, out newMoney))
-        {
-            //Debug.LogError(newMoney + "------------");
-            if (newMoney < 0) newMoney = 0;
-            //BattlePassManager.Ins.AddKey(newMoney);
-            //UIManager.Ins.GetUI<CanvasFloating>().UpdateCurrentEnergy();
-        }
-    }
 
     private void ApplyMoneyFromInput()
     {
@@ -238,6 +212,41 @@ public class UICheat : MonoBehaviour
         int newMoney = 0;
         if (inputMoney != null && int.TryParse(inputMoney.text, out newMoney))
         {
+            GameDataFragment.cur.ChangeMoney(newMoney,"Cheat");
         }
     }
+
+    private void ApplyBoosterClickFromInput()
+    {
+        if (GameDataFragment.cur == null) return;
+        //Debug.LogError("-=====");
+        int newMoney = 0;
+        if (inputBsClick != null && int.TryParse(inputBsClick.text, out newMoney))
+        {
+            GameDataFragment.cur.ChangeBoosterCount(BoosterType.Click,newMoney, "Cheat");
+        }
+    }
+
+    private void ApplyBoosterShuffleFromInput()
+    {
+        if (GameDataFragment.cur == null) return;
+        //Debug.LogError("-=====");
+        int newMoney = 0;
+        if (inputShuffle != null && int.TryParse(inputShuffle.text, out newMoney))
+        {
+            GameDataFragment.cur.ChangeBoosterCount(BoosterType.Shuffle, newMoney, "Cheat");
+        }
+    }
+
+    private void ApplyBoosterMagnetFromInput()
+    {
+        if (GameDataFragment.cur == null) return;
+        //Debug.LogError("-=====");
+        int newMoney = 0;
+        if (inputMagnet != null && int.TryParse(inputMagnet.text, out newMoney))
+        {
+            GameDataFragment.cur.ChangeBoosterCount(BoosterType.Magnet, newMoney, "Cheat");
+        }
+    }
+
 }

@@ -162,7 +162,7 @@ public static class SushiCampaignRegression
             Check(EditorApplication.timeSinceStartup - SessionState.GetFloat(StartedKey, 0) < 900,
                 "Campaign integration timed out.");
             Check(runtimeErrors.Count == 0, "Runtime emitted an error: " + string.Join("\n", runtimeErrors));
-            if (!Application.isPlaying || GameManager.ins == null || GameManager.ins.IsLoadingLevel ||
+            if (!Application.isPlaying || GameManager.ins == null || (runner == null && GameManager.ins.IsLoadingLevel) ||
                 LevelManager.Ins == null || DataManager.ins == null || !DataManager.ins.isLoaded) return;
             if (runner == null) runner = PlayCampaign();
             if (runner.MoveNext()) return;
@@ -192,6 +192,18 @@ public static class SushiCampaignRegression
         float previousMaximumDelta = Time.maximumDeltaTime;
         try
         {
+            // Replay must use the currently played level, even if saved progress points elsewhere.
+            var replayProfile = GameDataFragment.cur.dataPlayer;
+            int savedProgress = replayProfile.cur_level;
+            replayProfile.cur_level = campaign.listAllLevel.Count - 1;
+            IEnumerator replay = SushiProjectUIRegression.CheckSettingsReplay(level);
+            try { while (replay.MoveNext()) yield return replay.Current; }
+            finally
+            {
+                (replay as IDisposable)?.Dispose();
+                replayProfile.cur_level = savedProgress;
+            }
+            Pass("Settings replay covers the old board before reload, rejects repeated clicks, and restores gameplay after reveal.");
             Time.maximumDeltaTime = 1;
             for (int index = 0; index < campaign.listAllLevel.Count; index++)
             {

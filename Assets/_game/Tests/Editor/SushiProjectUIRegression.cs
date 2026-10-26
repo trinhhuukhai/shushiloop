@@ -319,13 +319,69 @@ public static class SushiProjectUIRegression
         FoodQueue firstQueue = level.Board.FoodQueues[0];
         menu.Play();
         Check(level.Board.FoodQueues[0] == firstQueue, "A second Level click restarted the already entered level.");
-        ui.OpenUI<CanvasSetting>();
-        ui.GetUI<CanvasSetting>().OnReplay();
-        Check(level.CanInteract && Time.timeScale == 1 && !ui.IsOpened<CanvasSetting>(), "Replay retained paused menu state.");
+        IEnumerator replay = CheckSettingsReplay(level);
+        try { while (replay.MoveNext()) yield return replay.Current; }
+        finally { (replay as IDisposable)?.Dispose(); }
         GameDataFragment.cur.Save();
         int savedLevel = player.cur_level; int savedMoney = player.money;
         GameDataFragment.cur.Load();
         Check(GameDataFragment.cur.dataPlayer.cur_level == savedLevel && GameDataFragment.cur.dataPlayer.money == savedMoney, "Progress or wallet did not persist.");
+    }
+
+    public static IEnumerator CheckSettingsReplay(LevelManager level)
+    {
+        UIManager ui = UIManager.Ins;
+        var player = GameDataFragment.cur.dataPlayer;
+        int index = level.CurrentLevelIndex;
+        SushiLevelData data = level.CurrentLevel;
+        int version = LoadVersion(level);
+        int progress = player.cur_level, money = player.money;
+        int click = player.boosterClick, swap = player.boosterSuffle, magnet = player.boosterHut;
+        // Leave a real pickup in flight so replay must clear the old board and pending deliveries.
+        Check(level.Conveyor.TryTakeFromQueue(level.Board.FoodQueues[0]), "Replay test needs a legal initial pickup.");
+        CanvasSetting settings = ui.OpenUI<CanvasSetting>();
+        Check(settings.back_Bt != null && settings.back_Bt.onClick.GetPersistentEventCount() > 0,
+            "Settings replay button has no saved callback.");
+        settings.back_Bt.onClick.Invoke();
+        Check(GameManager.ins.IsLoadingLevel && ui.IsOpened<CanvasTransit>() &&
+            !ui.IsOpened<CanvasSetting>() && LoadVersion(level) == version,
+            "Settings replay must display Transis before reloading the level.");
+        settings.OnReplayLevel();
+        Check(!GameManager.ins.ReplayCurrentLevel(), "Replay accepted a duplicate request while loading.");
+        bool sawCoveredReload = false;
+        double deadline = EditorApplication.timeSinceStartup + 10;
+        while (GameManager.ins.IsLoadingLevel)
+        {
+            Check(EditorApplication.timeSinceStartup < deadline, "Settings replay transition timed out.");
+            Check(ui.IsOpened<CanvasTransit>() && !level.CanInteract && Time.timeScale == 0,
+                "Replay resumed gameplay before Transis closed.");
+            Check(level.CurrentLevelIndex == index && level.CurrentLevel == data,
+                "Replay loaded a different level.");
+            if (LoadVersion(level) != version)
+            {
+                Check(LoadVersion(level) == version + 1, "Repeated replay clicks loaded more than once.");
+                Check(!ui.IsOpened<CanvasGamePlay>() && !ui.IsOpened<CanvasFloating>(),
+                    "Replay showed its new HUD before the transition finished.");
+                if (!sawCoveredReload)
+                {
+                    var cover = ui.GetUI<CanvasTransit>().GetComponent<CanvasGroup>();
+                    Check(cover != null && cover.alpha > 0.99f, "Replay rebuilt the board before Transis covered it.");
+                    sawCoveredReload = true;
+                }
+            }
+            yield return null;
+        }
+        Check(sawCoveredReload && LoadVersion(level) == version + 1 && level.CanInteract &&
+            !level.IsPopupOpen && Time.timeScale == 1 && !ui.IsOpened<CanvasTransit>() &&
+            !ui.IsOpened<CanvasSetting>() && ui.IsOpened<CanvasGamePlay>() && ui.IsOpened<CanvasFloating>(),
+            "Replay did not reveal one fresh, interactive level with its HUD.");
+        Check(level.Conveyor.OccupiedSlotCount == 0 && level.Conveyor.DeliveringCount == 0 &&
+            level.Conveyor.Customers.CompletedCustomers == 0 && !level.HasWon,
+            "Replay retained food, deliveries, or completed orders from the previous attempt.");
+        Check(player.cur_level == progress && player.money == money && player.boosterClick == click &&
+            player.boosterSuffle == swap && player.boosterHut == magnet,
+            "Replay changed saved progress, money, or booster inventory.");
+        Debug.Log("SETTINGS_REPLAY_TRANSITION_OK");
     }
 
     private static IEnumerator CheckStartupRecovery(LevelManager level, UIManager ui)

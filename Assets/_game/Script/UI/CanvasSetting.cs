@@ -35,7 +35,11 @@ public class CanvasSetting : UICanvas
     }
     public void OnResume() => CloseDirectly();
     public void OnReplayLevel() => OnReplay();
-    public void OnReplay() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
+    public void OnReplay()
+    {
+        // The transition acquires the gameplay pause before Settings releases its own.
+        if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel()) CloseDirectly();
+    }
     public void OnGiveUp() { CloseDirectly(); LevelManager.Ins?.LoseLevel(); }
     public void OnBackHome()
     {

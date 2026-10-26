@@ -288,6 +288,16 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    public bool ReplayCurrentLevel()
+    {
+        LevelManager level = LevelManager.Ins;
+        if (IsLoadingLevel || level == null || level.CurrentLevel == null || UIManager.Ins == null ||
+            !IsScene(GameScene.GamePlay)) return false;
+        IsLoadingLevel = true;
+        StartCoroutine(LoadSelectedLevel(level.CurrentLevelIndex));
+        return true;
+    }
+
     private IEnumerator LoadSelectedLevel(int index)
     {
         CanvasTransit transit = null;

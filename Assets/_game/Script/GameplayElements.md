@@ -74,9 +74,19 @@ Trong lúc băng cột đang dồn, `FoodQueue.IsPickupPending` khóa tap/Cây g
 
 `SushiRecipesDemo.asset` minh họa đủ 5 nhóm món và một khách vội; `SushiElementsDemo.asset` minh họa 5 element bằng các món Nigiri. Level mặc định đã chuyển sang order Nigiri tôm/trứng thay cho order nguyên liệu.
 
-## Bộ 5 màn chơi thử
+## Bộ 20 màn chơi chính
 
-`Assets/Scenes/SampleScene.unity` đã gán 5 asset trong `Assets/_game/LevelData/Samples`, theo các mốc level 10/20/30/40/46. Bộ này có đủ 5 element, 17 loại nguyên liệu, khách vội chờ đến lượt, khách vội đồng thời và thời gian ghi đè 18/60/75/90 giây. Xem [README bộ mẫu](../LevelData/Samples/README.md) để biết từng trường hợp và cách đổi thời gian.
+`Assets/_game/LevelData/_AllLevelData.asset` dùng 20 asset `Campaign/Level01.asset` đến `Level20.asset`, theo đúng thứ tự chơi. Board được lưu sẵn nên chơi lại giữ nguyên bố cục. Độ khó tăng từ 2 lên 12 khách, 3–5 cột, thêm món ba nguyên liệu và phối hợp element; các màn cuối có 8 slot. Ô ẩn xuất hiện từ màn 5, băng từ 7, cặp nối từ 9, khay nhóm từ 11. Bộ này chưa thêm khách có timer.
+
+Xem [thiết kế và lời giải 20 màn](../../../Documentation/Campaign20.md). Menu **SushiKhai → Levels → Build 20 Level Campaign** tạo lại bộ mặc định; **Sushi → Validate 20 Level Campaign** kiểm tra dữ liệu và lời giải. `SushiCampaignRegression.RunBatch` còn chơi từng màn bằng thao tác lấy thường qua board, băng chuyền và khách thật, không dùng booster.
+
+Nút **Chơi lại** trong Setting gọi `GameManager.ReplayCurrentLevel`: mở `UICTransis`, đợi che kín và chạy thanh tiến trình rồi mới tải lại đúng màn đang chơi. Khi hiện màn xong mới mở HUD và nhận input; bấm lặp trong lúc chuyển màn không tạo thêm lần tải. Tiến trình, xu và booster được giữ nguyên.
+
+Đã kiểm tra ngày 26/10/2026 với Unity 6000.3.15f1 trong project riêng: **20/20 màn thắng bằng tap thường, không booster/revive**; Settings chạy transition trước reload, dọn nguyên liệu đang bay, chặn bấm lặp và giữ đúng màn đang chơi ngay cả khi tiến trình lưu trỏ sang màn khác. Xem [kết quả kiểm thử](../../../Documentation/CampaignRegressionResults.txt). Lượt chạy có lỗi indexing `UnityEditor.Search` của Editor; bộ kiểm tra loại riêng lỗi này và vẫn kiểm tra lỗi gameplay.
+
+## Bộ 5 màn chơi thử riêng
+
+5 asset trong `Assets/_game/LevelData/Samples` được giữ để thử riêng các mốc level 10/20/30/40/46, không nằm trong danh sách chơi chính. Bộ này có đủ 5 element, 17 loại nguyên liệu, khách vội chờ đến lượt, khách vội đồng thời và thời gian ghi đè 18/60/75/90 giây. Xem [README bộ mẫu](../LevelData/Samples/README.md) để biết từng trường hợp và cách đổi thời gian.
 
 `LevelManager.showLevelSelector` bật nút Màn trước/Chơi lại/Màn sau; scene mẫu đã bật. Có thể tắt khi dùng cho tiến trình chơi chính thức. Asset level cũ vẫn giữ nguyên trong thư mục cha.
 

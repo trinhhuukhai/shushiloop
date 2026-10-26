@@ -1,0 +1,473 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13d15152b00bf8346a5a306d9c9e3341, type: 3}
+  m_Name: Level18
+  m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
+  TypeLevel: 2
+  number: 18
+  levelName: "Gi\u1EDD cao \u0111i\u1EC3m"
+  hint: "B\u0103ng chuy\u1EC1n ch\u1EC9 c\xF3 8 slot. T\xEDnh c\u1EA3 \xF4 \xD72,
+    c\u1EB7p n\u1ED1i v\xE0 khay tr\u01B0\u1EDBc m\u1ED7i l\u01B0\u1EE3t."
+  beltSlots: 8
+  loopsPerSecond: 0.085
+  numberColumns: 5
+  boardSeed: 18003
+  shuffleFoods: 0
+  maxIngredientsPerTile: 2
+  customers:
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 8
+      amount: 1
+    - dish: 17
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 7
+      amount: 1
+    - dish: 14
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 19
+      amount: 1
+    - dish: 1
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 20
+      amount: 1
+    - dish: 13
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 6
+      amount: 1
+    - dish: 25
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 22
+      amount: 1
+    - dish: 3
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 29
+      amount: 1
+    - dish: 4
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 30
+      amount: 1
+    - dish: 31
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 10
+      amount: 1
+    - dish: 18
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 27
+      amount: 1
+    - dish: 11
+      amount: 1
+    orders: []
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - dish: 17
+      amount: 1
+    - dish: 14
+      amount: 1
+    orders: []
+  boardColumns:
+  - foods:
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 2
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 1
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 1
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 1
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 16
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 2
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 3
+      amount: 1
+      foodState: 2
+      hidden: 0
+      iceLayers: 1
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 2
+      hidden: 0
+      iceLayers: 4
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 2
+      hidden: 0
+      iceLayers: 2
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 2
+      hidden: 0
+      iceLayers: 3
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 17
+      amount: 1
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 2
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 2
+      lockId: 0
+    - typeFood: 14
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 2
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 1
+      amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 3
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 3
+      lockId: 0
+    - typeFood: 18
+      amount: 2
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 3
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 3
+      lockId: 0
+    - typeFood: 16
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 3
+      trayId: 0
+      lockId: 0
+    - typeFood: 9
+      amount: 1
+      foodState: 2
+      hidden: 0
+      iceLayers: 2
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 1
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 2
+      foodState: 2
+      hidden: 0
+      iceLayers: 3
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 14
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 14
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 3
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 2
+      hidden: 0
+      iceLayers: 1
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 9
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 1
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  modifiers: []

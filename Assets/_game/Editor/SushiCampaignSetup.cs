@@ -42,7 +42,7 @@ public static class SushiCampaignSetup
         try
         {
             Setup();
-            SushiConveyorCounterSetup.Setup();
+            SushiCampaignSceneSetup.Setup();
             Debug.Log("CAMPAIGN_SETUP_OK");
             EditorApplication.Exit(0);
         }
