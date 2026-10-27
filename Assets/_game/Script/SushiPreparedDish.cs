@@ -33,10 +33,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
             var target = new GameObject(type.ToString()).transform;
             target.SetParent(ingredientRoot, false);
             var artwork = ingredientArt != null ? ingredientArt.Find(type, order.Recipe.Family) : null;
-            Vector2 position = artwork != null ? artwork.position : Vector2.zero;
-            if (order.Recipe.Family == SushiDishFamily.Sashimi)
-                position += new Vector2((i - (order.Ingredients.Count - 1) * 0.5f) * 0.42f, 0);
-            target.localPosition = new Vector3(position.x, position.y, -0.1f);
+            target.localPosition = new Vector3(0f, 0f, -0.1f);
             target.localRotation = Quaternion.Euler(0, 0, artwork != null ? artwork.rotation : 0);
             ingredientTargets.Add(type, target);
         }

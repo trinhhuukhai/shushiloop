@@ -19,6 +19,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     [SerializeField] private Transform dishDeliverySlot;
     private IReadOnlyList<SushiDishOrder> portions;
     private GameObject ingredientDetails;
+    private GameObject completedTick;
     private RectTransform ingredientDetailsRect;
     private HorizontalLayoutGroup ingredientsRowLayout;
     private VerticalLayoutGroup ingredientsColumnLayout;
@@ -43,12 +44,17 @@ public sealed class SushiDishCardView : MonoBehaviour
     public SushiOrderIngredientView IngredientAt(int index) => ingredients[index];
     public Transform DeliverySlot(int index) => ingredients[index].DeliverySlot;
     public bool IsRecipeExpanded => recipeExpanded;
+    public bool IsOrderComplete => orderComplete;
 
     public void Bind(Customer customer, SushiDishOrder dish, SushiDishArtLibrary art)
     {
         if (dish.Ingredients.Count > ingredients.Length)
             throw new InvalidOperationException("DishCard.prefab needs more ingredient slots for " + dish.Recipe.Name);
         ingredientDetails = ingredients.Length > 0 ? ingredients[0].transform.parent.gameObject : null;
+        Transform tick = completedMark != null ? completedMark.transform.Find("Tick art") : null;
+        completedTick = tick != null ? tick.gameObject : null;
+        if (completedTick == null)
+            Debug.LogError("DishCard prefab is missing the Completed mark/Tick art visual.", this);
         ingredientDetailsRect = ingredientDetails != null ? ingredientDetails.GetComponent<RectTransform>() : null;
         ingredientsRowLayout = ingredientDetails != null ? ingredientDetails.GetComponent<HorizontalLayoutGroup>() : null;
         ingredientsColumnLayout = ingredientDetails != null ? ingredientDetails.GetComponent<VerticalLayoutGroup>() : null;
@@ -100,8 +106,10 @@ public sealed class SushiDishCardView : MonoBehaviour
         else if (dish.IsComplete) received = 1;
         bool complete = received == total;
         orderComplete = complete;
+        if (complete && recipeExpanded) SetRecipeExpanded(false);
         background.color = complete ? completedColor : targeting ? targetingColor : pendingColor;
         completedMark.SetActive(complete);
+        if (completedTick != null) completedTick.SetActive(complete);
         if (portionCount != null)
         {
             portionCount.text = received + "/" + total;
@@ -112,6 +120,7 @@ public sealed class SushiDishCardView : MonoBehaviour
 
     public void SetRecipeExpanded(bool expanded)
     {
+        if (expanded && orderComplete) return;
         recipeExpanded = expanded;
         dishName.gameObject.SetActive(!expanded && originalDishNameActive);
         finished.gameObject.SetActive(!expanded);
@@ -155,8 +164,9 @@ public sealed class SushiDishCardView : MonoBehaviour
                 ingredientHeight += Mathf.Max(0, recipeIngredientCount - 1) * ingredientsColumnLayout.spacing;
             if (ingredientDetailsLayout != null)
                 ingredientDetailsLayout.preferredHeight = ingredientHeight;
+            float expandedCardHeight = Mathf.Max(collapsedCardHeight, ingredientHeight + 8);
             if (cardLayout != null)
-                cardLayout.preferredHeight = Mathf.Max(collapsedCardHeight, ingredientHeight + 8);
+                cardLayout.preferredHeight = expandedCardHeight;
         }
         else if (ingredientDetailsRect != null)
         {

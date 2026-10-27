@@ -19,11 +19,11 @@ MonoBehaviour:
   frozenTile: {fileID: 21300000, guid: 1d3ab207f58152af2cb765707ea1f146, type: 3}
   linkedTile: {fileID: 21300000, guid: 7c2dfccf5816201cd6386a7b0438b9fb, type: 3}
   rigidTray: {fileID: 21300000, guid: e30ea8977fef38f215adcadb730bb4ba, type: 3}
-  boardTile: {fileID: -1403730195, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
-  plate: {fileID: -1272579404, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
-  orderCard: {fileID: 708245321, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
-  conveyor: {fileID: 1809157389, guid: cd3a011aec8c9884fb6bd799808e0150, type: 3}
+  boardTile: {fileID: -7049752581813627975, guid: 99859a3ddbb08be418307c3ae0a82ae5, type: 3}
+  plate: {fileID: -4795573259988461060, guid: aa15a4195289b4b429e68c5576bb3bd5, type: 3}
+  orderCard: {fileID: 8861631898634724864, guid: 97f04f80859ab1f45af45918cc2b1c3c, type: 3}
+  conveyor: {fileID: 435880693994817966, guid: 2cec1267089bcab48a1a980a83b15cb5, type: 3}
   customerAvatars:
-  - {fileID: 87560130, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
-  - {fileID: -534975809, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
-  - {fileID: 312702338, guid: 56f79042f1dc84c42844fa12d9786eb7, type: 3}
+  - {fileID: -4646698770154453813, guid: 6d0b99ade439da242be919c4eba31908, type: 3}
+  - {fileID: 1090217281897295437, guid: 1b41db5d2f0c1f343943934bf4de99d1, type: 3}
+  - {fileID: -201573519503496745, guid: 8a993b832c9009c4a9a5e4b084a2fc51, type: 3}

@@ -15,7 +15,8 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
     [SerializeField] private Transform tf;
     [SerializeField] private FoodQueue columnPrefab;
     [SerializeField] private FoodShushi ingredientPrefab;
-    [SerializeField] private float columnWidth = 1.55f;
+    [SerializeField] private float columnWidth = 1.4f;
+    [SerializeField] private float firstRowOffset = -1f;
     [SerializeField] private ConveyorManager conveyorManager;
     [Header("Băng chuyền cột sau khi lấy nguyên liệu")]
     [SerializeField, Min(0)] private float trayHoldDuration = 0.04f;
@@ -36,7 +37,8 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             FoodQueue column = Instantiate(columnPrefab, tf != null ? tf : transform);
             column.columnIndex = i;
             column.Board = this;
-            column.transform.localPosition = new Vector3(startX + i * columnWidth, -1f, 0f);
+            column.transform.localPosition = new Vector3(startX + i * columnWidth, firstRowOffset, 0f);
+            column.SetOuterRails(i == 0, i == boardData.Count - 1);
             column.gameObject.SetActive(true);
             foodQueues.Add(column);
             column.OnInit(boardData[i]);

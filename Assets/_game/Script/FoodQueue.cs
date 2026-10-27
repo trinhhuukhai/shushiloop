@@ -22,12 +22,26 @@ public class FoodQueue : MonoBehaviour
     [Header("Prefab visuals")]
     [SerializeField] private Transform beltView;
     [SerializeField] private List<Transform> emptyBases = new List<Transform>();
+    [SerializeField] private SpriteRenderer lowerRowsShade;
 
     public BoardShishiManager Board { get; internal set; }
     public IReadOnlyList<FoodShushi> Foods => foods;
     public int Count => foods.Count;
     public bool IsPickupPending { get; private set; }
     public void SetConveyor(ConveyorManager manager) { conveyor = manager; }
+    internal void SetOuterRails(bool showLeft, bool showRight)
+    {
+        Transform leftRail = beltView != null ? beltView.Find("Left rail") : null;
+        Transform rightRail = beltView != null ? beltView.Find("Right rail") : null;
+        if (leftRail == null || rightRail == null)
+        {
+            Debug.LogError("FoodQueue cần có Left rail và Right rail trong beltView.", this);
+            return;
+        }
+        leftRail.gameObject.SetActive(showLeft);
+        rightRail.gameObject.SetActive(showRight);
+    }
+
     public FoodShushi GetTopFood() => foods.Count > 0 ? foods[0] : null;
     public bool IsEmpty() => foods.Count == 0;
     public bool CanTakeTopFood() => isActiveAndEnabled && !IsPickupPending && GetTopFood() != null && GetTopFood().CanPick();
@@ -42,6 +56,13 @@ public class FoodQueue : MonoBehaviour
     {
         ClearFoods();
         if (tf == null) tf = transform;
+        if (lowerRowsShade == null)
+        {
+            Debug.LogError("FoodQueue prefab needs an authored Lower rows shade SpriteRenderer.", this);
+            return;
+        }
+        lowerRowsShade.transform.localPosition = Vector3.down * rowSpace * 2f;
+        lowerRowsShade.transform.localScale = new Vector3(1.34f, rowSpace * (VisibleRows - 1), 1f);
         foreach (FoodData item in data.foods)
         {
             FoodShushi food = SimplePool.Spawn<FoodShushi>(item.typeFood);

@@ -279,7 +279,7 @@ public class Customer : MonoBehaviour
             if (!active) continue;
 
             Vector3 position = slot.localPosition;
-            position.x = (i - center) * 0.98f;
+            position.x = (i - center) * 1.2f;
             slot.localPosition = position;
         }
     }

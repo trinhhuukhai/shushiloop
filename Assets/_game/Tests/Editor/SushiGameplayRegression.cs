@@ -103,6 +103,7 @@ public static class SushiGameplayRegression
             CreateFixture();
             SushiRecipeChecks.Run();
             Run("prefab visuals are serialized, reusable and preserve authored text layout", PrefabVisuals);
+            Run("board trays are tight and only the outside rails remain visible", BoardOuterRails);
             Run("customer UI binds data without rewriting prefab layout and fits large orders", CustomerPrefabBinding);
             Run("all 21 ingredient types share one prefab and select their own art", SharedIngredientArt);
             Run("two art lists resolve all dishes, ingredients and element sprites before serving", ArtCatalogImages);
@@ -217,6 +218,8 @@ public static class SushiGameplayRegression
             Get<CustomerRecipeView>(Prefab<Customer>("Customer"), "recipeView") != null, "customer visual components are not authored");
         Check(Get<List<Transform>>(Prefab<FoodQueue>("FoodQueue"), "emptyBases").Count == 4,
             "four empty conveyor bases are missing from the prefab");
+        Check(Get<SpriteRenderer>(Prefab<FoodQueue>("FoodQueue"), "lowerRowsShade") != null,
+            "lower row shade must be authored and referenced by the FoodQueue prefab");
         Check(Prefab<Transform>("Dia").Find("Ceramic plate") != null, "plate image is not authored");
         var instance = Object.Instantiate(prefab, fixture);
         instance.gameObject.SetActive(false);
@@ -234,6 +237,40 @@ public static class SushiGameplayRegression
             quantity.fontSize == fontSize && quantity.transform.localPosition == position, "setup rebuilt visuals or changed authored text layout");
         Object.Destroy(instance.gameObject);
     }
+
+    private static void BoardOuterRails()
+    {
+        board.Init(new List<FoodQueueData>
+        {
+            new FoodQueueData(), new FoodQueueData(), new FoodQueueData()
+        });
+        Transform first = board.FoodQueues[0].transform.Find("Column conveyor");
+        Transform middle = board.FoodQueues[1].transform.Find("Column conveyor");
+        Transform last = board.FoodQueues[2].transform.Find("Column conveyor");
+        Check(first.Find("Left rail").gameObject.activeSelf && !first.Find("Right rail").gameObject.activeSelf &&
+            !middle.Find("Left rail").gameObject.activeSelf && !middle.Find("Right rail").gameObject.activeSelf &&
+            !last.Find("Left rail").gameObject.activeSelf && last.Find("Right rail").gameObject.activeSelf,
+            "board did not restrict rails to its two outer edges");
+        Transform leftRail = first.Find("Left rail");
+        Transform rightRail = last.Find("Right rail");
+        Check(Mathf.Abs(leftRail.localPosition.x + 0.83f) < 0.001f &&
+            Mathf.Abs(rightRail.localPosition.x - 0.83f) < 0.001f &&
+            Mathf.Abs(leftRail.localScale.x - 0.8f) < 0.001f &&
+            Mathf.Abs(rightRail.localScale.x - 0.8f) < 0.001f,
+            "outer rails should be offset from trays with x scale 0.8");
+        SpriteRenderer shade = board.FoodQueues[0].transform.Find("Lower rows shade").GetComponent<SpriteRenderer>();
+        Check(shade != null && shade.color.r == 0f && shade.color.g == 0f && shade.color.b == 0f &&
+            shade.color.a > 0f && shade.color.a < 1f && shade.sortingOrder > 1 &&
+            Mathf.Abs(shade.transform.localPosition.y + 2.6f) < 0.001f &&
+            Mathf.Abs(shade.transform.localScale.y - 3.9f) < 0.001f,
+            "lower rows should have a translucent black overlay that leaves the top row uncovered");
+        Check(Mathf.Abs(Vector3.Distance(board.FoodQueues[0].transform.position,
+                board.FoodQueues[1].transform.position) - 1.4f) < 0.001f &&
+            Mathf.Abs(Vector3.Distance(board.FoodQueues[1].transform.position,
+                board.FoodQueues[2].transform.position) - 1.4f) < 0.001f,
+            "adjacent food trays should have a small separation");
+    }
+
     private static void Load(int slots, params FoodData[][] columns)
     {
         conveyor.Clear();
@@ -253,6 +290,20 @@ public static class SushiGameplayRegression
             customer.SitDown();
             CustomerRecipeView view = customer.GetComponent<CustomerRecipeView>();
             RectTransform orderRoot = Get<RectTransform>(view, "orderRoot");
+            Image orderBoard = orderRoot.GetComponent<Image>();
+            Image avatar = Get<Image>(customer, "avatarImage");
+            Canvas avatarCanvas = avatar.GetComponentInParent<Canvas>();
+            Canvas orderCanvas = orderRoot.GetComponent<Canvas>();
+            Check(avatarCanvas != null && orderCanvas != null &&
+                avatarCanvas.overrideSorting &&
+                avatarCanvas.sortingOrder < orderCanvas.sortingOrder &&
+                orderCanvas.overrideSorting &&
+                avatar.transform.parent.GetComponent<RectMask2D>() != null,
+                "customer portrait should be masked and render below every order board");
+            Check(orderBoard.sprite.name == "order_board_1x2_0" &&
+                Mathf.Abs(orderRoot.rect.height - 184f) < 0.1f &&
+                Mathf.Abs(orderRoot.rect.width - 184f * 188f / 252f) < 0.1f,
+                "one recipe group should use the compact 1x2 board");
             for (int i = 0; i < count; i++)
             {
                 SushiDishCardView card = view.CardAt(i);
@@ -261,9 +312,11 @@ public static class SushiGameplayRegression
                     "prefab layout or hit area failed for " + count + " dishes");
                 GameObject ingredientDetails = card.IngredientAt(0).transform.parent.gameObject;
                 Check(!ingredientDetails.activeSelf &&
-                    view.ToggleRecipeDetailsAtWorldPosition(center) && ingredientDetails.activeSelf &&
-                    view.ToggleRecipeDetailsAtWorldPosition(center) && !ingredientDetails.activeSelf,
+                    view.ToggleRecipeDetailsAtWorldPosition(center) && ingredientDetails.activeSelf,
                     "tapping the order did not toggle its ingredient recipe");
+                center = card.Rect.TransformPoint(card.Rect.rect.center);
+                Check(view.ToggleRecipeDetailsAtWorldPosition(center) && !ingredientDetails.activeSelf,
+                    "tapping the expanded order did not close its ingredient recipe");
                 var corners = new Vector3[4]; card.Rect.GetWorldCorners(corners);
                 foreach (Vector3 corner in corners)
                 {
@@ -300,9 +353,16 @@ public static class SushiGameplayRegression
         SushiDishCardView thirdDishCard = multiDishView.CardAt(2);
         Vector3 firstDishCenter = firstDishCard.Rect.TransformPoint(firstDishCard.Rect.rect.center);
         float collapsedOrderHeight = multiDishOrderRoot.rect.height;
-        Check(firstDishCard.transform.parent == thirdDishCard.transform.parent &&
-            firstDishCard.transform.parent != secondDishCard.transform.parent,
-            "customer orders should remain split between the left and right columns");
+        Check(multiDishOrderRoot.GetComponent<Image>().sprite.name == "order_board_2x2_0" &&
+            Mathf.Abs(collapsedOrderHeight - 184f) < 0.1f &&
+            firstDishCard.transform.parent == thirdDishCard.transform.parent &&
+            firstDishCard.transform.parent != secondDishCard.transform.parent &&
+            Get<Transform>(multiDishView, "rightColumn").gameObject.activeSelf,
+            "three recipe groups should use a two-column 2x2 board");
+        Transform[] servingSlots = Get<Transform[]>(multiDishCustomer, "servingSlots");
+        Check(Mathf.Abs(servingSlots[1].localPosition.x - servingSlots[0].localPosition.x - 1.2f) < 0.001f &&
+            Mathf.Abs(servingSlots[2].localPosition.x - servingSlots[1].localPosition.x - 1.2f) < 0.001f,
+            "serving plates should have a visible gap between them");
         Check(multiDishView.ToggleRecipeDetailsAtWorldPosition(firstDishCenter) && firstDishCard.IsRecipeExpanded,
             "first recipe did not expand");
         Vector3 secondDishCenter = secondDishCard.Rect.TransformPoint(secondDishCard.Rect.rect.center);
@@ -344,6 +404,71 @@ public static class SushiGameplayRegression
             Mathf.Approximately(multiDishOrderRoot.rect.height, collapsedOrderHeight),
             "closing the recipe should restore the order card layout");
         Object.Destroy(multiDishCustomer.gameObject);
+
+        SushiDishId[] uniqueDishes =
+        {
+            SushiDishId.NigiriTuna, SushiDishId.NigiriSalmon, SushiDishId.NigiriFlounder,
+            SushiDishId.NigiriMackerel, SushiDishId.NigiriShrimp
+        };
+        foreach (int count in new[] { 2, 4, 5 })
+        {
+            var orders = new List<DishOrderData>();
+            for (int i = 0; i < count; i++) orders.Add(new DishOrderData { dish = uniqueDishes[i] });
+            Customer customer = RecipeCustomer(orders.ToArray());
+            customer.SitDown();
+            CustomerRecipeView view = customer.GetComponent<CustomerRecipeView>();
+            RectTransform orderRoot = Get<RectTransform>(view, "orderRoot");
+            string expectedBoard = count < 5 ? "order_board_2x2_0" : "order_board_2x3_0";
+            float expectedHeight = count == 5 ? 248f : 184f;
+            Check(orderRoot.GetComponent<Image>().sprite.name == expectedBoard &&
+                Mathf.Abs(orderRoot.rect.height - expectedHeight) < 0.1f &&
+                Get<Transform>(view, "rightColumn").gameObject.activeSelf &&
+                view.CardAt(0).transform.parent != view.CardAt(1).transform.parent,
+                count + " recipe groups did not use the expected two-column order board");
+            Object.Destroy(customer.gameObject);
+        }
+
+        Customer completedCustomer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
+        completedCustomer.SitDown();
+        SushiDishOrder completedOrder = completedCustomer.Dishes[0];
+        foreach (OrderItem ingredient in completedOrder.Ingredients)
+            for (int i = 0; i < ingredient.requiredAmount; i++) Serve(completedCustomer, ingredient.typeFood);
+        GameObject completedMark = Get<GameObject>(completedCustomer.GetComponent<CustomerRecipeView>().CardAt(0), "completedMark");
+        Check(completedOrder.IsComplete && completedMark.activeSelf &&
+            completedMark.transform.Find("Tick art").gameObject.activeSelf,
+            "completed dish did not display its checkmark");
+        Object.Destroy(completedCustomer.gameObject);
+
+        Customer partiallyCompletedCustomer = RecipeCustomer(
+            new DishOrderData { dish = SushiDishId.MakiAvocado },
+            new DishOrderData { dish = SushiDishId.NigiriShrimp });
+        partiallyCompletedCustomer.SitDown();
+        CustomerRecipeView partiallyCompletedView = partiallyCompletedCustomer.GetComponent<CustomerRecipeView>();
+        SushiDishCardView completedCard = partiallyCompletedView.CardAt(0);
+        Vector3 completedCardCenter = completedCard.Rect.TransformPoint(completedCard.Rect.rect.center);
+        Check(partiallyCompletedView.ToggleRecipeDetailsAtWorldPosition(completedCardCenter) && completedCard.IsRecipeExpanded,
+            "incomplete dish recipe did not open before completion");
+        SushiDishOrder firstOrder = partiallyCompletedCustomer.Dishes[0];
+        foreach (OrderItem ingredient in firstOrder.Ingredients)
+            for (int i = 0; i < ingredient.requiredAmount; i++) Serve(partiallyCompletedCustomer, ingredient.typeFood);
+        Check(firstOrder.IsComplete && !partiallyCompletedCustomer.IsCompleted && !completedCard.IsRecipeExpanded &&
+            completedCard.DishImage.gameObject.activeSelf && completedCard.DishImage.enabled &&
+            !completedCard.IngredientAt(0).transform.parent.gameObject.activeSelf &&
+            completedCard.Rect.GetComponent<LayoutElement>().preferredHeight == 82,
+            "completing an expanded dish did not collapse its ingredients to the finished dish view");
+        completedCardCenter = completedCard.Rect.TransformPoint(completedCard.Rect.rect.center);
+        Check(!partiallyCompletedView.ToggleRecipeDetailsAtWorldPosition(completedCardCenter) && !completedCard.IsRecipeExpanded,
+            "completed dish recipe opened again after completion");
+        Object.Destroy(partiallyCompletedCustomer.gameObject);
+
+        Customer normalCustomer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
+        normalCustomer.SitDown();
+        RushCustomerView normalView = normalCustomer.GetComponent<RushCustomerView>();
+        Invoke(normalView, "Update");
+        Check(!Get<GameObject>(normalView, "indicator").activeSelf,
+            "normal customer displayed a rush timer/progress indicator");
+        Object.Destroy(normalCustomer.gameObject);
+
         Customer rushCustomer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
         rushCustomer.ConfigureRush(new CustomerOrderData { rushCustomer = true, rushSeconds = 30 });
         rushCustomer.SitDown();
@@ -352,10 +477,18 @@ public static class SushiGameplayRegression
         Invoke(rush, "Update");
         Check(Get<GameObject>(rush, "indicator").activeSelf && Get<TMPro.TMP_Text>(rush, "timer").text == "00:30",
             "rush prefab did not bind its initial state");
+        Check(Get<UnityEngine.UI.Image>(rush, "countdown").sprite == Get<Sprite>(rush, "normalFill"),
+            "rush timer did not start with the green art");
         rushCustomer.TickRush(15); Invoke(rush, "Update");
         Check(Get<UnityEngine.UI.Image>(rush, "countdown").fillAmount == 0.5f &&
             rushCustomer.GetComponentsInChildren<Transform>(true).Length == childCount,
             "rush display created visual objects or failed to bind remaining time");
+        rushCustomer.TickRush(0.2f); Invoke(rush, "Update");
+        Check(Get<UnityEngine.UI.Image>(rush, "countdown").sprite == Get<Sprite>(rush, "warningFill"),
+            "rush timer did not switch to orange below the half-time mark");
+        rushCustomer.TickRush(9); Invoke(rush, "Update");
+        Check(Get<UnityEngine.UI.Image>(rush, "countdown").sprite == Get<Sprite>(rush, "urgentFill"),
+            "rush timer did not switch to red below the final-time mark");
         Object.Destroy(rushCustomer.gameObject);
     }
 

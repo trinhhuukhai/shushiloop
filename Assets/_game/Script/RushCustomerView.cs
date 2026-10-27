@@ -13,6 +13,9 @@ public class RushCustomerView : MonoBehaviour
     [SerializeField] private Color normalColor;
     [SerializeField] private Color warningColor;
     [SerializeField] private Color urgentColor;
+    [SerializeField] private Sprite normalFill;
+    [SerializeField] private Sprite warningFill;
+    [SerializeField] private Sprite urgentFill;
     private Customer customer;
     private float nextTick;
 
@@ -24,21 +27,15 @@ public class RushCustomerView : MonoBehaviour
 
     private void Update()
     {
-        bool visible = customer.IsSeated && (customer.IsRush || customer.Dishes.Count > 0);
+        bool visible = customer.IsSeated && customer.IsRush;
         indicator.SetActive(visible);
         if (!visible) return;
         timer.transform.parent.gameObject.SetActive(customer.IsRush && !customer.IsCompleted);
-        if (!customer.IsRush)
-        {
-            int completed = 0;
-            foreach (var dish in customer.Dishes) if (dish.IsComplete) completed++;
-            countdown.fillAmount = (float)completed / Mathf.Max(1, customer.Dishes.Count);
-            countdown.color = normalColor;
-            return;
-        }
         float fraction = Mathf.Clamp01(customer.RushRemaining / Mathf.Max(0.01f, customer.RushDuration));
         Color color = fraction < 0.2f ? urgentColor : fraction < 0.5f ? warningColor : normalColor;
         timer.color = countdown.color = color;
+        Sprite fillSprite = fraction < 0.2f ? urgentFill : fraction < 0.5f ? warningFill : normalFill;
+        if (fillSprite != null) { countdown.sprite = fillSprite; countdown.color = Color.white; }
         countdown.fillAmount = fraction;
         int seconds = Mathf.CeilToInt(customer.RushRemaining);
         timer.text = (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00");

@@ -147,8 +147,8 @@ public static class SushiPrefabVisualSetup
             for (int side = -1; side <= 1; side += 2)
             {
                 var rail = Panel(belt, side < 0 ? "Left rail" : "Right rail", -3);
-                rail.transform.localPosition = new Vector3(side * 0.69f, center, -0.01f);
-                rail.transform.localScale = new Vector3(0.09f, height, 1);
+                rail.transform.localPosition = new Vector3(side * 0.83f, center, -0.01f);
+                rail.transform.localScale = new Vector3(0.8f, height, 1);
                 rail.color = new Color(0.9f, 0.61f, 0.28f);
             }
             Bind(queue, "beltView", belt);

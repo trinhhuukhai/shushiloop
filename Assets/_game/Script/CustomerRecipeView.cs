@@ -9,6 +9,9 @@ public class CustomerRecipeView : MonoBehaviour
     [SerializeField] private RectTransform orderRoot;
     [SerializeField] private Transform leftColumn;
     [SerializeField] private Transform rightColumn;
+    [SerializeField] private Sprite oneColumnTwoRowsBoard;
+    [SerializeField] private Sprite twoColumnTwoRowsBoard;
+    [SerializeField] private Sprite twoColumnThreeRowsBoard;
     private Customer customer;
     private SushiDishArtLibrary art;
     private readonly List<SushiDishCardView> cards = new List<SushiDishCardView>();
@@ -17,13 +20,19 @@ public class CustomerRecipeView : MonoBehaviour
     private bool magnetTargeting;
     private float collapsedOrderHeight;
     private bool hasCachedOrderHeight;
+    private Vector2 defaultOrderSize;
+    private Vector2 defaultOrderPosition;
+    private Sprite defaultOrderBoard;
+    private Image.Type defaultOrderBoardType;
+    private Image orderBoardImage;
+    private bool hasCachedOrderBoard;
 
     public SushiDishCardView CardAt(int index) => dishCards[index];
 
     public void Clear()
     {
         if (customer != null) customer.OnOrderChanged -= Refresh;
-        RestoreOrderHeight();
+        RestoreOrderBoard();
         customer = null;
         magnetTargeting = false;
         foreach (var card in cards)
@@ -39,8 +48,7 @@ public class CustomerRecipeView : MonoBehaviour
         art = library != null ? library : SushiArtCatalog.Default != null ? SushiArtCatalog.Default.dishImages : null;
         if (!hasCachedOrderHeight && orderRoot != null)
         {
-            collapsedOrderHeight = orderRoot.rect.height;
-            hasCachedOrderHeight = true;
+            CacheDefaultOrderBoard();
         }
         foreach (var dish in customer.Dishes)
         {
@@ -48,10 +56,13 @@ public class CustomerRecipeView : MonoBehaviour
             if (group == null) { group = new List<SushiDishOrder>(); groups.Add(group); }
             group.Add(dish);
         }
-        rightColumn.gameObject.SetActive(groups.Count > 1);
+        ConfigureOrderBoard(groups.Count);
+        bool twoColumns = groups.Count > 1;
+        rightColumn.gameObject.SetActive(twoColumns);
         for (int i = 0; i < groups.Count; i++)
         {
-            SushiDishCardView card = Instantiate(cardTemplate, i % 2 == 0 ? leftColumn : rightColumn, false);
+            Transform column = twoColumns && i % 2 == 1 ? rightColumn : leftColumn;
+            SushiDishCardView card = Instantiate(cardTemplate, column, false);
             card.name = groups[i][0].Recipe.Name;
             card.BindGroup(owner, groups[i], art);
             card.gameObject.SetActive(true);
@@ -100,6 +111,7 @@ public class CustomerRecipeView : MonoBehaviour
         foreach (var card in cards)
         {
             if (!card.gameObject.activeInHierarchy || !card.Contains(position)) continue;
+            if (card.IsOrderComplete) return false;
             bool expand = !card.IsRecipeExpanded;
             if (expand)
                 foreach (var otherCard in cards)
@@ -130,8 +142,14 @@ public class CustomerRecipeView : MonoBehaviour
     private void Refresh(Customer owner)
     {
         SetSeated(owner.IsSeated);
+        bool layoutChanged = false;
         for (int i = 0; i < cards.Count && i < owner.Dishes.Count; i++)
+        {
+            bool wasExpanded = cards[i].IsRecipeExpanded;
             cards[i].Refresh(groups[i][0], magnetTargeting);
+            layoutChanged |= wasExpanded && !cards[i].IsRecipeExpanded;
+        }
+        if (layoutChanged) RefreshOrderLayout();
     }
 
     private void RefreshOrderLayout()
@@ -162,10 +180,76 @@ public class CustomerRecipeView : MonoBehaviour
         return height;
     }
 
-    private void RestoreOrderHeight()
+    private void CacheDefaultOrderBoard()
     {
-        if (!hasCachedOrderHeight || orderRoot == null) return;
-        orderRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, collapsedOrderHeight);
+        if (orderRoot == null)
+        {
+            Debug.LogError("Customer recipe view requires an order panel RectTransform.", this);
+            return;
+        }
+        orderBoardImage = orderRoot.GetComponent<Image>();
+        if (orderBoardImage == null)
+        {
+            Debug.LogError("Customer order panel requires an Image for its board artwork.", this);
+            return;
+        }
+        defaultOrderSize = orderRoot.sizeDelta;
+        defaultOrderPosition = orderRoot.anchoredPosition;
+        defaultOrderBoard = orderBoardImage.sprite;
+        defaultOrderBoardType = orderBoardImage.type;
+        hasCachedOrderBoard = true;
+    }
+
+    private void ConfigureOrderBoard(int orderCount)
+    {
+        if (!hasCachedOrderBoard)
+        {
+            CacheDefaultOrderBoard();
+            if (!hasCachedOrderBoard) return;
+        }
+
+        Sprite board;
+        float height;
+        switch (orderCount)
+        {
+            case 1:
+                board = oneColumnTwoRowsBoard;
+                height = 184f;
+                break;
+            case 2:
+            case 3:
+            case 4:
+                board = twoColumnTwoRowsBoard;
+                height = 184f;
+                break;
+            default:
+                board = twoColumnThreeRowsBoard;
+                height = 248f;
+                break;
+        }
+
+        if (board == null)
+        {
+            Debug.LogError("Customer order board artwork is not assigned for " + orderCount + " orders.", this);
+            return;
+        }
+        orderBoardImage.sprite = board;
+        orderBoardImage.type = Image.Type.Simple;
+        float width = height * board.bounds.size.x / board.bounds.size.y;
+        orderRoot.sizeDelta = new Vector2(width, height);
+        orderRoot.anchoredPosition = defaultOrderPosition;
+        collapsedOrderHeight = height;
+        hasCachedOrderHeight = true;
+    }
+
+    private void RestoreOrderBoard()
+    {
+        if (!hasCachedOrderBoard || orderRoot == null) return;
+        orderRoot.sizeDelta = defaultOrderSize;
+        orderRoot.anchoredPosition = defaultOrderPosition;
+        orderBoardImage.sprite = defaultOrderBoard;
+        orderBoardImage.type = defaultOrderBoardType;
+        collapsedOrderHeight = defaultOrderSize.y;
         LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
     }
 

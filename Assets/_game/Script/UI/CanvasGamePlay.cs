@@ -23,6 +23,10 @@ public class CanvasGamePlay : UICanvas
     [SerializeField] private TMP_Text customerProgress;
     [SerializeField] private Image customerProgressFill;
     [SerializeField] private TMP_Text difficulty;
+    [SerializeField] private Image levelBadge;
+    [SerializeField] private Sprite normalLevelBadge;
+    [SerializeField] private Sprite hardLevelBadge;
+    [SerializeField] private Sprite superHardLevelBadge;
     private FoodInputController input;
 
     private void Awake()
@@ -46,6 +50,9 @@ public class CanvasGamePlay : UICanvas
         LevelManager level = LevelManager.Ins;
         if (level == null || level.CurrentLevel == null) return;
         txtLevvel.text = "LV\n" + (level.CurrentLevelIndex + 1);
+        if (levelBadge != null)
+            levelBadge.sprite = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? superHardLevelBadge :
+                level.CurrentLevel.TypeLevel == TypeLevel.Hard ? hardLevelBadge : normalLevelBadge;
         if (customerProgress != null)
         {
             var customers = level.Conveyor.Customers;

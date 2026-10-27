@@ -31,6 +31,9 @@ public class FoodShushi : GameUnit
 
     [Header("Prefab visuals")]
     [SerializeField] private TextMeshPro quantityLabel;
+    [SerializeField] private SpriteRenderer quantityBadge;
+    [SerializeField] private Sprite quantityTwo;
+    [SerializeField] private Sprite quantityThree;
     [SerializeField] private TextMeshPro stateLabel;
     [SerializeField] private SpriteRenderer cover;
     [SerializeField] private SpriteRenderer tileBackground;
@@ -243,7 +246,15 @@ public class FoodShushi : GameUnit
         quantityLabel.text = "×" + amount;
         quantityLabel.transform.localPosition = iceLayers > 0 ? frozenQuantityPosition : quantityPosition;
         tileBackground.gameObject.SetActive(visible && onBoard);
-        quantityLabel.gameObject.SetActive(visible && onBoard && !hidden && amount > 1);
+        bool showQuantity = visible && onBoard && !hidden && amount > 1;
+        Sprite badgeSprite = amount == 2 ? quantityTwo : amount == 3 ? quantityThree : null;
+        if (quantityBadge != null)
+        {
+            quantityBadge.sprite = badgeSprite;
+            quantityBadge.transform.localPosition = quantityLabel.transform.localPosition;
+            quantityBadge.gameObject.SetActive(showQuantity && badgeSprite != null);
+        }
+        quantityLabel.gameObject.SetActive(showQuantity && (quantityBadge == null || badgeSprite == null));
         bool showCover = visible && (hidden || (onBoard && iceLayers > 0));
         cover.gameObject.SetActive(showCover);
         SushiArtCatalog catalog = SushiArtCatalog.Default;

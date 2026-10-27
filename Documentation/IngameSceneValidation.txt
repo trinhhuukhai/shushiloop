@@ -1,0 +1,2 @@
+PASS: saved ingame sprites, scene HUD identity, recipe details, all visible ingredient input raycasts, Settings replay, Home/gameplay roundtrip, no duplicated scenery/HUD.
+Rendered 720x1280, 1080x2400 and 1536x2048.

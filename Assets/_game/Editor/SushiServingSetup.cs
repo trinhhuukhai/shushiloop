@@ -187,7 +187,7 @@ public static class SushiServingSetup
             var settings = new SerializedObject(customer); var slots = settings.FindProperty("servingSlots"); slots.arraySize = 4;
             for (int i = 0; i < 4; i++)
             {
-                Transform anchor = Node(serving, "Plate " + (i + 1), new Vector3((i - 1.5f) * 0.98f, 0, 0));
+                Transform anchor = Node(serving, "Plate " + (i + 1), new Vector3((i - 1.5f) * 1.2f, 0, 0));
                 var ring = anchor.gameObject.AddComponent<LineRenderer>(); ring.useWorldSpace = false; ring.loop = true;
                 ring.sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/_game/Materials/SushiLineMaterial.mat"); ring.sortingOrder = 2;
                 ring.startWidth = ring.endWidth = 0.022f; ring.startColor = ring.endColor = new Color(1, 0.93f, 0.76f, 0.65f);

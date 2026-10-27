@@ -149,6 +149,11 @@ public static class SushiPlatedIngredientRegression
         Check(belt.OccupiedSlotCount == 1 && belt.PreparedDishCount == 0, "octopus left the belt before rice");
         Check(Tap(1), "rice pickup failed"); Advance(); Invoke(belt, "Update");
         SushiPreparedDish dish = Dish;
+        Check(dish.IngredientTarget(PoolType.SushiRice).localPosition.x == 0f &&
+            dish.IngredientTarget(PoolType.SushiRice).localPosition.y == 0f &&
+            dish.IngredientTarget(PoolType.Octopus).localPosition.x == 0f &&
+            dish.IngredientTarget(PoolType.Octopus).localPosition.y == 0f,
+            "ingredient landing targets are not centered on the plate");
         Check(belt.OccupiedSlotCount == 1 && !customer.CanReceivePreparedIngredient(customer.Dishes[0], PoolType.Octopus),
             "topping reserved before rice landed");
         var rice = Get<Dictionary<SushiPreparedDish, List<FoodShushi>>>(belt, "assemblyFoods")[dish].Single();
@@ -158,12 +163,14 @@ public static class SushiPlatedIngredientRegression
         Check(belt.OccupiedSlotCount == 1, "topping launched during the base flight");
         Advance();
         Check(dish.AssemblyIngredients.Count == 1 && rice.transform.IsChildOf(dish.IngredientRoot), "base did not join its parent");
+        Check(rice.transform.localPosition == Vector3.zero, "landed base is not centered on the plate");
         Invoke(belt, "Update"); Advance();
         Check(dish.IsReady && dish.AssemblyIngredients.Count == 2 && !Get<SpriteRenderer>(dish, "dishImage").enabled,
             "completed composite was replaced by one finished sprite");
         FoodShushi octopus = dish.AssemblyIngredients.Single(food => food.Type == PoolType.Octopus);
         Check(Artwork(octopus).name == "nigiri_top_octopus_0" && octopus.transform.IsChildOf(dish.IngredientRoot),
             "octopus did not retain its plated art/parent");
+        Check(octopus.transform.localPosition == Vector3.zero, "landed topping is not centered on the plate");
         Check(Get<SpriteRenderer>(rice, "foodRenderer").sortingOrder < Get<SpriteRenderer>(octopus, "foodRenderer").sortingOrder,
             "rice rendered above its topping");
         Check(rice.transform.localScale == Vector3.one && octopus.transform.localScale == Vector3.one,
