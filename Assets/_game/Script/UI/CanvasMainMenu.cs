@@ -37,7 +37,7 @@ public class CanvasMainMenu : UICanvas
     {
         base.Open();
         ApplyMenuCanvasScale();
-        HideCheatOverlay();
+        //HideCheatOverlay();
         starting = false;
         tabTween?.Kill();
         ClosePages();
@@ -234,7 +234,7 @@ public class CanvasMainMenu : UICanvas
         foreach (RectTransform icon in tabIcons) if (icon != null) icon.DOKill();
         ClosePages();
         RestoreCanvasScale();
-        RestoreCheatOverlay();
+        //RestoreCheatOverlay();
         base.OnDisable();
     }
     public void CheckMoneyTemp()
