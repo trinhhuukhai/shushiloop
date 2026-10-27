@@ -212,7 +212,7 @@ public class CanvasMainMenu : UICanvas
     public void OpenDailYLogin() => UIManager.Ins?.OpenUI<CanvasDailyLogin>();
     public void OpenDailyReward() => UIManager.Ins?.OpenUI<CanvasDailyReward>();
     public void OpenDailySpin() => UIManager.Ins?.OpenUI<CanvasSpin>();
-    public void OpenProfile() { if (profilePanel != null) profilePanel.SetActive(true); }
+    public void OpenProfile() => UIManager.Ins?.OpenUI<CanvasProfile>();
     public void CloseProfile() { if (profilePanel != null) profilePanel.SetActive(false); }
     public override void BackKey()
     {
