@@ -25,6 +25,7 @@ public partial class ConveyorManager : MonoBehaviour
 
     private float progress;
     private bool isRunning;
+    private bool manualDoubleSpeed;
     private bool doubleSpeed;
     public bool IsDoubleSpeed => doubleSpeed;
 
@@ -140,15 +141,18 @@ public partial class ConveyorManager : MonoBehaviour
         }
 
         progress = 0f;
+        manualDoubleSpeed = false;
         doubleSpeed = false;
 
         UpdateSlotPositions();
         isRunning = true;
+        RefreshDoubleSpeed();
         NotifyOccupancy();
     }
 
     private void Update()
     {
+        RefreshDoubleSpeed();
         if (!isRunning || slots.Count == 0)
             return;
 
@@ -188,7 +192,14 @@ public partial class ConveyorManager : MonoBehaviour
 
     public void ToggleSpeed()
     {
-        doubleSpeed = !doubleSpeed;
+        manualDoubleSpeed = !manualDoubleSpeed;
+        RefreshDoubleSpeed();
+    }
+
+    private void RefreshDoubleSpeed()
+    {
+        BoardShishiManager board = BoardShishiManager.Ins;
+        doubleSpeed = manualDoubleSpeed || (board != null && board.IsEmpty());
     }
 
     public void Clear()

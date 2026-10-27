@@ -104,6 +104,7 @@ public static class SushiGameplayRegression
             SushiRecipeChecks.Run();
             Run("prefab visuals are serialized, reusable and preserve authored text layout", PrefabVisuals);
             Run("board trays are tight and only the outside rails remain visible", BoardOuterRails);
+            Run("belt automatically doubles speed after the board is cleared", AutomaticBeltSpeed);
             Run("customer UI binds data without rewriting prefab layout and fits large orders", CustomerPrefabBinding);
             Run("all 21 ingredient types share one prefab and select their own art", SharedIngredientArt);
             Run("two art lists resolve all dishes, ingredients and element sprites before serving", ArtCatalogImages);
@@ -278,6 +279,23 @@ public static class SushiGameplayRegression
         foreach (FoodData[] foods in columns) data.Add(new FoodQueueData { foods = new List<FoodData>(foods) });
         board.Init(data); conveyor.Init(slots, 0.05f);
     }
+
+    private static void AutomaticBeltSpeed()
+    {
+        Load(4, new[] { Food() });
+        Set(conveyor, "manualDoubleSpeed", false);
+        Invoke(conveyor, "RefreshDoubleSpeed");
+        Check(!conveyor.IsDoubleSpeed, "belt doubled speed while board still had ingredients");
+        Check(Tap(0), "could not pick the final board ingredient");
+        Invoke(conveyor, "RefreshDoubleSpeed");
+        Check(!conveyor.IsDoubleSpeed, "belt doubled speed before the final pickup animation completed");
+        Advance(1);
+        Invoke(conveyor, "RefreshDoubleSpeed");
+        Check(board.IsEmpty() && conveyor.IsDoubleSpeed,
+            "belt did not automatically double speed once all board ingredients reached the belt");
+        conveyor.Clear();
+    }
+
     private static FoodQueue Column(int index) => board.FoodQueues[index];
     private static bool Tap(int index) => conveyor.TryTakeFromQueue(Column(index));
     private static void Advance(float seconds = 1) { DOTween.ManualUpdate(seconds, seconds); }
