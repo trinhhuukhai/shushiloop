@@ -1316,23 +1316,50 @@ public static class SushiGameplayRegression
             "lost while matching food was waiting to reach its customer");
 
         conveyor.Clear();
+        Transform firstSeat = customers.GetSeat(0), secondSeat = customers.GetSeat(1);
+        Vector3 firstSeatPosition = firstSeat.position, secondSeatPosition = secondSeat.position;
+        float exitDistance = Get<float>(customers, "customerExitDistance");
+        firstSeat.position = new Vector3(-2, firstSeat.position.y, firstSeat.position.z);
+        secondSeat.position = new Vector3(2, secondSeat.position.y, secondSeat.position.z);
+        Set(customers, "customerExitDistance", 1f);
         customers.Init(new List<CustomerOrderData> {
             Order(PoolType.Shrimp, 1), Order(PoolType.Egg, 1), Order(PoolType.Salmon, 1)
         });
         Load(1, new[] { Food(PoolType.Salmon), Food(PoolType.Salmon) });
         Check(Tap(0), "customer transition setup failed");
         Advance();
-        Serve(customers.ActiveCustomers[0], PoolType.Shrimp);
+        Customer departing = customers.ActiveCustomers[0];
+        float departingStartX = departing.transform.position.x;
+        Serve(departing, PoolType.Shrimp);
         Check(customers.HasPendingTransitions && conveyor.CanMakeProgress, "departing customer was not considered");
         CheckLevelState(20);
         Check(level.IsPlaying, "lost while a customer was leaving");
-        Advance();
+        Advance(0.81f);
+        Advance(0.1f);
+        Check(customers.ActiveCustomers[0] == departing && departing.transform.position.x < departingStartX,
+            "first-seat customer did not slide left before leaving");
+        Advance(0.3f);
         Check(customers.HasPendingTransitions && conveyor.CanMakeProgress, "arriving customer was not considered");
         CheckLevelState(20);
         Check(level.IsPlaying, "lost while a customer was walking to a seat");
         Advance();
         Check(conveyor.CanMakeProgress, "new customer's matching food was not considered");
+
+        Customer departingRight = customers.ActiveCustomers[1];
+        float departingRightStartX = departingRight.transform.position.x;
+        Serve(departingRight, PoolType.Egg);
+        Advance(0.81f);
+        Advance(0.1f);
+        Check(customers.ActiveCustomers[1] == departingRight &&
+            departingRight.transform.position.x > departingRightStartX,
+            "second-seat customer did not slide right before leaving");
+        Advance(0.3f);
+        Check(customers.ActiveCustomers[1] == null && customers.CompletedCustomers == 2,
+            "second-seat customer was not removed after sliding right");
         level.LoadLevel(0);
+        firstSeat.position = firstSeatPosition;
+        secondSeat.position = secondSeatPosition;
+        Set(customers, "customerExitDistance", exitDistance);
     }
 
     private static void PartialDishDeadlock()

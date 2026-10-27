@@ -90,6 +90,7 @@ public class CustomerManager : MonoBehaviour
     private void HandleRushExpired(Customer customer) => OnRushExpired?.Invoke(customer);
     [Header("Khách hoàn thành")]
     [SerializeField] private float completedDelay = 0.8f;
+    [SerializeField, Min(0f)] private float customerExitDistance = 8f;
 
     private readonly HashSet<Customer> finishingCustomers =
         new HashSet<Customer>();
@@ -228,27 +229,39 @@ public class CustomerManager : MonoBehaviour
             Mathf.Max(0f, completedDelay),
             () =>
             {
-                if (customer == null ||
-                    !finishingCustomers.Remove(customer))
+                if (customer == null || !finishingCustomers.Contains(customer))
                 {
                     return;
                 }
 
-                activeCustomers[seatIndex] = null;
-                CompletedCustomers++;
-
-                RemoveCustomer(customer);
-                MoveNextCustomerToSeat(seatIndex);
-                MoveNextCustomerToSeat(1 - seatIndex);
-
-                NotifyProgress();
-
-                if (AllCustomersCompleted)
-                    OnAllCustomersCompleted?.Invoke();
+                float direction = seatIndex == 0 ? -1f : 1f;
+                Vector3 exitPosition = customer.transform.position +
+                    Vector3.right * direction * customerExitDistance;
+                customer.transform
+                    .DOMove(exitPosition, Mathf.Max(0.01f, moveDuration))
+                    .SetEase(Ease.InQuad)
+                    .SetId(moveTweenId)
+                    .SetTarget(customer)
+                    .OnComplete(() => FinishCustomerExit(customer, seatIndex));
             },
             false // Dùng thời gian game, dừng khi Time.timeScale = 0.
         )
         .SetId(completedDelayId);
+    }
+
+    private void FinishCustomerExit(Customer customer, int seatIndex)
+    {
+        if (customer == null || !finishingCustomers.Remove(customer)) return;
+
+        activeCustomers[seatIndex] = null;
+        CompletedCustomers++;
+        RemoveCustomer(customer);
+        MoveNextCustomerToSeat(seatIndex);
+        MoveNextCustomerToSeat(1 - seatIndex);
+        NotifyProgress();
+
+        if (AllCustomersCompleted)
+            OnAllCustomersCompleted?.Invoke();
     }
 
     private void MoveNextCustomerToSeat(int seatIndex)

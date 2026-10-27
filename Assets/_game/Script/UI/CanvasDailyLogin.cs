@@ -174,7 +174,7 @@ public class CanvasDailyLogin : UICanvas
 
     private void ClaimHandle()
     {
-        BlockUI.Ins.Block();
+        //BlockUI.Ins.Block();
         var index = DailyLoginDataFragment.cur.GetCurrentDayIndex();
         // DailyLoginDataFragment.cur.TickDay(index);
 
@@ -255,7 +255,7 @@ public class CanvasDailyLogin : UICanvas
         RefreshItem();
         DOVirtual.DelayedCall(1.1f, () =>
         {
-            BlockUI.Ins.UnBlock();
+            //BlockUI.Ins.UnBlock();
         });
     }
 

@@ -262,7 +262,7 @@ public class CanvasDailyReward : UICanvas
 
         //var config = GetConfig();
         //ResourcesDataFragment.cur.AddGold(config.freeReward, "DAILY_REWARD");
-        BlockUI.Ins.Block();
+        //BlockUI.Ins.Block();
         rewardImages[0].Play();
         //SoundManager.PlayEfx(SoundID.sfx_ui_reward_claim);
         //LivesDataFragment.cur.AddUnlimitedLivesSeconds(30);
@@ -276,7 +276,7 @@ public class CanvasDailyReward : UICanvas
 
         DOVirtual.DelayedCall(1.3f, () =>
         {
-            BlockUI.Ins.UnBlock();
+            //BlockUI.Ins.UnBlock();
         });
     }
 
@@ -301,7 +301,7 @@ public class CanvasDailyReward : UICanvas
         OnCloseAds();
         void OnFailed()
         {
-            BlockUI.Ins.UnBlock();
+            //BlockUI.Ins.UnBlock();
         }
         void OnCloseAds()
         {
@@ -310,7 +310,7 @@ public class CanvasDailyReward : UICanvas
             RefreshAll();
 
             //var config = GetConfig();
-            BlockUI.Ins.Block();
+            //BlockUI.Ins.Block();
 
             switch (index)
             {
@@ -359,7 +359,7 @@ public class CanvasDailyReward : UICanvas
 
             DOVirtual.DelayedCall(1.3f, () =>
             {
-                BlockUI.Ins.UnBlock();
+                //BlockUI.Ins.UnBlock();
             });
         }
 
@@ -369,7 +369,7 @@ public class CanvasDailyReward : UICanvas
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
         //SoundManager.PlayEfx(SoundID.sfx_ui_popup_disappear);
-        BlockUI.Ins.UnBlock();
+        //BlockUI.Ins.UnBlock();
         //UIManager.Ins.GetUI<CanvasFloating>().ShowGoldAndHeart();
         //UIManager.Ins.GetUI<CanvasFloating>().ShowSettingButton(true);
         CloseDirectly();

@@ -1725,6 +1725,10 @@ PrefabInstance:
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
+    - target: {fileID: 3001011398611600398, guid: 98af352a4a8726d44a962bc3f94ab67c, type: 3}
+      propertyPath: m_Color.a
+      value: 0.16470589
+      objectReference: {fileID: 0}
     - target: {fileID: 3256563737009922353, guid: 98af352a4a8726d44a962bc3f94ab67c, type: 3}
       propertyPath: m_BlockingMask.m_Bits
       value: 119
@@ -2479,7 +2483,7 @@ MonoBehaviour:
   levelShowInter: 0
   vuaMuaIAPSeasonpass: 0
   showPopupDailyLogin: 0
-  minimumStartupLoadingDuration: 1.65
+  minimumStartupLoadingDuration: 2
 --- !u!1 &1227915775
 GameObject:
   m_ObjectHideFlags: 0

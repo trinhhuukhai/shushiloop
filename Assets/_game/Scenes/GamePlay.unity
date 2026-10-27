@@ -1170,6 +1170,7 @@ MonoBehaviour:
   - {fileID: -201573519503496745, guid: 8a993b832c9009c4a9a5e4b084a2fc51, type: 3}
   dishArt: {fileID: 11400000, guid: 0fe45ee7bc5290a8eb10e4069406a361, type: 2}
   completedDelay: 0.8
+  customerExitDistance: 8
 --- !u!4 &1285739046
 Transform:
   m_ObjectHideFlags: 0
