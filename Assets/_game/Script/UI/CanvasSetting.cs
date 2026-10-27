@@ -22,6 +22,8 @@ public class CanvasSetting : UICanvas
         bool inGame = LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null;
         bool allowHome = inGame && GameManager.ins != null && GameManager.ins.CanReturnHome;
         if (back_Bt != null) back_Bt.gameObject.SetActive(inGame);
+        if (resumeBt != null) resumeBt.gameObject.SetActive(inGame);
+        if (btnExit != null) btnExit.gameObject.SetActive(!inGame);
         if (homeBt != null)
         {
             homeBt.interactable = allowHome;
