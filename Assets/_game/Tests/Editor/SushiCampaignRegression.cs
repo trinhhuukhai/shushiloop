@@ -40,15 +40,14 @@ public static class SushiCampaignRegression
         return solved;
     }
 
-    [MenuItem("Sushi/Validate 20 Level Campaign")]
+    [MenuItem("Sushi/Validate 50 Level Campaign")]
     public static void ValidateCampaign()
     {
         var campaign = FindCampaign();
-        Check(campaign.listAllLevel != null && campaign.listAllLevel.Count == 20,
-            "The active campaign must contain exactly 20 levels.");
+        Check(campaign.listAllLevel != null && campaign.listAllLevel.Count == SushiCampaignSetup.LevelCount,
+            "The active campaign must contain exactly 50 levels.");
         var unique = new HashSet<SushiLevelData>();
         int previousFood = 0, previousCustomers = 0;
-        int firstHidden = 0, firstIce = 0, firstLink = 0, firstTray = 0;
         for (int index = 0; index < campaign.listAllLevel.Count; index++)
         {
             SushiLevelData level = campaign.listAllLevel[index];
@@ -72,16 +71,6 @@ public static class SushiCampaignRegression
                     if (food.linkId > 0 || food.lockId > 0) linkedCells++;
                     if (food.trayId > 0) trayCells++;
                 }
-            if (hidden > 0 && firstHidden == 0) firstHidden = level.number;
-            if (ice > 0 && firstIce == 0) firstIce = level.number;
-            if (linkedCells > 0 && firstLink == 0) firstLink = level.number;
-            if (trayCells > 0 && firstTray == 0) firstTray = level.number;
-            Check(level.number >= 5 || hidden == 0, "Hidden tiles appeared before level 5.");
-            Check(level.number >= 7 || ice == 0, "Ice appeared before level 7.");
-            Check(level.number >= 9 || linkedCells == 0, "Links appeared before level 9.");
-            Check(level.number >= 11 || trayCells == 0, "Trays appeared before level 11.");
-            foreach (CustomerOrderData customer in level.customers)
-                Check(!customer.rushCustomer, "This campaign does not introduce an extra rush mechanic.");
             int foodCount = level.GetTotalFoodCount();
             Check(foodCount >= previousFood && level.CustomerCount >= previousCustomers,
                 "Campaign workload must not decrease between consecutive levels.");
@@ -94,8 +83,6 @@ public static class SushiCampaignRegression
                 hidden + ", ice " + ice + ", linked cells " + linkedCells + ", tray cells " + trayCells +
                 "; " + detail);
         }
-        Check(firstHidden == 5 && firstIce == 7 && firstLink == 9 && firstTray == 11,
-            "Mechanics must debut exactly at levels 5 / 7 / 9 / 11.");
         var firstBoard = campaign.listAllLevel[0].CreateBoardData();
         FoodData tutorial = firstBoard[1].foods[0];
         Check(tutorial.typeFood == PoolType.Shrimp && tutorial.amount == 1 &&
@@ -106,7 +93,7 @@ public static class SushiCampaignRegression
         Check(tutorialCustomer.UsesRecipes && tutorialCustomer.dishes.Count > 0 &&
             SushiRecipeCatalog.Get(tutorialCustomer.dishes[0].dish).Ingredients.Contains(PoolType.Shrimp),
             "The first customer's first dish must include the configured tutorial shrimp.");
-        Pass("All 20 assets validate, have exact ingredient balances, and have a legal normal-tap solution.");
+        Pass("All 50 assets validate, have exact ingredient balances, and have a legal normal-tap solution.");
     }
 
     public static void RunBatch()

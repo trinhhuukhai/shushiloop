@@ -8,7 +8,6 @@ using UnityEngine.SceneManagement;
 // Scene authoring only: keep the existing visible queue and add offscreen arrival anchors.
 public static class SushiCampaignSceneSetup
 {
-    public const int MaximumCustomers = 12;
     private const string GameplayPath = "Assets/_game/Scenes/GamePlay.unity";
 
     [MenuItem("SushiKhai/Levels/Prepare Campaign Waiting Queue")]
@@ -35,7 +34,12 @@ public static class SushiCampaignSceneSetup
             if (position == null || !used.Add(position))
                 throw new InvalidOperationException("Existing waiting anchor " + (i + 1) + " is missing or duplicated.");
         }
-        const int required = MaximumCustomers - 2;
+        var campaign = AssetDatabase.LoadAssetAtPath<AllLevelData>("Assets/_game/LevelData/_AllLevelData.asset");
+        if (campaign == null || campaign.listAllLevel == null)
+            throw new InvalidOperationException("Missing campaign data.");
+        int required = 0;
+        foreach (var level in campaign.listAllLevel)
+            if (level != null) required = Mathf.Max(required, level.CustomerCount - 2);
         if (positions.arraySize >= required)
         {
             Debug.Log("CAMPAIGN_QUEUE_READY " + positions.arraySize + " waiting anchors.");
@@ -71,9 +75,14 @@ public static class SushiCampaignSceneSetup
         {
             string anchorName = "Campaign Waiting " + (i + 1);
             Transform anchor = parent.Find(anchorName);
-            if (anchor == null)
+            if (anchor == null || used.Contains(anchor))
             {
-                anchor = new GameObject(anchorName).transform;
+                // An existing marker's name may not match its list index after scene edits.
+                // Keep that binding and give the extra marker an unused sibling name.
+                string uniqueName = anchorName;
+                int suffix = 2;
+                while (parent.Find(uniqueName) != null) uniqueName = anchorName + " (" + suffix++ + ")";
+                anchor = new GameObject(uniqueName).transform;
                 SceneManager.MoveGameObjectToScene(anchor.gameObject, scene);
                 anchor.SetParent(parent, false);
             }

@@ -257,7 +257,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         CurrentLevel = levelData;
 
         boardManager.Init(boardData);
-        customerManager.Init(levelData.customers, levelData.number >= 30);
+        customerManager.Init(levelData.customers);
         conveyorManager.Init(levelData.beltSlots, levelData.loopsPerSecond);
 
         IsPlaying = true;

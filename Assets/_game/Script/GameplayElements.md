@@ -94,15 +94,17 @@ Trong lúc băng cột đang dồn, `FoodQueue.IsPickupPending` khóa tap/Cây g
 
 `SushiRecipesDemo.asset` minh họa đủ 5 nhóm món và một khách vội; `SushiElementsDemo.asset` minh họa 5 element bằng các món Nigiri. Level mặc định đã chuyển sang order Nigiri tôm/trứng thay cho order nguyên liệu.
 
-## Bộ 20 màn chơi chính
+## Bộ 50 màn chơi chính
 
-`Assets/_game/LevelData/_AllLevelData.asset` dùng 20 asset `Campaign/Level01.asset` đến `Level20.asset`, theo đúng thứ tự chơi. Board được lưu sẵn nên chơi lại giữ nguyên bố cục. Độ khó tăng từ 2 lên 12 khách, 3–5 cột, thêm món ba nguyên liệu và phối hợp element; các màn cuối có 8 slot. Ô ẩn xuất hiện từ màn 5, băng từ 7, cặp nối từ 9, khay nhóm từ 11. Bộ này chưa thêm khách có timer.
+`Assets/_game/LevelData/_AllLevelData.asset` dùng 50 asset `Campaign/Level01.asset` đến `Level50.asset`, theo đúng thứ tự chơi. Board lưu sẵn nên chơi lại giữ nguyên bố cục. Giữ board/order của 20 màn gốc; màn 21–50 tăng dần lên 18 khách, 44 món, bổ sung sashimi/trà, ô ×3 và băng dày. Các checkpoint 5, 10, 15…50 có 1–4 khách vội, thời gian cấu hình ở từng khách. Màn thử `Level03_5Khach4Mon` được giữ riêng ngoài campaign chính.
 
-Xem [thiết kế và lời giải 20 màn](../../../Documentation/Campaign20.md). Menu **SushiKhai → Levels → Build 20 Level Campaign** tạo lại bộ mặc định; **Sushi → Validate 20 Level Campaign** kiểm tra dữ liệu và lời giải. `SushiCampaignRegression.RunBatch` còn chơi từng màn bằng thao tác lấy thường qua board, băng chuyền và khách thật, không dùng booster.
+Xem [thiết kế 50 màn](../../../Documentation/Campaign50.md). Menu **SushiKhai → Levels → Extend Campaign To 50 Levels** bổ sung asset thiếu, giữ board/order đang có. **Prepare Campaign Waiting Queue** bổ sung marker đứng chờ trong scene theo số khách lớn nhất trong `_AllLevelData`. Khách vội và element không còn điều kiện mở khóa theo số level: Inspector quyết định hoàn toàn. Hai khách vội có thể ngồi cùng lúc ở bất kỳ màn nào.
+
+Lần mở rộng này chỉ biên dịch và kiểm tra dữ liệu; công cụ tạo board mới có tìm đường lấy nguyên liệu, không chạy lại toàn bộ playtest. Bộ tìm đường không mô phỏng thời gian khách vội. Menu **Sushi → Validate 50 Level Campaign** vẫn có sẵn khi cần kiểm tra sâu hơn, không kiểm tra mốc xuất hiện item/khách vội.
 
 Nút **Chơi lại** trong Setting gọi `GameManager.ReplayCurrentLevel`: mở `UICTransis`, đợi che kín và chạy thanh tiến trình rồi mới tải lại đúng màn đang chơi. Khi hiện màn xong mới mở HUD và nhận input; bấm lặp trong lúc chuyển màn không tạo thêm lần tải. Tiến trình, xu và booster được giữ nguyên.
 
-Đã kiểm tra ngày 26/10/2026 với Unity 6000.3.15f1 trong project riêng: **20/20 màn thắng bằng tap thường, không booster/revive**; Settings chạy transition trước reload, dọn nguyên liệu đang bay, chặn bấm lặp và giữ đúng màn đang chơi ngay cả khi tiến trình lưu trỏ sang màn khác. Xem [kết quả kiểm thử](../../../Documentation/CampaignRegressionResults.txt). Lượt chạy có lỗi indexing `UnityEditor.Search` của Editor; bộ kiểm tra loại riêng lỗi này và vẫn kiểm tra lỗi gameplay.
+Kết quả lịch sử trước khi mở rộng/thêm khách vội: ngày 26/10/2026, **20/20 màn cũ thắng bằng tap thường, không booster/revive**; Settings chạy transition trước reload và giữ đúng màn. Xem [kết quả kiểm thử cũ](../../../Documentation/CampaignRegressionResults.txt). Kết quả này không xác nhận timer của bộ 50 màn hiện tại.
 
 ## Bộ 5 màn chơi thử riêng
 
@@ -128,7 +130,7 @@ Nút **Chơi lại** trong Setting gọi `GameManager.ReplayCurrentLevel`: mở 
 | linked_tile | Hai ô ở cột kề cùng `linkId > 0`. `Lock`/`lockId` cũ được đọc như linked tile. |
 | rigid_tray | 2–3 ô liên tiếp trong cùng cột có cùng `trayId > 0`, tổng không quá 6 nguyên liệu. |
 
-Ô ẩn có thể dùng cùng iceLayers từ level 40. Ô nối/khay không kết hợp element khác. Validator kiểm tra mốc mở, số lớp băng, cân bằng nguyên liệu và đường lên đầu cột của các cặp nối. Giá trị 5 lớp dành cho level 39 và 49, tối đa hai ô.
+Ô ẩn có thể dùng cùng iceLayers ở bất kỳ màn nào. Ô nối/khay không kết hợp element khác. Validator chỉ kiểm tra cấu trúc, số lớp băng hỗ trợ (1–5), cân bằng nguyên liệu và đường lên đầu cột của cặp nối; không kiểm tra số level để mở element. Board có tối đa hai ô băng 5 lớp và ba cặp nối.
 
 `SushiElementsDemo.asset` chứa đủ 5 element với ba loại nguyên liệu, sáu cột và bốn khách. Gán asset này vào danh sách `LevelManager.levels` khi cần thử riêng.
 

@@ -16,7 +16,8 @@ MonoBehaviour:
   number: 15
   levelName: "Khay ba ng\u0103n"
   hint: "Khay ba ng\u0103n c\u1EA7n nhi\u1EC1u slot. D\u1ECDn c\xE1c m\xF3n tr\xEAn
-    b\u0103ng chuy\u1EC1n tr\u01B0\u1EDBc."
+    b\u0103ng chuy\u1EC1n tr\u01B0\u1EDBc. \u01AFu ti\xEAn kh\xE1ch c\xF3 \u0111\u1ED3ng
+    h\u1ED3; th\u1EDDi gian ch\u1EC9 ch\u1EA1y khi kh\xE1ch \u0111\xE3 ng\u1ED3i."
   beltSlots: 9
   loopsPerSecond: 0.085
   numberColumns: 5
@@ -24,8 +25,8 @@ MonoBehaviour:
   shuffleFoods: 0
   maxIngredientsPerTile: 2
   customers:
-  - rushCustomer: 0
-    rushSeconds: 0
+  - rushCustomer: 1
+    rushSeconds: 80
     dishes:
     - dish: 9
       amount: 1
@@ -56,8 +57,8 @@ MonoBehaviour:
     - dish: 14
       amount: 1
     orders: []
-  - rushCustomer: 0
-    rushSeconds: 0
+  - rushCustomer: 1
+    rushSeconds: 80
     dishes:
     - dish: 19
       amount: 1

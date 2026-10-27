@@ -1,5 +1,7 @@
 # Bộ 20 level
 
+> Tài liệu lịch sử trước lần mở rộng. Bộ đang chơi hiện có 50 level và khách vội tại các checkpoint; xem [Campaign50.md](Campaign50.md).
+
 Board tối đa 5 cột; dữ liệu được lưu cố định, replay giữ nguyên bố cục. Không thêm khách có timer.
 Tutorial tạm tắt. Mốc xuất hiện: dấu ? ở 5, băng ở 7, link ở 9, tray ở 11.
 Các màn giới thiệu cơ chế giữ khối lượng gần màn trước; các màn sau tăng số khách, món 3 nguyên liệu và số nhóm đặc biệt, rồi giảm slot còn 8.

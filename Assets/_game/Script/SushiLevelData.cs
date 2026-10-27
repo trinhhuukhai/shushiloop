@@ -12,10 +12,7 @@ public enum TypeLevel
 [CreateAssetMenu(menuName = "SushiKhai/Level", fileName = "SushiLevel")]
 public class SushiLevelData : ScriptableObject
 {
-    public const int HiddenUnlockLevel = 5;
-    public const int FrozenUnlockLevel = 7;
-    public const int LinkedUnlockLevel = 9;
-    public const int TrayUnlockLevel = 11;
+    public const int MaximumIceLayers = 5;
     public TypeLevel TypeLevel;
     [Min(1)] public int number = 1;
     public string levelName;
@@ -126,7 +123,6 @@ public class SushiLevelData : ScriptableObject
             return "Tốc độ phải trong khoảng 0.02–0.3 vòng/giây.";
         if (maxIngredientsPerTile < 1 || maxIngredientsPerTile > 3) return "Mỗi ô chứa ×1–×3.";
         if (customers == null || customers.Count == 0) return "Level chưa có khách.";
-        int rushCount = 0;
         foreach (var customer in customers)
         {
             if (customer == null) return "Khách không được rỗng.";
@@ -144,15 +140,10 @@ public class SushiLevelData : ScriptableObject
             if (!customer.UsesRecipes && (types.Count > 4 || total > 6)) return "Mỗi khách tối đa 4 loại và tổng 6 nguyên liệu.";
             if (customer.rushCustomer)
             {
-                rushCount++;
-                if (number < 20) return "rush_customer mở ở level 20.";
                 if (float.IsNaN(customer.rushSeconds) || float.IsInfinity(customer.rushSeconds) || customer.rushSeconds < 0)
                     return "rushSeconds phải >= 0, 0 dùng công thức mặc định.";
             }
         }
-        if (number == 20 && rushCount > 1) return "Level 20 giới thiệu một khách vội.";
-        if (number < 30 && customers.Count > 1 && customers[0].rushCustomer && customers[1].rushCustomer)
-            return "Trước level 30 hai khách đầu tiên không được cùng là khách vội.";
         if (boardColumns != null && boardColumns.Count > 0)
         {
             if (boardColumns.Count != numberColumns) return "boardColumns phải khớp numberColumns.";
@@ -190,7 +181,6 @@ public class SushiLevelData : ScriptableObject
         bool hasIce = false;
         int unfrozenHeads = 0;
         int fiveLayerTiles = 0;
-        int maxIce = GetMaximumIceLayers(number);
         for (int c = 0; c < board.Count; c++)
         {
             var foods = board[c].foods;
@@ -208,13 +198,12 @@ public class SushiLevelData : ScriptableObject
                 if (food.linkId < 0 || food.lockId < 0 || food.trayId < 0 || ice < 0) return "ID và số lớp băng không được âm.";
                 if (food.foodState == FoodState.Lock && link == 0) return "Ô nối cần linkId > 0.";
                 if (food.foodState == FoodState.RigidTray && food.trayId == 0) return "Khay cứng cần trayId > 0.";
-                if (hidden && (number < HiddenUnlockLevel || r == 0)) return $"Ô ẩn mở ở level {HiddenUnlockLevel} và không được bắt đầu ở hàng 1.";
-                if (hidden && ice > 0 && number < 40) return "Ô ẩn + băng chỉ được đi chung từ level 40.";
+                if (hidden && r == 0) return "Ô ẩn không được bắt đầu ở hàng 1.";
                 if (food.foodState == FoodState.Ice && ice == 0) return "Ô băng cần ít nhất một lớp.";
                 if (ice > 0)
                 {
                     hasIce = true;
-                    if (number < FrozenUnlockLevel || ice > maxIce) return $"Băng mở ở level {FrozenUnlockLevel}; level này cho tối đa {maxIce} lớp.";
+                    if (ice > MaximumIceLayers) return $"Ô băng có tối đa {MaximumIceLayers} lớp.";
                     if (ice == 5) fiveLayerTiles++;
                     int availableMoves = (c > 0 ? Mathf.Max(0, board[c - 1].foods.Count - r) : 0) +
                         (c + 1 < board.Count ? Mathf.Max(0, board[c + 1].foods.Count - r) : 0);
@@ -224,20 +213,18 @@ public class SushiLevelData : ScriptableObject
                     (food.trayId > 0 && (hidden || ice > 0))) return "Ô nối và khay cứng không kết hợp element khác.";
                 if (link > 0)
                 {
-                    if (number < LinkedUnlockLevel) return $"linked_tile mở ở level {LinkedUnlockLevel}.";
                     AddGroup(links, link, new Vector2Int(c, r));
                 }
                 if (food.trayId > 0)
                 {
-                    if (number < TrayUnlockLevel) return $"rigid_tray mở ở level {TrayUnlockLevel}.";
                     AddGroup(trays, food.trayId, new Vector2Int(c, r));
                 }
             }
         }
         foreach (int balance in expected.Values) if (balance != 0) return "Tổng nguyên liệu trên board phải khớp chính xác orders, kể cả ×n.";
         if (hasIce && unfrozenHeads < 2) return "Board có băng phải bắt đầu với ít nhất 2 cột không đóng băng ở hàng 1.";
-        if (fiveLayerTiles > 2) return "Super Hard chỉ có tối đa 2 ô băng 5 lớp.";
-        if (links.Count > (number == LinkedUnlockLevel ? 1 : 3)) return $"Level {LinkedUnlockLevel} tối đa 1 cặp nối; level sau tối đa 3 cặp.";
+        if (fiveLayerTiles > 2) return "Board có tối đa 2 ô băng 5 lớp.";
+        if (links.Count > 3) return "Board có tối đa 3 cặp nối.";
         foreach (var group in links.Values)
         {
             if (group.Count != 2 || Mathf.Abs(group[0].x - group[1].x) != 1) return "Mỗi linkId phải có đúng 2 ô ở 2 cột sát nhau.";
@@ -257,15 +244,6 @@ public class SushiLevelData : ScriptableObject
         return ValidateLinkPaths(board);
     }
 
-    public static int GetMaximumIceLayers(int levelNumber)
-    {
-        if (levelNumber < FrozenUnlockLevel) return 0;
-        if (levelNumber < LinkedUnlockLevel) return 1;
-        if (levelNumber < 14) return 2;
-        if (levelNumber < 18) return 3;
-        // Preserve the existing five-layer challenge levels after the first campaign.
-        return levelNumber == 39 || levelNumber == 49 ? 5 : 4;
-    }
     private static string ValidateLinkPaths(List<FoodQueueData> board)
     {
         // Mô phỏng bỏ ô thường/băng và lấy cặp nối đồng thời để phát hiện dây khóa chéo.

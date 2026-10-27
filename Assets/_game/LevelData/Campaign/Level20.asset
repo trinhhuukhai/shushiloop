@@ -16,7 +16,9 @@ MonoBehaviour:
   number: 20
   levelName: "Th\u1EED th\xE1ch nh\xE0 h\xE0ng"
   hint: "B\u0103ng chuy\u1EC1n ch\u1EC9 c\xF3 8 slot. T\xEDnh c\u1EA3 \xF4 \xD72,
-    c\u1EB7p n\u1ED1i v\xE0 khay tr\u01B0\u1EDBc m\u1ED7i l\u01B0\u1EE3t."
+    c\u1EB7p n\u1ED1i v\xE0 khay tr\u01B0\u1EDBc m\u1ED7i l\u01B0\u1EE3t. \u01AFu
+    ti\xEAn kh\xE1ch c\xF3 \u0111\u1ED3ng h\u1ED3; th\u1EDDi gian ch\u1EC9 ch\u1EA1y
+    khi kh\xE1ch \u0111\xE3 ng\u1ED3i."
   beltSlots: 8
   loopsPerSecond: 0.085
   numberColumns: 5
@@ -24,8 +26,8 @@ MonoBehaviour:
   shuffleFoods: 0
   maxIngredientsPerTile: 2
   customers:
-  - rushCustomer: 0
-    rushSeconds: 0
+  - rushCustomer: 1
+    rushSeconds: 75
     dishes:
     - dish: 1
       amount: 1
@@ -72,8 +74,8 @@ MonoBehaviour:
     - dish: 31
       amount: 1
     orders: []
-  - rushCustomer: 0
-    rushSeconds: 0
+  - rushCustomer: 1
+    rushSeconds: 75
     dishes:
     - dish: 10
       amount: 1

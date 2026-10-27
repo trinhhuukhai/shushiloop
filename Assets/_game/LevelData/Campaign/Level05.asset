@@ -12,11 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13d15152b00bf8346a5a306d9c9e3341, type: 3}
   m_Name: Level05
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
-  TypeLevel: 0
+  TypeLevel: 1
   number: 5
   levelName: "\u0110i\u1EC1u b\xED m\u1EADt"
   hint: "\xD4 d\u1EA5u ? t\u1EF1 l\u1EADt khi l\xEAn \u0111\u1EA7u c\u1ED9t. L\u1EA5y
-    \xF4 ph\xEDa tr\u01B0\u1EDBc \u0111\u1EC3 kh\xE1m ph\xE1 nguy\xEAn li\u1EC7u."
+    \xF4 ph\xEDa tr\u01B0\u1EDBc \u0111\u1EC3 kh\xE1m ph\xE1 nguy\xEAn li\u1EC7u.
+    \u01AFu ti\xEAn kh\xE1ch c\xF3 \u0111\u1ED3ng h\u1ED3; th\u1EDDi gian ch\u1EC9
+    ch\u1EA1y khi kh\xE1ch \u0111\xE3 ng\u1ED3i."
   beltSlots: 9
   loopsPerSecond: 0.08
   numberColumns: 4
@@ -24,8 +26,8 @@ MonoBehaviour:
   shuffleFoods: 0
   maxIngredientsPerTile: 2
   customers:
-  - rushCustomer: 0
-    rushSeconds: 0
+  - rushCustomer: 1
+    rushSeconds: 90
     dishes:
     - dish: 2
       amount: 1
