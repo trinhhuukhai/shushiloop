@@ -13,9 +13,21 @@ public class FoodInputController : MonoBehaviour
     public FoodPickMode PickMode { get; private set; }
 
     private bool CanInteract => !SushiLevelOneTutorial.IsInputLocked && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
-    public void SelectChopsticks() { if (CanInteract && BoosterCount(BoosterType.Click) != 0) PickMode = FoodPickMode.Chopsticks; }
-    public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) PickMode = FoodPickMode.Magnet; }
-    public void CancelBooster() { PickMode = FoodPickMode.Tap; }
+    public void SelectChopsticks() { if (CanInteract && BoosterCount(BoosterType.Click) != 0) SetPickMode(FoodPickMode.Chopsticks); }
+    public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) SetPickMode(FoodPickMode.Magnet); }
+    public void CancelBooster() { SetPickMode(FoodPickMode.Tap); }
+
+    private void SetPickMode(FoodPickMode mode)
+    {
+        if (PickMode == mode) return;
+        PickMode = mode;
+        if (conveyorManager != null) conveyorManager.SetMagnetPaused(mode == FoodPickMode.Magnet);
+        BoardShishiManager board = BoardShishiManager.Ins;
+        if (board == null) return;
+        foreach (FoodQueue column in board.FoodQueues)
+            if (column != null) column.SetLowerRowsShadeVisible(mode != FoodPickMode.Chopsticks);
+    }
+
     public void UseSwapRow()
     {
         if (SushiLevelOneTutorial.IsInputLocked || LevelManager.Ins == null || !LevelManager.Ins.CanInteract || BoosterCount(BoosterType.Shuffle) == 0) return;

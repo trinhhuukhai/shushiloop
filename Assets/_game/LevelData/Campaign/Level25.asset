@@ -33,7 +33,6 @@ MonoBehaviour:
       amount: 1
     - dish: 29
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -41,7 +40,6 @@ MonoBehaviour:
       amount: 1
     - dish: 12
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -49,7 +47,6 @@ MonoBehaviour:
       amount: 1
     - dish: 18
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -57,7 +54,6 @@ MonoBehaviour:
       amount: 1
     - dish: 27
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -65,7 +61,6 @@ MonoBehaviour:
       amount: 1
     - dish: 14
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -73,7 +68,6 @@ MonoBehaviour:
       amount: 1
     - dish: 19
       amount: 1
-    orders: []
   - rushCustomer: 1
     rushSeconds: 70
     dishes:
@@ -81,7 +75,6 @@ MonoBehaviour:
       amount: 1
     - dish: 2
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -89,7 +82,6 @@ MonoBehaviour:
       amount: 1
     - dish: 25
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -97,7 +89,6 @@ MonoBehaviour:
       amount: 1
     - dish: 22
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -105,7 +96,6 @@ MonoBehaviour:
       amount: 1
     - dish: 30
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -113,7 +103,6 @@ MonoBehaviour:
       amount: 1
     - dish: 31
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -121,7 +110,6 @@ MonoBehaviour:
       amount: 1
     - dish: 1
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -131,7 +119,6 @@ MonoBehaviour:
       amount: 1
     - dish: 14
       amount: 1
-    orders: []
   boardColumns:
   - foods:
     - typeFood: 18
@@ -578,4 +565,3 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  modifiers: []

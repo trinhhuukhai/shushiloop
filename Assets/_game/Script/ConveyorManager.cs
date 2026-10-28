@@ -25,6 +25,7 @@ public partial class ConveyorManager : MonoBehaviour
 
     private float progress;
     private bool isRunning;
+    private bool magnetPaused;
     private bool manualDoubleSpeed;
     private bool doubleSpeed;
     public bool IsDoubleSpeed => doubleSpeed;
@@ -153,7 +154,7 @@ public partial class ConveyorManager : MonoBehaviour
     private void Update()
     {
         RefreshDoubleSpeed();
-        if (!isRunning || slots.Count == 0)
+        if (!isRunning || magnetPaused || slots.Count == 0)
             return;
 
         float previousProgress = progress;
@@ -190,6 +191,13 @@ public partial class ConveyorManager : MonoBehaviour
         isRunning = !paused && slots.Count > 0;
     }
 
+    // Pause only belt movement so Magnet can still collect ingredients while targeting.
+    // Keep the level/popup pause independent when targeting ends.
+    public void SetMagnetPaused(bool paused)
+    {
+        magnetPaused = paused;
+    }
+
     public void ToggleSpeed()
     {
         manualDoubleSpeed = !manualDoubleSpeed;
@@ -205,6 +213,7 @@ public partial class ConveyorManager : MonoBehaviour
     public void Clear()
     {
         isRunning = false;
+        magnetPaused = false;
         DOTween.Kill(pickupTweenId);
         ClearPreparedDishes();
         ClearDeliveringFoods();

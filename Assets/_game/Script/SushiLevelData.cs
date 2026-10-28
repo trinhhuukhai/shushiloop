@@ -22,12 +22,11 @@ public class SushiLevelData : ScriptableObject
     [Range(1, 6)] public int numberColumns = 4;
     public int boardSeed = 1;
     public bool shuffleFoods = true;
-    [Tooltip("Sinh board từ order: gộp tối đa bao nhiêu nguyên liệu cùng loại vào một ô. Level cũ mặc định ×1.")]
+    [Tooltip("Sinh board từ các món khách gọi: gộp tối đa bao nhiêu nguyên liệu cùng loại vào một ô.")]
     [Range(1, 3)] public int maxIngredientsPerTile = 1;
     public List<CustomerOrderData> customers = new List<CustomerOrderData>();
-    [Tooltip("Để trống để sinh từ orders. Khi nhập trực tiếp, tổng nguyên liệu phải khớp orders. Phần tử 0 là hàng 1.")]
+    [Tooltip("Để trống để sinh từ dishes của khách. Khi nhập trực tiếp, tổng nguyên liệu phải khớp các món khách gọi. Phần tử 0 là hàng 1; cấu hình element ngay trên từng ô.")]
     public List<FoodQueueData> boardColumns = new List<FoodQueueData>();
-    public List<FoodModifierData> modifiers = new List<FoodModifierData>();
     public int CustomerCount => customers == null ? 0 : customers.Count;
 
     public int GetTotalFoodCount()
@@ -47,7 +46,7 @@ public class SushiLevelData : ScriptableObject
         return BuildBoard();
     }
 
-    private List<FoodQueueData> BuildBoard(bool applyModifiers = true)
+    private List<FoodQueueData> BuildBoard()
     {
         var board = new List<FoodQueueData>();
         if (boardColumns != null && boardColumns.Count > 0)
@@ -100,17 +99,6 @@ public class SushiLevelData : ScriptableObject
             for (int i = 0; i < numberColumns; i++) board.Add(new FoodQueueData());
             for (int i = 0; i < foods.Count; i++) board[i % numberColumns].foods.Add(foods[i]);
         }
-        if (applyModifiers && modifiers != null)
-            foreach (var modifier in modifiers)
-            {
-                FoodData food = board[modifier.column].foods[modifier.row];
-                food.foodState = modifier.foodState;
-                food.hidden = modifier.hidden || modifier.foodState == FoodState.HoiCham;
-                food.iceLayers = modifier.foodState == FoodState.Ice ? modifier.iceLayers : 0;
-                food.linkId = modifier.linkId > 0 ? modifier.linkId : modifier.lockId;
-                food.lockId = 0;
-                food.trayId = modifier.trayId;
-            }
         return board;
     }
 
@@ -128,16 +116,13 @@ public class SushiLevelData : ScriptableObject
             if (customer == null) return "Khách không được rỗng.";
             string orderError = customer.ValidateOrders();
             if (orderError != null) return orderError;
-            int total = 0;
             var types = new HashSet<PoolType>();
             foreach (var order in customer.CreateIngredientOrders())
             {
-                if (order == null || !IsFoodType(order.typeFood) || order.amount < 1 || (!customer.UsesRecipes && order.amount > 6))
-                    return "Order không hợp lệ: loại nguyên liệu và số lượng 1–6 là bắt buộc.";
+                if (order == null || !IsFoodType(order.typeFood) || order.amount < 1)
+                    return "Món cần loại nguyên liệu hợp lệ và số lượng lớn hơn 0.";
                 if (!types.Add(order.typeFood)) return "Gộp loại nguyên liệu trùng vào amount.";
-                total += order.amount;
             }
-            if (!customer.UsesRecipes && (types.Count > 4 || total > 6)) return "Mỗi khách tối đa 4 loại và tổng 6 nguyên liệu.";
             if (customer.rushCustomer)
             {
                 if (float.IsNaN(customer.rushSeconds) || float.IsInfinity(customer.rushSeconds) || customer.rushSeconds < 0)
@@ -153,18 +138,7 @@ public class SushiLevelData : ScriptableObject
                 foreach (var food in column.foods) if (food == null) return "Dữ liệu ô không được rỗng.";
             }
         }
-        // Xác định số hàng trước khi áp dụng modifiers để không truy cập ngoài mảng.
-        List<FoodQueueData> board = BuildBoard(false);
-        var positions = new HashSet<Vector2Int>();
-        if (modifiers != null)
-            foreach (var modifier in modifiers)
-            {
-                if (modifier == null || modifier.column < 0 || modifier.column >= board.Count || modifier.row < 0 ||
-                    modifier.row >= board[modifier.column].foods.Count) return "Modifier trỏ vào ô không tồn tại.";
-                if (!positions.Add(new Vector2Int(modifier.column, modifier.row))) return "Một ô có nhiều modifier; cấu hình hidden + Ice trong cùng modifier.";
-            }
-        board = BuildBoard();
-        return ValidateBoard(board);
+        return ValidateBoard(BuildBoard());
     }
 
     private string ValidateBoard(List<FoodQueueData> board)
@@ -221,7 +195,7 @@ public class SushiLevelData : ScriptableObject
                 }
             }
         }
-        foreach (int balance in expected.Values) if (balance != 0) return "Tổng nguyên liệu trên board phải khớp chính xác orders, kể cả ×n.";
+        foreach (int balance in expected.Values) if (balance != 0) return "Tổng nguyên liệu trên board phải khớp chính xác các món khách gọi, kể cả ×n.";
         if (hasIce && unfrozenHeads < 2) return "Board có băng phải bắt đầu với ít nhất 2 cột không đóng băng ở hàng 1.";
         if (fiveLayerTiles > 2) return "Board có tối đa 2 ô băng 5 lớp.";
         if (links.Count > 3) return "Board có tối đa 3 cặp nối.";

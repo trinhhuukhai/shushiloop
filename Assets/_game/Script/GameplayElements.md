@@ -10,7 +10,7 @@ Luật triển khai theo tài liệu người dùng cung cấp ngày 21/10/2026.
 
 `SushiRecipeCatalog` có đủ 48 công thức, ID 1–48 trùng bảng thiết kế: 12 Nigiri, 8 Maki, 11 Gunkan, 15 Sashimi và 2 trà. Maki/Gunkan dùng rong biển + cơm + topping; đế và cách trình bày không phải nguyên liệu cần pick thêm.
 
-Trong mỗi `CustomerOrderData`, dùng `dishes` gồm `{ dish, amount }`, để `orders` trống. Ví dụ `NigiriShrimp ×2` và `MakiShrimp ×1` cần 3 cơm + 3 tôm + 1 rong biển. Hệ thống tự sinh tổng nguyên liệu trên board, nhóm ×n và tính thời gian khách vội theo tổng này. `orders` nguyên liệu cũ vẫn được đọc khi không có dishes; validator không cho cấu hình cả hai.
+Trong mỗi `CustomerOrderData`, dùng `dishes` gồm `{ dish, amount }`. Ví dụ `NigiriShrimp ×2` và `MakiShrimp ×1` cần 3 cơm + 3 tôm + 1 rong biển. Hệ thống tự tính tổng nguyên liệu, nhóm ×n và thời gian khách vội từ các món này. Đã bỏ trường `customers.orders` cũ; khách bắt buộc có món trong `dishes`. `Customer.Orders` là tiến độ nguyên liệu khi chơi, được tạo từ món khách gọi và vẫn dùng để nhận/giao nguyên liệu.
 
 Khi tất cả nguyên liệu đã rời board và các chuyển động lấy cuối cùng kết thúc, băng chuyền tự chạy ở tốc độ `2×`. Trước đó tốc độ vẫn do nút tốc độ điều khiển; cờ tự động được tính lại liên tục để không tăng tốc sớm trong lúc pickup còn đang chạy.
 
@@ -78,7 +78,7 @@ Kiểm tra Play Mode và chạy 20 màn thắng trước lần đổi luồng gh
 
 Scene có hai ghế cân hai bên và hàng chờ phía sau. Khách chờ thu nhỏ bằng `CustomerManager.waitingScale = 0.6`; khi vào ghế sẽ phóng về kích thước chuẩn, hiện order và bắt đầu timer nếu là khách vội. Các icon món xếp tối đa hai cột trong bảng cạnh avatar. Khách chờ không hiện bảng order hoặc vị trí đặt đĩa trên bàn.
 
-`ConveyorManager` tự tính điểm giao trên đường băng gần **ghế tương ứng**, thông qua `CustomerManager.GetSeat`; không cần gán một danh sách Delivery Points riêng. Điều chỉnh marker ghế trong scene để đổi bố cục rồi nạp lại level. Món thành phẩm bay theo vòng cung đến bàn rồi bảng order; đích được đọc lại mỗi bước tween nên vẫn theo đúng vị trí khi khách dịch chuyển. Luồng order nguyên liệu cũ được giữ cho dữ liệu legacy, còn bộ campaign dùng món thành phẩm.
+`ConveyorManager` tự tính điểm giao trên đường băng gần **ghế tương ứng**, thông qua `CustomerManager.GetSeat`; không cần gán một danh sách Delivery Points riêng. Điều chỉnh marker ghế trong scene để đổi bố cục rồi nạp lại level. Món thành phẩm bay theo vòng cung đến bàn rồi bảng order; đích được đọc lại mỗi bước tween nên vẫn theo đúng vị trí khi khách dịch chuyển. Dữ liệu level dùng món thành phẩm trong `dishes`.
 
 `Dia.prefab` đã được gán lại sprite đĩa còn thiếu bằng `Art/ConveyorPlate.png`; đường băng được vẽ theo spline dưới các đĩa. Trong scene mẫu, tâm băng chuyền ở y = 0.05 và BoardManager ở y = -3.12 để hạ đồng thời hai khu vực gameplay; dòng gợi ý nằm dưới nút booster để không che hàng cuối.
 
@@ -115,9 +115,9 @@ Kết quả lịch sử trước khi mở rộng/thêm khách vội: ngày 26/10
 ## Cấu hình ô ×n
 
 - `FoodData.amount`: 1–3 nguyên liệu cùng loại trong một ô. Khi tap, toàn bộ số lượng chiếm từng slot riêng, gồm các slot đang giữ cho nguyên liệu đang bay. Thiếu slot thì giữ nguyên board.
-- `SushiLevelData.maxIngredientsPerTile`: sinh ô ×n từ tổng orders; giá trị 1 giữ cách chơi cũ. Level mẫu đã đặt 2 để kiểm tra ×2.
-- `boardColumns`: cấu hình board trực tiếp; phần tử `foods[0]` là hàng 1. Không shuffle board nhập trực tiếp. Để trống để sinh từ orders. Tổng theo từng loại, tính cả amount, phải khớp orders.
-- `modifiers`: cấu hình bổ sung cho ô trong board sinh tự động hoặc board nhập trực tiếp; column/row bắt đầu từ 0. Một vị trí chỉ có một modifier.
+- `SushiLevelData.maxIngredientsPerTile`: sinh ô ×n từ tổng nguyên liệu của `dishes`; giá trị 1 tạo từng nguyên liệu riêng. Level mẫu đã đặt 2 để kiểm tra ×2.
+- `boardColumns`: cấu hình board trực tiếp; phần tử `foods[0]` là hàng 1. Không shuffle board nhập trực tiếp. Để trống để sinh từ `dishes`. Tổng theo từng loại, tính cả amount, phải khớp các món khách gọi.
+- Cấu hình element trực tiếp bằng `foodState`, `hidden`, `iceLayers`, `linkId`, `trayId` của từng ô trong `boardColumns[].foods[]`. Đã bỏ danh sách `modifiers` và lớp `FoodModifierData` không dùng trong các asset.
 - Vùng hiển thị và vùng băng chịu sát thương chỉ có 4 hàng đầu. Collider tự cập nhật theo số hàng hiện tại.
 
 ## Element
@@ -140,7 +140,7 @@ Kết quả lịch sử trước khi mở rộng/thêm khách vội: ngày 26/10
 
 Magnet vào chế độ **chọn một món trong order của khách đang ngồi**; thẻ món được tô sáng và board không nhận lựa chọn Magnet. Booster lấy đủ nguyên liệu cho một phần món đã chọn, ưu tiên vòng xoay (kể cả nguyên liệu đang bay tới đĩa khách), rồi board theo ưu tiên thường/ẩn → nối/khay → băng. Nguyên liệu ghép trên đĩa tròn của khách, không chiếm thêm slot vòng xoay, rồi món bay lên order mới hoàn thành. Phần đã nhận/đang được giao không bị lấy lại. Thiếu nguyên liệu thì thao tác bị từ chối, giữ nguyên board/vòng xoay/order và không trừ lượt booster. Tải lại màn hủy cả các chuyến bay Magnet và lựa chọn booster.
 
-Swap Row thực hiện ngay khi bấm, không có bước chọn ô: hàng 1 xuống hàng 4, hàng 2–4 đẩy lên một bậc; cột ngắn xoay trong số hàng hiện có. Khay nhóm vẫn đi theo khối, mở rộng cửa sổ khi khay vắt hàng 4–5. Giữ nguyên đối tượng nên link và lớp băng đi theo ô. Không booster nào gây sát thương băng cột kề.
+Swap Row thực hiện ngay khi bấm, không có bước chọn ô: hàng 1 xuống hàng 4, hàng 2–4 đẩy lên một bậc; cột ngắn xoay trong số hàng hiện có. Khay nhóm vẫn đi theo khối, mở rộng cửa sổ khi khay vắt hàng 4–5. Kết quả của tất cả cột được tính trước khi di chuyển: nếu xoay tạo hai cặp link chéo thứ tự, các ô link giữ thứ tự ban đầu tại các vị trí link sau xoay, còn ô thường và khay vẫn xoay. Kiểm tra đường lên đầu cột xét cả link nằm dưới vùng đang thấy. Giữ nguyên đối tượng, số lượng, linkId, trayId và lớp băng; hai cặp xoay đồng thời an toàn vẫn được xoay bình thường. Nếu không có thay đổi hợp lệ thì không trừ booster. Không booster nào gây sát thương băng cột kề.
 
 Prefab chung có nhãn ×n và dùng ảnh minh họa cho nắp ?, lớp băng, dây nối và khay. Gameplay dùng `UIManager` cùng các prefab `UICGamePlay`, `UICFloating`, Win/Lose và Settings của dự án. Không bật HUD dựng bằng code `SushiGameplayHud`.
 

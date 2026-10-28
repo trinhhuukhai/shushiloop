@@ -360,7 +360,7 @@ public static class SushiCampaignSetup
                     .Where(c => c.customer.rushCustomer).Select(c => "#" + (c.index + 1) + ": " + c.customer.rushSeconds + "s")) + " |");
         }
         text.AppendLine("\n## Chỉnh sửa\n\nAssets/_game/LevelData/Campaign/Level01.asset … Level50.asset; _AllLevelData chứa đúng thứ tự chơi 1–50. Màn thử Level03_5Khach4Mon được giữ riêng ngoài danh sách chính.");
-        text.AppendLine("Menu SushiKhai > Levels > Extend Campaign To 50 Levels bổ sung asset thiếu và giữ board/order hiện có. Chỉnh customers.rushCustomer/rushSeconds, boardColumns hoặc modifiers trực tiếp trong Inspector.");
+        text.AppendLine("Menu SushiKhai > Levels > Extend Campaign To 50 Levels bổ sung asset thiếu và giữ board/order hiện có. Chỉnh customers.dishes, customers.rushCustomer/rushSeconds và element trong boardColumns[].foods[] trực tiếp trong Inspector.");
         text.AppendLine("Validator chỉ kiểm tra dữ liệu hợp lệ và khả năng hoạt động của board, không kiểm tra mốc xuất hiện khách vội/item. Không chạy lại toàn bộ gameplay; các board mới được tìm đường lấy nguyên liệu khi tạo, chưa đo thời gian chơi của người thật.");
         text.AppendLine("\n## Đường lấy nguyên liệu tham khảo của màn mới\n\nChỉ số cột bắt đầu từ 1. Bộ tìm đường không mô phỏng timer khách vội hay thời gian animation; các chuỗi này không phải bằng chứng hoàn thành trong giới hạn giờ.\n");
         for (int i = 0; i < levels.Count; i++)

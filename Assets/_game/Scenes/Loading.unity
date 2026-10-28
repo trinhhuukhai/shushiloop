@@ -2534,6 +2534,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: be35579cda04d524e98a513d582ec1eb, type: 2}
   - {fileID: 11400000, guid: 804f3870902591c49944e346d66198f0, type: 2}
   - {fileID: 11400000, guid: 464656662cf593d42b80bcac6fac4760, type: 2}
+  - {fileID: 11400000, guid: 39285da59ddb1e340b427bd91446c40c, type: 2}
   BoosterData: {fileID: 11400000, guid: bb1a15f3e49637e4fa18c90bd0d8fb65, type: 2}
   setupData:
     dataKey: 0
@@ -3860,6 +3861,8 @@ MonoBehaviour:
   - {fileID: 7242838703237124795, guid: 1902bc20d11fe9345af2580677d61da4, type: 3}
   - {fileID: 4552572055067983615, guid: 5c58b11db99de5f46a5a415cb73b84d1, type: 3}
   - {fileID: 3195780404881609851, guid: e7f5c136d58d1a84ba85f36068445529, type: 3}
+  - {fileID: 6980077386820716945, guid: 5d4dc2339ad387e45b01188d28f99037, type: 3}
+  - {fileID: 4829027512979440845, guid: 902786f467275e54f9d74e436d9c9a86, type: 3}
   CanvasParentTF: {fileID: 2021205628}
 --- !u!225 &2021205624
 CanvasGroup:

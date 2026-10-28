@@ -34,7 +34,6 @@ MonoBehaviour:
       amount: 1
     - dish: 7
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -46,7 +45,6 @@ MonoBehaviour:
       amount: 1
     - dish: 6
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -58,7 +56,6 @@ MonoBehaviour:
       amount: 1
     - dish: 8
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -70,7 +67,6 @@ MonoBehaviour:
       amount: 1
     - dish: 4
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -82,7 +78,6 @@ MonoBehaviour:
       amount: 1
     - dish: 2
       amount: 1
-    orders: []
   boardColumns:
   - foods:
     - typeFood: 8
@@ -409,4 +404,3 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  modifiers: []

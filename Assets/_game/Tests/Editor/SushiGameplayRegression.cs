@@ -44,6 +44,30 @@ public static class SushiGameplayRegression
         RunBatch();
     }
 
+    public static void RunSwapBatch()
+    {
+        if (!Application.isBatchMode) throw new InvalidOperationException("Run swap checks in a separate batch-mode test project.");
+        SessionState.SetBool(PendingKey + ".Swap", true);
+        RunBatch();
+    }
+
+    // Lightweight checks for level schema changes; no scene loading or campaign playthrough.
+    [MenuItem("SushiKhai/Tests/Check Level Data")]
+    public static void CheckLevelData()
+    {
+        SushiRecipeChecks.Run();
+        LevelValidation();
+        string[] guids = AssetDatabase.FindAssets("t:SushiLevelData", new[] { "Assets/_game" });
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var data = AssetDatabase.LoadAssetAtPath<SushiLevelData>(path);
+            string error = data.ValidateData();
+            Check(error == null, path + ": " + error);
+        }
+        Debug.Log("SUSHI_LEVEL_DATA_OK: " + guids.Length + " level assets and recipe/element validation passed.");
+    }
+
     private static void OnPlayMode(PlayModeStateChange state)
     {
         if (state != PlayModeStateChange.EnteredPlayMode || !SessionState.GetBool(PendingKey, false)) return;
@@ -54,12 +78,44 @@ public static class SushiGameplayRegression
     {
         if (!EditorApplication.isPlaying || EditorApplication.isCompiling || !SessionState.GetBool(PendingKey, false)) return;
         SessionState.SetBool(PendingKey, false);
-        if (SessionState.GetBool(PendingKey + ".NoMoves", false))
+        if (SessionState.GetBool(PendingKey + ".Swap", false))
+        {
+            SessionState.SetBool(PendingKey + ".Swap", false);
+            RunSwapChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".NoMoves", false))
         {
             SessionState.SetBool(PendingKey + ".NoMoves", false);
             RunNoMovesChecks();
         }
         else RunAll();
+    }
+
+    private static void RunSwapChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            CreateFixture();
+            Run("Swap preserves whole trays, including the visible boundary", SwapTrays);
+            Run("Swap finishes the previous pickup before rotating", SwapDuringMovement);
+            Run("Swap reveals hidden heads and retains ice layers", RevealAndSwap);
+            Run("offset link pairs remain collectible with their original quantities", SwapLinksUneven);
+            Run("aligned link pairs still rotate together", SwapLinksAligned);
+            Run("link repair preserves mixed trays and ice", SwapLinksWithTrays);
+            Run("repeated swaps after uneven pickups preserve deep links across three columns", SwapLinksRepeated);
+            Run("unchanged or invalid swaps do not partially mutate the board", SwapLinksNoChange);
+            Debug.Log("SUSHI_SWAP_REGRESSION_OK: " + passed + " scenarios passed");
+            System.IO.File.WriteAllText("SushiSwapRegressionResults.txt", "PASS: " + passed + " swap scenarios\n");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            System.IO.File.WriteAllText("SushiSwapRegressionResults.txt", "FAIL after " + passed + " scenarios\n" + exception);
+            EditorApplication.Exit(1);
+        }
     }
 
     private static void RunNoMovesChecks()
@@ -128,8 +184,10 @@ public static class SushiGameplayRegression
             Run("pickup waits in world space, follows moving slots, and lands with stable size and rotation", PickupFlight);
             Run("Swap Row moves 2/3 compartments and crossing-boundary trays as blocks", SwapTrays);
             Run("Swap Row starts immediately during column movement and rotates four ordinary rows", SwapDuringMovement);
+            Run("Swap Row keeps offset, aligned, mixed-tray and repeated link pairs collectible", () =>
+            { SwapLinksUneven(); SwapLinksAligned(); SwapLinksWithTrays(); SwapLinksRepeated(); SwapLinksNoChange(); });
             Run("hidden top reveals after pickup and Swap Row; ice layers survive Swap Row", RevealAndSwap);
-            Run("level quantities, element gates, groups, ice feasibility and copies validate", LevelValidation);
+            Run("level quantities, element groups, ice feasibility and copies validate", LevelValidation);
             Run("shared ingredients reserve one portion and complete each dish independently", RecipePortions);
             Run("recipe orders exceeding six ingredients cannot deadlock on plate capacity", LargeRecipeOrder);
             Run("iced tea requires all three ingredients and rejects unrelated food", IcedTea);
@@ -180,8 +238,9 @@ public static class SushiGameplayRegression
     }
     private static FoodData Food(PoolType type = PoolType.SushiRice, int amount = 1, int ice = 0, int link = 0, int tray = 0, bool hidden = false)
         => new FoodData { typeFood = type, amount = amount, iceLayers = ice, linkId = link, trayId = tray, hidden = hidden };
-    private static CustomerOrderData Order(PoolType type, int amount, bool rush = false, float seconds = 0)
-        => new CustomerOrderData { rushCustomer = rush, rushSeconds = seconds, orders = new List<FoodOrderData> { new FoodOrderData { typeFood = type, amount = amount } } };
+    private static CustomerOrderData Order(SushiDishId dish, int amount, bool rush = false, float seconds = 0)
+        => new CustomerOrderData { rushCustomer = rush, rushSeconds = seconds,
+            dishes = new List<DishOrderData> { new DishOrderData { dish = dish, amount = amount } } };
     private static void CreateFixture()
     {
         fixture = Node("Fixture");
@@ -926,6 +985,97 @@ public static class SushiGameplayRegression
         Advance();
         Check(Column(0).GetTopFood().transform.localPosition == Vector3.zero, "Swap Row left an old column tween running");
     }
+
+    private static void DrainSwappedBoard()
+    {
+        Advance(); Advance();
+        int remainingMoves = 0;
+        foreach (FoodQueue column in board.FoodQueues) remainingMoves += column.Count;
+        while (!board.IsEmpty() && remainingMoves-- > 0)
+        {
+            bool picked = false;
+            for (int c = 0; c < board.FoodQueues.Count; c++)
+            {
+                if (!board.TryBuildTap(Column(c), out _)) continue;
+                Check(Tap(c), "collectible swap result was rejected by the conveyor");
+                Advance(); Advance();
+                picked = true;
+                break;
+            }
+            Check(picked, "Swap left linked columns blocked with no normal pickup");
+        }
+        Check(board.IsEmpty(), "Swap result could not be cleared using normal taps");
+    }
+
+    private static void SwapLinksUneven()
+    {
+        Load(16,
+            new[] { Food(PoolType.Shrimp, 2, link: 1), Food(), Food(PoolType.Egg, link: 2), Food(PoolType.Salmon) },
+            new[] { Food(PoolType.Tuna), Food(PoolType.Octopus, link: 1), Food(PoolType.Avocado), Food(PoolType.Seaweed, link: 2) });
+        FoodShushi first = Column(0).Foods[0], second = Column(0).Foods[2];
+        Check(board.SwapRow(), "offset-link swap made no change");
+        Check(Column(0).Foods[1] == first && Column(0).Foods[3] == second &&
+            first.LinkId == 1 && first.Amount == 2 && second.LinkId == 2,
+            "Swap changed link identity/quantity or crossed the original pairs");
+        DrainSwappedBoard();
+        Check(conveyor.OccupiedSlotCount == 9, "Swap lost or duplicated a linked ingredient");
+    }
+
+    private static void SwapLinksAligned()
+    {
+        Load(12,
+            new[] { Food(link: 1), Food(PoolType.Egg, link: 2), Food(), Food() },
+            new[] { Food(link: 1), Food(PoolType.Shrimp, link: 2), Food(), Food() });
+        Check(board.SwapRow() && Column(0).GetTopFood().LinkId == 2 && Column(1).GetTopFood().LinkId == 2 &&
+            Column(0).Foods[3].LinkId == 1 && Column(1).Foods[3].LinkId == 1,
+            "a safe simultaneous rotation of linked pairs was prevented");
+        DrainSwappedBoard();
+    }
+
+    private static void SwapLinksWithTrays()
+    {
+        Load(16,
+            new[] { Food(link: 1), Food(PoolType.Egg, tray: 7), Food(PoolType.Shrimp, tray: 7), Food(link: 2), Food() },
+            new[] { Food(), Food(link: 1), Food(PoolType.Salmon, ice: 2), Food(link: 2), Food() });
+        FoodShushi trayFirst = Column(0).Foods[1], traySecond = Column(0).Foods[2], ice = Column(1).Foods[2];
+        Check(board.SwapRow(), "mixed link/tray swap made no change");
+        Check(Column(0).Foods[0] == trayFirst && Column(0).Foods[1] == traySecond &&
+            trayFirst.TrayId == 7 && traySecond.TrayId == 7 && ice.IceLayers == 2,
+            "link repair split a tray or damaged ice");
+        DrainSwappedBoard();
+    }
+
+    private static void SwapLinksRepeated()
+    {
+        Load(24,
+            new[] { Food(), Food(link: 1), Food(), Food(link: 2), Food() },
+            new[] { Food(), Food(link: 1), Food(), Food(link: 2), Food(link: 3), Food() },
+            new[] { Food(), Food(), Food(), Food(), Food(link: 3), Food() });
+        Check(Tap(0) && Column(0).IsPickupPending, "uneven pickup fixture failed");
+        for (int i = 0; i < 7; i++)
+        {
+            Check(board.SwapRow(), "repeated swap unexpectedly did nothing");
+            Check(!Column(0).IsPickupPending, "Swap retained the old pickup delay");
+            Advance();
+        }
+        DrainSwappedBoard();
+        Check(conveyor.OccupiedSlotCount == 17, "repeated swaps lost a deep linked ingredient");
+    }
+
+    private static void SwapLinksNoChange()
+    {
+        Load(8, new[] { Food(tray: 7), Food(tray: 7) }, new FoodData[0]);
+        FoodShushi top = Column(0).GetTopFood();
+        Check(!board.SwapRow() && Column(0).GetTopFood() == top, "an unchanged swap would consume a booster");
+        Load(8,
+            new[] { Food(link: 1), Food(link: 2), Food() },
+            new[] { Food(link: 2), Food(link: 1), Food() });
+        var first = new List<FoodShushi>(Column(0).Foods);
+        var second = new List<FoodShushi>(Column(1).Foods);
+        Check(!board.SwapRow(), "an unresolved pre-existing link cycle was committed");
+        for (int i = 0; i < first.Count; i++)
+            Check(Column(0).Foods[i] == first[i] && Column(1).Foods[i] == second[i], "failed swap partially mutated the board");
+    }
     private static void BoosterControls()
     {
         level.LoadLevel(0);
@@ -971,7 +1121,7 @@ public static class SushiGameplayRegression
     private static SushiLevelData ValidLevel()
     {
         var data = ScriptableObject.CreateInstance<SushiLevelData>(); data.number = 46; data.numberColumns = 2;
-        data.customers = new List<CustomerOrderData> { Order(PoolType.SushiRice, 2), Order(PoolType.Egg, 2) };
+        data.customers = new List<CustomerOrderData> { Order(SushiDishId.NigiriEgg, 1), Order(SushiDishId.NigiriEgg, 1) };
         data.boardColumns = new List<FoodQueueData> { new FoodQueueData { foods = new List<FoodData> { Food(amount: 2) } },
             new FoodQueueData { foods = new List<FoodData> { Food(PoolType.Egg, 2) } } };
         return data;
@@ -1009,15 +1159,15 @@ public static class SushiGameplayRegression
                 totals[food.typeFood] = amount + food.amount;
             }
         }
-        foreach (var ingredient in totals)
-            for (int remaining = ingredient.Value; remaining > 0; remaining -= 6)
-                data.customers.Add(Order(ingredient.Key, Mathf.Min(6, remaining)));
+        Check(totals.Count == 2 && totals.ContainsKey(PoolType.SushiRice) && totals.ContainsKey(PoolType.Egg) &&
+            totals[PoolType.SushiRice] == totals[PoolType.Egg], "Element fixture must contain complete egg nigiri recipes");
+        data.customers.Add(Order(SushiDishId.NigiriEgg, totals[PoolType.SushiRice]));
         return data;
     }
 
     private static void ElementDataValidation()
     {
-        var hidden = GateFixture(1, new[] { Food(), Food(hidden: true) }, new[] { Food(PoolType.Egg) });
+        var hidden = GateFixture(1, new[] { Food(), Food(hidden: true) }, new[] { Food(PoolType.Egg, 2) });
         Check(hidden.ValidateData() == null, "authored hidden tile rejected: " + hidden.ValidateData());
         hidden.boardColumns[0].foods[0].hidden = true;
         Check(hidden.ValidateData() != null, "hidden tile allowed in the initial head row");
@@ -1025,7 +1175,7 @@ public static class SushiGameplayRegression
 
         var frozen = GateFixture(1,
             new[] { Food(), Food(), Food(), Food(), Food(), Food() },
-            new[] { Food(PoolType.Egg), Food(PoolType.Egg, ice: 5, hidden: true) },
+            new[] { Food(PoolType.Egg, 3), Food(PoolType.Egg, 3, ice: 5, hidden: true), Food(PoolType.Egg, 3), Food(PoolType.Egg, 3) },
             new[] { Food(), Food(), Food(), Food(), Food(), Food() });
         Check(frozen.ValidateData() == null, "authored hidden + ice rejected: " + frozen.ValidateData());
         frozen.boardColumns[1].foods[1].iceLayers = 6;
@@ -1191,7 +1341,7 @@ public static class SushiGameplayRegression
         Check(first.RushRemaining == 26 && Time.timeScale == 0, "popup did not pause timer");
         level.SetPopupOpen(false); Check(Time.timeScale == 1, "popup did not restore time");
         Customer waiting = Object.Instantiate(Prefab<Customer>("Customer"), fixture);
-        var order = Order(PoolType.SushiRice, 2, true); waiting.Setup(4, null, order.CreateFoodList()); waiting.ConfigureRush(order);
+        var order = Order(SushiDishId.NigiriEgg, 1, true); waiting.Setup(4, null, order);
         waiting.TickRush(10); Check(waiting.RushRemaining == 30, "waiting timer started early");
     }
     private static void Revive()
@@ -1287,14 +1437,14 @@ public static class SushiGameplayRegression
         secondSeat.position = new Vector3(2, secondSeat.position.y, secondSeat.position.z);
         Set(customers, "customerExitDistance", 1f);
         customers.Init(new List<CustomerOrderData> {
-            Order(PoolType.Shrimp, 1), Order(PoolType.Egg, 1), Order(PoolType.Salmon, 1)
+            Order(SushiDishId.NigiriShrimp, 1), Order(SushiDishId.NigiriEgg, 1), Order(SushiDishId.SashimiSalmonFlounder, 1)
         });
         Load(1, new[] { Food(PoolType.Salmon), Food(PoolType.Salmon) });
         Check(Tap(0), "customer transition setup failed");
         Advance();
         Customer departing = customers.ActiveCustomers[0];
         float departingStartX = departing.transform.position.x;
-        Serve(departing, PoolType.Shrimp);
+        Serve(departing, PoolType.SushiRice); Serve(departing, PoolType.Shrimp);
         Check(customers.HasPendingTransitions && conveyor.CanMakeProgress, "departing customer was not considered");
         CheckLevelState(20);
         Check(level.IsPlaying, "lost while a customer was leaving");
@@ -1311,7 +1461,7 @@ public static class SushiGameplayRegression
 
         Customer departingRight = customers.ActiveCustomers[1];
         float departingRightStartX = departingRight.transform.position.x;
-        Serve(departingRight, PoolType.Egg);
+        Serve(departingRight, PoolType.SushiRice); Serve(departingRight, PoolType.Egg);
         Advance(0.81f);
         Advance(0.1f);
         Check(customers.ActiveCustomers[1] == departingRight &&
@@ -1372,7 +1522,7 @@ public static class SushiGameplayRegression
 
     private static void ArrivalPriority()
     {
-        customers.Init(new List<CustomerOrderData> { Order(PoolType.SushiRice, 2), Order(PoolType.SushiRice, 2, true) });
+        customers.Init(new List<CustomerOrderData> { Order(SushiDishId.NigiriEgg, 2), Order(SushiDishId.NigiriEgg, 2, true) });
         Check(customers.FirstCustomerFor(PoolType.SushiRice).id == 0, "rush customer overtook old customer");
         var seats = Get<Customer[]>(customers, "activeCustomers");
         Customer old = seats[0]; seats[0] = seats[1]; seats[1] = old;

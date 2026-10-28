@@ -29,6 +29,11 @@ public class FoodQueue : MonoBehaviour
     public int Count => foods.Count;
     public bool IsPickupPending { get; private set; }
     public void SetConveyor(ConveyorManager manager) { conveyor = manager; }
+    internal void SetLowerRowsShadeVisible(bool visible)
+    {
+        if (lowerRowsShade != null) lowerRowsShade.gameObject.SetActive(visible);
+    }
+
     internal void SetOuterRails(bool showLeft, bool showRight)
     {
         Transform leftRail = beltView != null ? beltView.Find("Left rail") : null;
@@ -63,6 +68,7 @@ public class FoodQueue : MonoBehaviour
         }
         lowerRowsShade.transform.localPosition = Vector3.down * rowSpace * 2f;
         lowerRowsShade.transform.localScale = new Vector3(1.34f, rowSpace * (VisibleRows - 1), 1f);
+        SetLowerRowsShadeVisible(true);
         foreach (FoodData item in data.foods)
         {
             FoodShushi food = SimplePool.Spawn<FoodShushi>(item.typeFood);
@@ -278,21 +284,33 @@ public class FoodQueue : MonoBehaviour
         return index >= 0 && index < Mathf.Min(4, foods.Count) ? foods[index] : null;
     }
 
-    public bool SwapVisibleRows()
+    // Build a proposal without moving anything: linked columns must be checked together.
+    internal List<FoodShushi> BuildSwapRows()
     {
-        if (IsPickupPending || foods.Count < 2) return false;
+        var result = new List<FoodShushi>(foods);
+        if (IsPickupPending || foods.Count < 2) return result;
         int firstSize = 1;
         int tray = foods[0].TrayId;
         if (tray > 0)
             while (firstSize < foods.Count && foods[firstSize].TrayId == tray) firstSize++;
-        int window = Mathf.Min(4, foods.Count);
+        int window = Mathf.Min(VisibleRows, foods.Count);
         int lastTray = foods[window - 1].TrayId;
         if (lastTray > 0)
             while (window < foods.Count && foods[window].TrayId == lastTray) window++;
-        if (firstSize >= window) return false;
+        if (firstSize >= window) return result;
         List<FoodShushi> firstBlock = foods.GetRange(0, firstSize);
-        foods.RemoveRange(0, firstSize);
-        foods.InsertRange(window - firstSize, firstBlock);
+        result.RemoveRange(0, firstSize);
+        result.InsertRange(window - firstSize, firstBlock);
+        return result;
+    }
+
+    internal bool ApplySwapRows(List<FoodShushi> rows)
+    {
+        bool changed = false;
+        for (int i = 0; i < foods.Count; i++) changed |= foods[i] != rows[i];
+        if (!changed) return false;
+        foods.Clear();
+        foods.AddRange(rows);
         RefreshRows();
         return true;
     }

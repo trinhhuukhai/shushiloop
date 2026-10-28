@@ -67,16 +67,16 @@ public static class SushiRecipeChecks
         rice.incomingAmount--; rice.receivedAmount++;
         Check(rice.IsComplete && !firstDish.IsComplete, "Dish completed without shrimp");
         Check(firstDish.FindAvailableIngredient(PoolType.Tuna) == null, "Wrong ingredient accepted");
-        customer.orders.Add(new FoodOrderData { typeFood = PoolType.SushiRice, amount = 1 });
-        Check(customer.ValidateOrders() != null, "Mixed legacy and recipe data accepted"); customer.orders.Clear();
         customer.dishes[0].dish = (SushiDishId)49;
         Check(customer.ValidateOrders() != null, "Invalid dish accepted");
         customer.dishes[0].dish = SushiDishId.NigiriShrimp; customer.dishes[0].amount = 0;
         Check(customer.ValidateOrders() != null, "Zero portions accepted");
         customer.dishes[0].amount = int.MaxValue;
         Check(customer.ValidateOrders() != null, "Overflowing order accepted");
-        var legacy = new CustomerOrderData { orders = new List<FoodOrderData> { new FoodOrderData { typeFood = PoolType.Egg, amount = 3 } } };
-        Check(legacy.ValidateOrders() == null && legacy.CreateFoodList().Count == 3, "Legacy order compatibility broken");
+        var empty = new CustomerOrderData();
+        Check(empty.ValidateOrders() != null && empty.CreateFoodList().Count == 0, "Customer without dishes accepted");
+        empty.dishes = null;
+        Check(empty.ValidateOrders() != null && empty.CreateFoodList().Count == 0, "Null dish list accepted");
 #if UNITY_EDITOR
         UnityEngine.Debug.Log("SUSHI_RECIPES_OK: 48 recipes, " + assertions + " assertions passed");
 #else

@@ -197,18 +197,11 @@ public class CustomerManager : MonoBehaviour
                 return $"Khách {i + 1} chưa có order.";
             }
 
-            long total = 0;
-
             foreach (FoodOrderData item in customerOrder.CreateIngredientOrders())
             {
                 if (item == null || item.amount <= 0)
                     return $"Khách {i + 1} có order không hợp lệ.";
-
-                total += item.amount;
             }
-
-            if (!customerOrder.UsesRecipes && total > customerPrefab.PlateCapacity)
-                return $"Khách {i + 1} order vượt số vị trí trên đĩa.";
         }
 
         return null;

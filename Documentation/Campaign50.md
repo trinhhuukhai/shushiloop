@@ -60,7 +60,7 @@ Checkpoint 5/10/15/…/50 có 1–4 khách vội. Đồng hồ chỉ chạy khi 
 ## Chỉnh sửa
 
 Assets/_game/LevelData/Campaign/Level01.asset … Level50.asset; _AllLevelData chứa đúng thứ tự chơi 1–50. Màn thử Level03_5Khach4Mon được giữ riêng ngoài danh sách chính.
-Menu SushiKhai > Levels > Extend Campaign To 50 Levels bổ sung asset thiếu và giữ board/order hiện có. Chỉnh customers.rushCustomer/rushSeconds, boardColumns hoặc modifiers trực tiếp trong Inspector.
+Menu SushiKhai > Levels > Extend Campaign To 50 Levels bổ sung asset thiếu và giữ board/order hiện có. Chỉnh customers.dishes, customers.rushCustomer/rushSeconds và element trong boardColumns[].foods[] trực tiếp trong Inspector.
 Validator chỉ kiểm tra dữ liệu hợp lệ và khả năng hoạt động của board, không kiểm tra mốc xuất hiện khách vội/item. Không chạy lại toàn bộ gameplay; các board mới được tìm đường lấy nguyên liệu khi tạo, chưa đo thời gian chơi của người thật.
 
 ## Đường lấy nguyên liệu tham khảo của màn mới

@@ -65,7 +65,7 @@ public class CanvasGamePlay : UICanvas
             difficulty.text = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? "SUPER HARD" : "HARD";
         }
         if (occupancy != null) occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
-        speedText.text = level.Conveyor.IsDoubleSpeed ? "2×" : "1×";
+        speedText.text = level.Conveyor.IsDoubleSpeed ? "2X" : "1X";
         setTxtGold();
         FoodPickMode mode = input != null ? input.PickMode : FoodPickMode.Tap;
         boosterHint.text = mode == FoodPickMode.Chopsticks ? "Chọn nguyên liệu đang thấy · không gắp ô băng" :

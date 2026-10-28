@@ -30,9 +30,6 @@ public class CustomerOrderData
     public List<DishOrderData> dishes = new List<DishOrderData>();
     public bool UsesRecipes => dishes != null && dishes.Count > 0;
 
-    public List<FoodOrderData> orders =
-        new List<FoodOrderData>();
-
     // Chuyển thành danh sách mà Customer.Setup() đang sử dụng.
     public List<PoolType> CreateFoodList()
     {
@@ -50,13 +47,7 @@ public class CustomerOrderData
     public List<FoodOrderData> CreateIngredientOrders()
     {
         var result = new List<FoodOrderData>();
-        if (!UsesRecipes)
-        {
-            if (orders != null)
-                foreach (var order in orders)
-                    if (order != null) result.Add(new FoodOrderData { typeFood = order.typeFood, amount = order.amount });
-            return result;
-        }
+        if (!UsesRecipes) return result;
         foreach (DishOrderData order in dishes)
         {
             if (order == null || order.amount < 1) throw new InvalidOperationException("Order món không hợp lệ.");
@@ -73,26 +64,14 @@ public class CustomerOrderData
 
     public string ValidateOrders()
     {
-        if (UsesRecipes)
+        if (!UsesRecipes) return "Khách chưa có món trong dishes.";
+        long totalIngredients = 0;
+        foreach (var dish in dishes)
         {
-            if (orders != null && orders.Count > 0) return "Chỉ cấu hình dishes (món) hoặc orders cũ (nguyên liệu) trong cùng một khách.";
-            long totalIngredients = 0;
-            foreach (var dish in dishes)
-            {
-                if (dish == null || dish.amount < 1 || !SushiRecipeCatalog.TryGet(dish.dish, out var recipe))
-                    return "Món cần ID công thức 1–48 và số phần >= 1.";
-                totalIngredients += (long)dish.amount * recipe.Ingredients.Count;
-                if (totalIngredients > int.MaxValue) return "Tổng nguyên liệu trong đơn vượt giới hạn dữ liệu.";
-            }
-            return null;
-        }
-        if (orders == null || orders.Count == 0) return "Khách chưa có món/order.";
-        var types = new HashSet<PoolType>();
-        foreach (var order in orders)
-        {
-            if (order == null || order.typeFood == PoolType.None || !Enum.IsDefined(typeof(PoolType), order.typeFood) || order.amount < 1)
-                return "Order nguyên liệu không hợp lệ.";
-            if (!types.Add(order.typeFood)) return "Gộp nguyên liệu trùng vào amount.";
+            if (dish == null || dish.amount < 1 || !SushiRecipeCatalog.TryGet(dish.dish, out var recipe))
+                return "Món cần ID công thức 1–48 và số phần >= 1.";
+            totalIngredients += (long)dish.amount * recipe.Ingredients.Count;
+            if (totalIngredients > int.MaxValue) return "Tổng nguyên liệu trong đơn vượt giới hạn dữ liệu.";
         }
         return null;
     }
@@ -123,29 +102,4 @@ public class FoodQueueData
 {
     // Phần tử 0 là Food đầu cột.
     public List<FoodData> foods = new List<FoodData>();
-}
-
-[Serializable]
-public class FoodModifierData
-{
-    [Tooltip("Cột bắt đầu từ 0.")]
-    [Min(0)]
-    public int column;
-
-    [Tooltip("Hàng bắt đầu từ 0, hàng 0 là đầu cột.")]
-    [Min(0)]
-    public int row;
-
-    public FoodState foodState;
-
-    public bool hidden;
-
-    [Min(1)]
-    public int iceLayers = 1;
-
-    [Min(0)]
-    public int lockId;
-
-    [Min(0)] public int linkId;
-    [Min(0)] public int trayId;
 }

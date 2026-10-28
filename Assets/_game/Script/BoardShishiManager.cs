@@ -268,9 +268,55 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
     public bool SwapRow()
     {
         foreach (FoodQueue column in foodQueues) column.CompleteColumnMovement();
+        var rows = new List<List<FoodShushi>>();
+        foreach (FoodQueue column in foodQueues) rows.Add(column.BuildSwapRows());
+        if (!CanCollectAllLinks(rows))
+        {
+            // A head link can wrap past another pair in only one of its columns.
+            // Keep the original link sequence in the proposed link positions; ordinary
+            // tiles and whole trays retain their rotation, including the row-4 boundary.
+            for (int c = 0; c < foodQueues.Count; c++)
+            {
+                var links = new List<FoodShushi>();
+                foreach (FoodShushi food in foodQueues[c].Foods)
+                    if (food.LinkId > 0) links.Add(food);
+                int next = 0;
+                for (int r = 0; r < rows[c].Count; r++)
+                    if (rows[c][r].LinkId > 0) rows[c][r] = links[next++];
+            }
+            // No partial commit or booster charge if the input board is already invalid.
+            if (!CanCollectAllLinks(rows)) return false;
+        }
         bool changed = false;
-        foreach (FoodQueue column in foodQueues) changed |= column.SwapVisibleRows();
+        for (int c = 0; c < foodQueues.Count; c++) changed |= foodQueues[c].ApplySwapRows(rows[c]);
         return changed;
+    }
+
+    private static bool CanCollectAllLinks(List<List<FoodShushi>> rows)
+    {
+        // Ignore ice/hidden state here; only verify that link pairs cannot block each other.
+        // Inspect the full columns so a pair below the visible window is not overlooked.
+        var heads = new int[rows.Count];
+        bool moved;
+        do
+        {
+            moved = false;
+            for (int c = 0; c < rows.Count; c++)
+            {
+                if (heads[c] >= rows[c].Count) continue;
+                int link = rows[c][heads[c]].LinkId;
+                if (link == 0) { heads[c]++; moved = true; continue; }
+                for (int n = 0; n < rows.Count; n++)
+                {
+                    if (n == c || heads[n] >= rows[n].Count || rows[n][heads[n]].LinkId != link) continue;
+                    heads[c]++; heads[n]++; moved = true;
+                    break;
+                }
+            }
+        } while (moved);
+        for (int c = 0; c < rows.Count; c++)
+            if (heads[c] < rows[c].Count) return false;
+        return true;
     }
 
     public void BreakHeadIce()

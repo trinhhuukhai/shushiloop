@@ -28,19 +28,16 @@ MonoBehaviour:
     dishes:
     - dish: 5
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
     - dish: 8
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
     - dish: 8
       amount: 1
-    orders: []
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -48,5 +45,3 @@ MonoBehaviour:
       amount: 1
     - dish: 8
       amount: 1
-    orders: []
-  modifiers: []
