@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
-public enum SushiReviveReason { None, RushCustomer, FrozenHeads }
+public enum SushiReviveReason { None, RushCustomer, FrozenHeads, FullConveyor }
 
 public class LevelManager : SingletonMonoBehaviour<LevelManager>
 {
@@ -39,7 +39,9 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     [SerializeField, Min(0)] private int victoryReward = 100;
     public int VictoryReward => victoryReward;
     private bool rewardClaimed;
-    public bool CanPurchaseRevive => reviveProvider != null && !awaitingAd;
+    public bool CanPurchaseRevive => reviveProvider != null && !awaitingAd && CanApplyRevive;
+    private bool CanApplyRevive => IsPlaying && PendingRevive != SushiReviveReason.None &&
+        (PendingRevive != SushiReviveReason.FullConveyor || conveyorManager.CanReviveFullConveyor);
     public ConveyorManager Conveyor => conveyorManager;
     public BoardShishiManager Board => boardManager;
     public bool HasWon { get; private set; }
@@ -158,8 +160,12 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     private void CompleteRevive()
     {
-        if (!IsPlaying || PendingRevive == SushiReviveReason.None) return;
+        if (!CanApplyRevive) return;
         if (PendingRevive == SushiReviveReason.RushCustomer) ExpiredCustomer?.ReviveRush();
+        else if (PendingRevive == SushiReviveReason.FullConveyor)
+        {
+            if (!conveyorManager.TryReviveFullConveyor()) return;
+        }
         else boardManager.BreakHeadIce();
         reviveCount++;
         noMovesElapsed = 0;
@@ -309,7 +315,11 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (noMovesElapsed < noMovesLoseDelay) return;
         noMovesElapsed = 0;
 
-        if (boardManager.AllRemainingHeadsFrozen()) RequestRevive(SushiReviveReason.FrozenHeads);
+        bool frozenHeads = boardManager.AllRemainingHeadsFrozen();
+        // With space available, frozen heads still need ice removal rather than more slots.
+        if (conveyorManager.CanReviveFullConveyor && (!frozenHeads || conveyorManager.FreeSlotCount == 0))
+            RequestRevive(SushiReviveReason.FullConveyor);
+        else if (frozenHeads) RequestRevive(SushiReviveReason.FrozenHeads);
         else LoseLevel();
     }
 

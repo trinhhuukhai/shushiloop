@@ -26,6 +26,7 @@ public partial class ConveyorManager : MonoBehaviour
     private float progress;
     private bool isRunning;
     private bool magnetPaused;
+    private readonly HashSet<SushiDishOrder> magnetOrdersInFlight = new HashSet<SushiDishOrder>();
     private bool manualDoubleSpeed;
     private bool doubleSpeed;
     public bool IsDoubleSpeed => doubleSpeed;
@@ -83,12 +84,12 @@ public partial class ConveyorManager : MonoBehaviour
     {
         get
         {
-            if (deliveringFoods.Count > 0 || PreparingDishCount > 0 ||
+            if (deliveringFoods.Count > 0 || PreparingDishCount > 0 || IsPackingBags() ||
                 (customerManager != null && customerManager.HasPendingTransitions)) return true;
             // Partial dishes also live in servingDishes; only finished ones will leave on their own.
             foreach (SushiPreparedDish dish in servingDishes)
                 if (dish != null && dish.IsReady) return true;
-            foreach (FoodShushi food in slotFoods.Values)
+            foreach (FoodShushi food in BeltIngredients())
             {
                 if (food == null) continue;
                 if (food.Location == FoodLocation.MovingToConveyor) return true;
@@ -157,6 +158,11 @@ public partial class ConveyorManager : MonoBehaviour
         if (!isRunning || magnetPaused || slots.Count == 0)
             return;
 
+        // Leaving Magnet targeting must not resume the belt before the ingredients land.
+        magnetOrdersInFlight.RemoveWhere(order => order.IsComplete || order.HasAllIngredients());
+        if (magnetOrdersInFlight.Count > 0)
+            return;
+
         float previousProgress = progress;
 
         float speed = loopsPerSecond * (doubleSpeed ? 2f : 1f);
@@ -165,6 +171,7 @@ public partial class ConveyorManager : MonoBehaviour
         progress = Mathf.Repeat(progress + advance, 1f);
 
         UpdateSlotPositions();
+        DeliverBagIngredients();
         AssembleAvailableDishes(previousProgress);
         CheckCustomerOrders(previousProgress, advance);
     }
@@ -214,9 +221,11 @@ public partial class ConveyorManager : MonoBehaviour
     {
         isRunning = false;
         magnetPaused = false;
+        magnetOrdersInFlight.Clear();
         DOTween.Kill(pickupTweenId);
         ClearPreparedDishes();
         ClearDeliveringFoods();
+        ClearReviveBags();
         foreach (FoodShushi food in slotFoods.Values)
         {
             if (food == null)
@@ -246,7 +255,7 @@ public partial class ConveyorManager : MonoBehaviour
     }
 
 
-    public int OccupiedSlotCount => slotFoods.Count;
+    public int OccupiedSlotCount => slotFoods.Count + slotBags.Count;
     public int FreeSlotCount => slots.Count - OccupiedSlotCount;
     public int Capacity => slots.Count;
     private readonly object pickupTweenId = new object();
@@ -288,7 +297,12 @@ public partial class ConveyorManager : MonoBehaviour
         foreach (Customer seated in customerManager.ActiveCustomers) active |= seated == customer;
         foreach (SushiDishOrder order in customer.Dishes) ownsDish |= order == dish;
         if (!active || !ownsDish) return false;
-        if (preparedDishPrefab != null) return TryMagnetPreparedDish(board, customer, dish);
+        if (preparedDishPrefab != null)
+        {
+            if (!TryMagnetPreparedDish(board, customer, dish)) return false;
+            magnetOrdersInFlight.Add(dish);
+            return true;
+        }
 
         var boardPlan = new List<FoodPickup>();
         var beltPlan = new List<KeyValuePair<Transform, FoodShushi>>();
@@ -298,13 +312,7 @@ public partial class ConveyorManager : MonoBehaviour
             int remaining = ingredient.requiredAmount - ingredient.receivedAmount - ingredient.incomingAmount;
             needed += Mathf.Max(0, remaining);
             // Ưu tiên nguyên liệu trên vòng xoay, kể cả đang nhảy tới đĩa đã giữ chỗ.
-            foreach (Transform slot in slots)
-            {
-                if (remaining <= 0) break;
-                if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food.Type != ingredient.typeFood) continue;
-                beltPlan.Add(new KeyValuePair<Transform, FoodShushi>(slot, food));
-                remaining--;
-            }
+            remaining = CollectBeltIngredients(ingredient.typeFood, remaining, beltPlan);
             if (remaining <= 0) continue;
             List<FoodPickup> pickups = board.BuildMagnet(ingredient.typeFood, remaining);
             foreach (FoodPickup pickup in pickups) { boardPlan.Add(pickup); remaining -= pickup.amount; }
@@ -351,10 +359,11 @@ public partial class ConveyorManager : MonoBehaviour
         {
             pickup.Value.transform.DOKill();
             pickup.Value.RevealForMagnet();
-            slotFoods.Remove(pickup.Key);
+            RemoveBeltIngredient(pickup.Key, pickup.Value);
         }
         if (boardPlan.Count > 0) board.CommitPickup(boardPlan, FoodPickMode.Magnet, 0);
         for (int i = 0; i < units.Count; i++) FlyToCustomer(units[i], customer, targets[i]);
+        magnetOrdersInFlight.Add(dish);
         NotifyOccupancy();
         return true;
     }
@@ -377,7 +386,7 @@ public partial class ConveyorManager : MonoBehaviour
         }
         var targets = new List<Transform>();
         foreach (Transform slot in slots)
-            if (slot != null && !slotFoods.ContainsKey(slot)) targets.Add(slot);
+            if (slot != null && !IsSlotOccupied(slot)) targets.Add(slot);
         Vector3 origin = plan[0].food.transform.position;
         targets.Sort((a, b) => (a.position - origin).sqrMagnitude.CompareTo((b.position - origin).sqrMagnitude));
         if (targets.Count < total) { board.ShakePickup(plan); return false; }

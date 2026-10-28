@@ -964,6 +964,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 397b5765641bcb64e88a4c77046f38b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ConveyorManager
+  reviveBagPrefab: {fileID: 7989185540484349039, guid: 3e01b214fbf12904dbb0d0f5bc357bfd, type: 3}
+  bagPackingDuration: 0.35
   preparedDishPrefab: {fileID: 2092212452510426463, guid: 3fe78fdc40070cc4f88320e891d9773b, type: 3}
   assemblyDuration: 0.3
   assemblyIngredientStagger: 0.12

@@ -32,7 +32,7 @@ public partial class ConveyorManager
                 foreach (var need in dish.Ingredients)
                 {
                     int count = 0;
-                    foreach (var food in slotFoods.Values)
+                    foreach (var food in BeltIngredients())
                         if (food.Type == need.typeFood && food.Location == FoodLocation.Conveyor) count++;
                     enough &= count >= need.requiredAmount;
                 }
@@ -232,13 +232,7 @@ public partial class ConveyorManager
         foreach (OrderItem need in order.Ingredients)
         {
             int left = need.requiredAmount - need.receivedAmount - need.incomingAmount;
-            foreach (Transform slot in slots)
-            {
-                if (left == 0) break;
-                if (!slotFoods.TryGetValue(slot, out var food) || food.Type != need.typeFood ||
-                    (food.Location != FoodLocation.Conveyor && food.Location != FoodLocation.MovingToConveyor)) continue;
-                beltPlan.Add(new KeyValuePair<Transform, FoodShushi>(slot, food)); left--;
-            }
+            left = CollectBeltIngredients(need.typeFood, left, beltPlan);
             if (left > 0)
                 foreach (var pickup in board.BuildMagnet(need.typeFood, left)) { boardPlan.Add(pickup); left -= pickup.amount; }
             if (left > 0) return false;
@@ -286,7 +280,7 @@ public partial class ConveyorManager
 
         foreach (var pickup in beltPlan)
         {
-            slotFoods.Remove(pickup.Key);
+            RemoveBeltIngredient(pickup.Key, pickup.Value);
             pickup.Value.transform.DOKill();
             pickup.Value.RevealForMagnet();
             pickup.Value.transform.SetParent(flyingFoodRoot, true);

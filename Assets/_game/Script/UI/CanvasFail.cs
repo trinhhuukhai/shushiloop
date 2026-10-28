@@ -31,6 +31,8 @@ public class CanvasFail : UICanvas
         title.text = revive ? "Tiếp tục phục vụ?" : "Chưa hoàn thành";
         description.text = !revive ? "Thử lại để hoàn thành các order nhé!" :
             level.PendingRevive == SushiReviveReason.RushCustomer ? "Khách đã hết giờ. Tiếp tục để thêm 30 giây." :
+            level.PendingRevive == SushiReviveReason.FullConveyor ?
+            "Gom nguyên liệu từ 5 đĩa vào 1 túi, mở thêm 4 chỗ trống. Nguyên liệu tự bay từ túi đến đĩa món khi khách cần." :
             "Các cột đã đóng băng. Tiếp tục để phá băng hàng đầu.";
         reviveActions.SetActive(revive);
         coinPrice.text = level.ReviveCost + " xu";

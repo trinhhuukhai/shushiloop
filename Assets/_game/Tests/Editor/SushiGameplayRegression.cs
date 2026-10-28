@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 // Chạy trong project test riêng: Unity -batchmode -nographics -projectPath ...
 // -executeMethod SushiGameplayRegression.RunBatch -logFile ... (không thêm -quit).
 [InitializeOnLoad]
-public static class SushiGameplayRegression
+public static partial class SushiGameplayRegression
 {
     private const string PendingKey = "SushiGameplayRegression.Pending";
     private static int passed;
@@ -78,7 +78,12 @@ public static class SushiGameplayRegression
     {
         if (!EditorApplication.isPlaying || EditorApplication.isCompiling || !SessionState.GetBool(PendingKey, false)) return;
         SessionState.SetBool(PendingKey, false);
-        if (SessionState.GetBool(PendingKey + ".Swap", false))
+        if (SessionState.GetBool(PendingKey + ".ReviveBag", false))
+        {
+            SessionState.SetBool(PendingKey + ".ReviveBag", false);
+            RunReviveBagChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".Swap", false))
         {
             SessionState.SetBool(PendingKey + ".Swap", false);
             RunSwapChecks();
