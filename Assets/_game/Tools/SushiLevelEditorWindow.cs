@@ -25,6 +25,11 @@ public class SushiLevelEditorWindow : EditorWindow
     private bool linkMode;
     private bool showSettings = true;
     private int traySize = 2;
+    private int kValue = 5;
+    private int simSeats = 3;
+    private int annealIterations = 1500;
+    private string diffReport = "";
+    private MessageType diffReportType = MessageType.None;
     private SushiDishId newDish = SushiDishId.NigiriShrimp;
     private int newAmount = 1;
 
@@ -48,6 +53,7 @@ public class SushiLevelEditorWindow : EditorWindow
         w.minSize = new Vector2(980, 560);
         w.level = data;
         w.ResetSelection();
+        w.LoadK();
         w.Show();
         return true;
     }
@@ -81,7 +87,7 @@ public class SushiLevelEditorWindow : EditorWindow
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
         EditorGUI.BeginChangeCheck();
         var picked = (SushiLevelData)EditorGUILayout.ObjectField(level, typeof(SushiLevelData), false, GUILayout.Width(300));
-        if (EditorGUI.EndChangeCheck()) { level = picked; ResetSelection(); }
+        if (EditorGUI.EndChangeCheck()) { level = picked; ResetSelection(); LoadK(); }
         GUILayout.FlexibleSpace();
         if (level != null)
         {
@@ -102,7 +108,7 @@ public class SushiLevelEditorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
-        EditorGUILayout.BeginVertical(GUILayout.Width(400));
+        EditorGUILayout.BeginVertical(GUILayout.Width(600));
         leftScroll = EditorGUILayout.BeginScrollView(leftScroll);
         DrawSettings();
         EditorGUILayout.Space(6);
@@ -161,6 +167,67 @@ public class SushiLevelEditorWindow : EditorWindow
         level.shuffleFoods = EditorGUILayout.Toggle("Shuffle foods", level.shuffleFoods);
         level.maxIngredientsPerTile = EditorGUILayout.IntSlider("Max ×/ô (ô mới)", level.maxIngredientsPerTile, 1, 3);
         EditorGUILayout.EndVertical();
+
+        DrawDifficulty();
+    }
+
+    private void DrawDifficulty()
+    {
+        EditorGUILayout.Space(4);
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.LabelField("Độ khó theo hệ số K", EditorStyles.boldLabel);
+
+        EditorGUI.BeginChangeCheck();
+        kValue = EditorGUILayout.IntSlider("Hệ số K (1 dễ – 10 khó)", kValue, 1, 10);
+        if (EditorGUI.EndChangeCheck()) SaveK();
+
+        simSeats = EditorGUILayout.IntSlider("Khách phục vụ cùng lúc (mô phỏng)", simSeats, 1, 6);
+        annealIterations = EditorGUILayout.IntSlider("Số vòng tối ưu", annealIterations, 200, 5000);
+        EditorGUILayout.LabelField($"Mục tiêu: người chơi hay nhầm ~{SushiDifficulty.PlayerNoise:P0} thua ≈ {SushiDifficulty.TargetLoss(kValue):P0}, nhưng vẫn giải được.", EditorStyles.wordWrappedMiniLabel);
+
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Sắp xếp board theo K")) pending.Add(ArrangeByK);
+        if (GUILayout.Button("Chấm độ khó hiện tại")) pending.Add(EvaluateCurrent);
+        EditorGUILayout.EndHorizontal();
+
+        if (!string.IsNullOrEmpty(diffReport)) EditorGUILayout.HelpBox(diffReport, diffReportType);
+        EditorGUILayout.EndVertical();
+    }
+
+    private string KKey() => "SushiLevelEditor.K." + AssetDatabase.GetAssetPath(level);
+    private void LoadK() { if (level != null) kValue = Mathf.Clamp(EditorPrefs.GetInt(KKey(), 5), 1, 10); diffReport = ""; }
+    private void SaveK() { if (level != null) EditorPrefs.SetInt(KKey(), kValue); }
+
+    private void ArrangeByK()
+    {
+        if (!BoardReady()) { SetReport("Board chưa khởi tạo. Bấm 'Tạo lại board (seed)' trước.", MessageType.Warning); return; }
+        SushiDifficulty.Result r;
+        try
+        {
+            r = SushiDifficulty.Arrange(level, kValue, simSeats, annealIterations,
+                p => EditorUtility.DisplayCancelableProgressBar("Sushi Level", "Đang sắp xếp theo K...", p));
+        }
+        finally { EditorUtility.ClearProgressBar(); }
+
+        if (r.ok) ResetSelection(keepCustomer: true);
+        SetReport(FormatReport(r), r.ok ? MessageType.Info : MessageType.Error);
+    }
+
+    private void EvaluateCurrent()
+    {
+        if (!BoardReady()) { SetReport("Board chưa khởi tạo.", MessageType.Warning); return; }
+        var r = SushiDifficulty.Evaluate(level, kValue, simSeats);
+        SetReport(FormatReport(r), r.ok ? MessageType.Info : MessageType.Error);
+    }
+
+    private void SetReport(string text, MessageType type) { diffReport = text; diffReportType = type; }
+
+    private string FormatReport(SushiDifficulty.Result r)
+    {
+        if (!r.ok) return r.message;
+        string belt = r.minBelt >= 0 ? $"{r.minBelt}/{level.beltSlots}" : $">{level.beltSlots}";
+        return $"{r.message}\nGiải được: {(r.solvable ? "có" : "KHÔNG")}   Tỉ lệ thua ước lượng: {r.estimatedLoss:P0} (mục tiêu K={kValue}: {r.targetLoss:P0})" +
+               $"\nBelt tối thiểu để thắng: {belt}" + (r.iterations > 0 ? $"   Số vòng: {r.iterations}" : "");
     }
 
     // ───────────────────────── Customers ─────────────────────────
