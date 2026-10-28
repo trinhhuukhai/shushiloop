@@ -2535,6 +2535,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 804f3870902591c49944e346d66198f0, type: 2}
   - {fileID: 11400000, guid: 464656662cf593d42b80bcac6fac4760, type: 2}
   - {fileID: 11400000, guid: 39285da59ddb1e340b427bd91446c40c, type: 2}
+  - {fileID: 11400000, guid: a95fd81816648be49a6365313040f9f3, type: 2}
   BoosterData: {fileID: 11400000, guid: bb1a15f3e49637e4fa18c90bd0d8fb65, type: 2}
   setupData:
     dataKey: 0

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bce4ed6b7dffcc5419b47f87b3e70855, type: 3}
+  m_Name: Lives Fragment
+  m_EditorClassIdentifier: Assembly-CSharp::LivesDataFragment
+  key: LivesFragment
+  gameData:
+    lives: 5
+    lifeRecoverStartTimeLong: 0
+    unlimitedEndTimeLong: 0
+    lastEmptyLivesDateKey: 0
+    lastClaimedFreeLivesDateKey: 0
+    truTymOnKillApp: 0
