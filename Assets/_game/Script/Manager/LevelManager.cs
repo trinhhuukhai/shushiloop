@@ -48,6 +48,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public bool ShowLevelSelector => showLevelSelector;
     public int LevelCount => Levels != null ? Levels.Count : 0;
     public int CurrentLevelIndex => currentLevelIndex;
+    public int LoadVersion => loadVersion;
     public event System.Action<SushiReviveReason> OnReviveRequested;
     private int popupCount;
     private int reviveCount;

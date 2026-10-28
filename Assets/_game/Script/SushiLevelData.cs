@@ -8,7 +8,6 @@ public enum TypeLevel
     Hard,
     SuperHard
 }
-
 [CreateAssetMenu(menuName = "SushiKhai/Level", fileName = "SushiLevel")]
 public class SushiLevelData : ScriptableObject
 {
@@ -18,7 +17,7 @@ public class SushiLevelData : ScriptableObject
     public string levelName;
     [TextArea] public string hint;
     [Min(6)] public int beltSlots = 14;
-    [Range(0.02f, 0.3f)] public float loopsPerSecond = 0.08f;
+    [Range(0.02f, 0.3f)] public float loopsPerSecond = 0.08f;                                                                                                                                    
     [Range(1, 6)] public int numberColumns = 4;
     public int boardSeed = 1;
     public bool shuffleFoods = true;

@@ -1659,6 +1659,7 @@ MonoBehaviour:
   normalLevelBadge: {fileID: -3036342471298937608, guid: ce3d7ba4f8722a445a46690ecda97a58, type: 3}
   hardLevelBadge: {fileID: -4778123463100023985, guid: dbba2369cf5a33740b36098c25aa8741, type: 3}
   superHardLevelBadge: {fileID: -9207997841366266786, guid: 8f77b37ccd1903a4dabfc62958882ad2, type: 3}
+  BoosterGroup: {fileID: 7532255773139396339}
 --- !u!1 &3922459871730296284
 GameObject:
   m_ObjectHideFlags: 0
@@ -3975,7 +3976,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 29.35
+  m_fontSize: 22.9
   m_fontSizeBase: 32
   m_fontWeight: 400
   m_enableAutoSizing: 1

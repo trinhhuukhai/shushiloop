@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DG.Tweening;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -66,8 +67,7 @@ public static class SushiProjectUIRegression
         SushiVisualCapture.CaptureSet("ProjectUI" + label, level);
     }
 
-    private static int LoadVersion(LevelManager level) => (int)typeof(LevelManager)
-        .GetField("loadVersion", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(level);
+    private static int LoadVersion(LevelManager level) => level.LoadVersion;
 
     private static void Update()
     {
@@ -381,6 +381,17 @@ public static class SushiProjectUIRegression
         Check(player.cur_level == progress && player.money == money && player.boosterClick == click &&
             player.boosterSuffle == swap && player.boosterHut == magnet,
             "Replay changed saved progress, money, or booster inventory.");
+        CanvasGamePlay hud = ui.GetUI<CanvasGamePlay>();
+        Vector2 initialBoosterPosition = hud.BoosterGroup.anchoredPosition;
+        level.Board.ClearBoard();
+        hud.Refresh();
+        DOTween.Complete(hud.BoosterGroup);
+        Check(hud.BoosterGroup.anchoredPosition.y < initialBoosterPosition.y,
+            "An emptied ingredient board did not slide the booster group down.");
+        level.ReplayLevel();
+        hud.Refresh();
+        Check(Vector2.Distance(hud.BoosterGroup.anchoredPosition, initialBoosterPosition) < 0.01f,
+            "Loading or replaying a level did not restore the booster group position.");
         Debug.Log("SETTINGS_REPLAY_TRANSITION_OK");
     }
 
@@ -446,7 +457,7 @@ public static class SushiProjectUIRegression
     }
 
     private static string[] Required(UICanvas view) => view is CanvasGamePlay
-        ? new[] { "rootPanel", "txtLevvel", "boosterHint", "speedText", "cancelBooster", "levelSelector" }
+        ? new[] { "rootPanel", "txtLevvel", "boosterHint", "speedText", "cancelBooster", "levelSelector", "BoosterGroup" }
         : view is CanvasFloating ? new[] { "rootPanel", "txtGold", "TopGroup", "btnSettingIngame" }
         : view is CanvasVictory ? new[] { "goldRwTxt", "btnGoldRW", "title", "nextLabel" }
         : new[] { "title", "description", "coinPrice", "retryLabel", "feedback", "reviveActions", "coinButton", "adButton" };

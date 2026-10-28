@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,9 +30,19 @@ public class CanvasGamePlay : UICanvas
     [SerializeField] private Sprite superHardLevelBadge;
     private FoodInputController input;
 
+    public RectTransform BoosterGroup;
+    private Vector2 boosterGroupStartPosition;
+    private int observedLoadVersion = int.MinValue;
+    private bool hasSeenBoardIngredients;
+    private bool boosterGroupSlidDown;
+
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
+        if (BoosterGroup != null)
+            boosterGroupStartPosition = BoosterGroup.anchoredPosition;
+        else
+            Debug.LogError("CanvasGamePlay requires BoosterGroup to be assigned.", this);
         //if (occupancy != null) occupancy.gameObject.SetActive(false);
 
     }
@@ -49,6 +60,7 @@ public class CanvasGamePlay : UICanvas
     {
         LevelManager level = LevelManager.Ins;
         if (level == null || level.CurrentLevel == null) return;
+        RefreshBoosterGroup(level);
         txtLevvel.text = "LV\n" + (level.CurrentLevelIndex + 1);
         if (levelBadge != null)
             levelBadge.sprite = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? superHardLevelBadge :
@@ -81,6 +93,41 @@ public class CanvasGamePlay : UICanvas
             boosterButtons[i].interactable = level.CanInteract && count != 0;
             selectedBoosters[i].SetActive(i == 0 && mode == FoodPickMode.Chopsticks || i == 2 && mode == FoodPickMode.Magnet);
         }
+    }
+
+    private void RefreshBoosterGroup(LevelManager level)
+    {
+        if (BoosterGroup == null) return;
+
+        bool boardIsEmpty = level.Board.IsEmpty();
+        if (observedLoadVersion != level.LoadVersion)
+        {
+            observedLoadVersion = level.LoadVersion;
+            DOTween.Kill(BoosterGroup);
+            BoosterGroup.anchoredPosition = boosterGroupStartPosition;
+            boosterGroupSlidDown = false;
+            hasSeenBoardIngredients = !boardIsEmpty;
+            return;
+        }
+
+        if (!boardIsEmpty)
+        {
+            hasSeenBoardIngredients = true;
+            return;
+        }
+
+        if (!hasSeenBoardIngredients || boosterGroupSlidDown) return;
+
+        boosterGroupSlidDown = true;
+        float slideDistance = Mathf.Max(24f,
+            BoosterGroup.anchoredPosition.y + BoosterGroup.rect.height * (1f - BoosterGroup.pivot.y) + 24f);
+        Vector2 targetPosition = boosterGroupStartPosition + Vector2.down * slideDistance;
+        BoosterGroup.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InOutCubic);
+    }
+
+    private void OnDestroy()
+    {
+        if (BoosterGroup != null) DOTween.Kill(BoosterGroup);
     }
 
     public void ButtonBoosterPick() { input?.SelectChopsticks(); Refresh(); }
