@@ -1,0 +1,33 @@
+{ "skeleton": { "images": "D:/SandMerge/HardSuperHardLevels/images/" },
+"PhotoshopToSpine": { "scale": 1, "padding": 1, "trim": true },
+"bones": [
+	{ "name": "root" }
+],
+"slots": [
+	{ "name": "Layer 1", "bone": "root", "attachment": "Layer 1" },
+	{ "name": "fire_1", "bone": "root", "attachment": "SuperHard/fire_1" },
+	{ "name": "fire_2", "bone": "root", "attachment": "SuperHard/fire_2" },
+	{ "name": "tag_hard", "bone": "root", "attachment": "SuperHard/tag_hard" },
+	{ "name": "Text", "bone": "root", "attachment": "SuperHard/Text" }
+],
+"skins": {
+	"default": {
+		"Layer 1": {
+			"Layer 1": { "x": 0, "y": 0, "width": 1082, "height": 1922 }
+		},
+		"fire_1": {
+			"SuperHard/fire_1": { "x": 91, "y": 174.5, "width": 332, "height": 381 }
+		},
+		"fire_2": {
+			"SuperHard/fire_2": { "x": 85.5, "y": 174, "width": 321, "height": 382 }
+		},
+		"tag_hard": {
+			"SuperHard/tag_hard": { "x": 0, "y": -112, "width": 1130, "height": 286 }
+		},
+		"Text": {
+			"SuperHard/Text": { "x": 3, "y": -99, "width": 610, "height": 212 }
+		}
+	}
+},
+"animations": { "animation": {} }
+}

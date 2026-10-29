@@ -1,0 +1,14 @@
+HardLevels.png
+size:1784,396
+filter:Linear,Linear
+Hard/Text
+bounds:1,1,608,105
+offsets:1,1,610,107
+Hard/fire_1
+bounds:1132,14,330,379
+offsets:1,1,332,381
+Hard/fire_2
+bounds:1463,13,320,380
+offsets:1,1,322,382
+Hard/tag_hard
+bounds:1,107,1130,286

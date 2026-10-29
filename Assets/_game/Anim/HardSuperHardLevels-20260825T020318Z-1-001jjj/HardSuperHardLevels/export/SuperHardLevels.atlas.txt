@@ -1,0 +1,17 @@
+SuperHardLevels.png
+size:1344,620
+filter:Linear,Linear
+SuperHard/Text
+bounds:1132,10,608,210
+offsets:1,1,610,212
+rotate:90
+SuperHard/fire_1
+bounds:1,1,330,379
+offsets:1,1,332,381
+rotate:90
+SuperHard/fire_2
+bounds:381,12,319,380
+offsets:1,1,321,382
+rotate:90
+SuperHard/tag_hard
+bounds:1,332,1130,286
