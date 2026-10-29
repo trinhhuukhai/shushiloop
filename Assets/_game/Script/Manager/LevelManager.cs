@@ -92,36 +92,67 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         }
     }
 
-    public void SetPopupOpen(bool open)
+    // ===== Thêm field (cạnh popupCount) =====
+    private int freezeCount;
+
+    // ===== Thay SetPopupOpen =====
+    // freezeTime = true chỉ dành cho Settings
+    public void SetPopupOpen(bool open, bool freezeTime = false)
     {
-        popupCount = Mathf.Max(0, popupCount + (open ? 1 : -1));
+        int delta = open ? 1 : -1;
+        popupCount = Mathf.Max(0, popupCount + delta);
+        if (freezeTime) freezeCount = Mathf.Max(0, freezeCount + delta);
         ApplyPopupPause();
     }
 
-    public void SetTutorialHold(bool held)
-    {
-        tutorialHold = held;
-        ApplyPopupPause();
-    }
-
+    // ===== Thay ApplyPopupPause =====
     private void ApplyPopupPause()
     {
-        bool held = IsPopupOpen || tutorialHold;
-        if (held)
-        {
-            if (!pauseApplied) previousTimeScale = Time.timeScale;
-            // A second popup (such as replay's transition) may still own the pause
-            // after Settings requests resume. Keep dish and ingredient flights frozen.
-            Time.timeScale = 0;
-            pauseApplied = true;
-        }
-        else if (pauseApplied)
-        {
-            Time.timeScale = previousTimeScale;
-            pauseApplied = false;
-        }
+        bool held = IsPopupOpen || tutorialHold;   // pause logic game
+        bool freeze = freezeCount > 0;             // chỉ Settings mới đóng băng thời gian
+
+        //if (freeze)
+        //{
+        //    if (!pauseApplied) previousTimeScale = Time.timeScale;
+        //    Time.timeScale = 0;
+        //    pauseApplied = true;
+        //}
+        //else if (pauseApplied)
+        //{
+        //    Time.timeScale = previousTimeScale;
+        //    pauseApplied = false;
+        //}
+
         if (conveyorManager != null) conveyorManager.SetPaused(held || !IsPlaying);
     }
+
+    // ===== EnterMainMenu: thêm dòng reset (cạnh popupCount = 0) =====
+    //freezeCount = 0;
+
+    //public void SetTutorialHold(bool held)
+    //{
+    //    tutorialHold = held;
+    //    ApplyPopupPause();
+    //}
+
+    //private void ApplyPopupPause()
+    //{
+    //    bool held = IsPopupOpen || tutorialHold;
+    //    if (held)
+    //    {
+    //        if (!pauseApplied) previousTimeScale = Time.timeScale;
+    //        // A second popup (such as replay's transition) may still own the pause
+    //        // after Settings requests resume. Keep dish and ingredient flights frozen.
+    //        Time.timeScale = 0;
+    //        pauseApplied = true;
+    //    }
+    //    else if (pauseApplied)
+    //    {
+    //        Time.timeScale = previousTimeScale;
+    //        pauseApplied = false;
+    //    }
+    //    if (conveyorManager != null) conveyorManager.SetPaused(held || !IsPlaying);
+    //}
 
     private void HandleRushExpired(Customer customer)
     {

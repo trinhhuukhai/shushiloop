@@ -64,7 +64,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         RecipeTarget = recipe.CardAt(targetDishIndex).Rect;
         DishName = dish.Recipe.Name;
         Stage = TutorialStage.Waiting;
-        level.SetTutorialHold(true);
+        //level.SetTutorialHold(true, false);
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
     }
 
@@ -107,13 +107,13 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         try
         {
             // No frame elapses while the pause is released: only this exact pickup is authorized.
-            level.SetTutorialHold(false);
+            //level.SetTutorialHold(false);
             taken = level.Conveyor.TryTakeFromQueue(TargetQueue);
         }
         finally
         {
             acceptingTarget = false;
-            if (!taken && level != null) level.SetTutorialHold(true);
+            //if (!taken && level != null) level.SetTutorialHold(true);
         }
         if (!taken) return;
         var player = GameDataFragment.cur != null ? GameDataFragment.cur.dataPlayer : null;
@@ -132,7 +132,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         CanvasTutorial closing = overlay;
         overlay = null;
         if (closing != null) closing.Dismiss();
-        if (level != null) level.SetTutorialHold(false);
+        //if (level != null) level.SetTutorialHold(false);
         level = null;
         TargetQueue = null;
         TargetFood = null;

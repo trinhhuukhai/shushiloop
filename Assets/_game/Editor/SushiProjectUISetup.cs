@@ -212,14 +212,14 @@ public static class SushiProjectUISetup
         Bind(view, "description", Label(card.transform, "Description", "", new Vector2(710, 110), new Vector2(0, 140), 30));
         RectTransform actions = Rect(card.transform, "Revive actions", new Vector2(700, 130), new Vector2(0, -25), Vector2.one * 0.5f);
         Bind(view, "reviveActions", actions.gameObject);
-        Button coins = Button(actions, "Revive with coins", "300 xu", new Vector2(570, 100), Vector2.zero, view.BtnRevive);
-        Bind(view, "coinButton", coins); Bind(view, "coinPrice", coins.GetComponentInChildren<TMP_Text>());
-        Button ad = Button(actions, "Revive with ad", "Quảng cáo", new Vector2(300, 80), new Vector2(0, -100), view.ReviveWithAd);
-        Bind(view, "adButton", ad); ad.gameObject.SetActive(false);
-        Bind(view, "feedback", Label(card.transform, "Feedback", "", new Vector2(710, 45), new Vector2(0, -138), 25));
-        Button retry = Button(card.transform, "Retry or decline", "Chơi lại", new Vector2(570, 90), new Vector2(0, -255), view.BtnNext);
-        retry.image.color = Green; retry.GetComponentInChildren<TMP_Text>().color = Color.white;
-        Bind(view, "retryLabel", retry.GetComponentInChildren<TMP_Text>());
+        ////Button coins = Button(actions, "Revive with coins", "300 xu", new Vector2(570, 100), Vector2.zero, view.BtnRevive);
+        //Bind(view, "coinButton", coins); Bind(view, "coinPrice", coins.GetComponentInChildren<TMP_Text>());
+        ////Button ad = Button(actions, "Revive with ad", "Quảng cáo", new Vector2(300, 80), new Vector2(0, -100), view.ReviveWithAd);
+        //Bind(view, "adButton", ad); ad.gameObject.SetActive(false);
+        //Bind(view, "feedback", Label(card.transform, "Feedback", "", new Vector2(710, 45), new Vector2(0, -138), 25));
+        ////Button retry = Button(card.transform, "Retry or decline", "Chơi lại", new Vector2(570, 90), new Vector2(0, -255), view.BtnNext);
+        //retry.image.color = Green; retry.GetComponentInChildren<TMP_Text>().color = Color.white;
+        //Bind(view, "retryLabel", retry.GetComponentInChildren<TMP_Text>());
     }
 
     private static void BuildSettings(CanvasSetting view)

@@ -1,3 +1,4 @@
+using AssetKits.ParticleImage;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,26 +11,27 @@ public class CanvasVictory : UICanvas
     public GameObject btnNormal;
     public Button btnAdsRW;
     public Button btnGoldRW;
-    [SerializeField] private TMP_Text title;
-    [SerializeField] private TMP_Text nextLabel;
     private bool advancing;
+
+    public TMP_Text txtGold;
+
 
     public override void Open()
     {
         base.Open();
         advancing = false;
         btnGoldRW.interactable = true;
-        // No rewarded-ad SDK is connected yet. Never grant a simulated ad reward.
-        if (btnAds != null) btnAds.SetActive(false);
         LevelManager level = LevelManager.Ins;
-        title.text = level != null && !level.HasNextLevel ? "Đã hoàn thành tất cả màn!" : "Hoàn thành!";
         bool returnHome = GameManager.ins != null && GameManager.ins.CanReturnHome;
-        nextLabel.text = returnHome ? "Nhận & về Home" :
-            level != null && level.HasNextLevel ? "Nhận & màn tiếp" : "Nhận & chơi lại";
         setTexxtGold();
+        setTexxtGoldAds();
+        setTxtGold();
+
     }
 
-    public void setTexxtGold() => goldRwTxt.text = "+" + (LevelManager.Ins != null ? LevelManager.Ins.VictoryReward : 0) + " xu";
+    public void setTexxtGold() => goldRwTxt.text = (LevelManager.Ins != null ? LevelManager.Ins.VictoryReward : 0).ToString();
+    public void setTexxtGoldAds() => textGoldAds.text = (LevelManager.Ins != null ? LevelManager.Ins.VictoryReward * 2 : 0).ToString();
+    public void setTxtGold() => txtGold.text = (GameDataFragment.cur.dataPlayer.money).ToString();
 
     public void BtnNext()
     {
