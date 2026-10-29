@@ -22,6 +22,9 @@ public static class SushiPlatedIngredientRegression
     private static CustomerManager customers;
     private static LevelManager level;
     private static int passed;
+    private static Action pendingPreview;
+    private static int previewFrames;
+    private static int startupFrames = 3;
     private static readonly List<string> errors = new List<string>();
     private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
     private const BindingFlags PrivateStatic = BindingFlags.Static | BindingFlags.NonPublic;
@@ -37,11 +40,24 @@ public static class SushiPlatedIngredientRegression
 
     private static void Update()
     {
+        if (pendingPreview != null)
+        {
+            if (--previewFrames > 0) return;
+            Action capture = pendingPreview;
+            pendingPreview = null;
+            try { capture(); CompleteChecks(); }
+            catch (Exception error) { FailChecks(error); }
+            finally { Application.logMessageReceived -= CaptureError; }
+            return;
+        }
         if (!EditorApplication.isPlaying || EditorApplication.isCompiling || !SessionState.GetBool(Pending, false)) return;
+        // Finish editor startup callbacks before recording errors from the gameplay fixture.
+        if (--startupFrames > 0) return;
         SessionState.SetBool(Pending, false);
         Application.logMessageReceived += CaptureError;
         try
         {
+            SushiRecipeChecks.Run();
             DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
             DOTween.defaultUpdateType = UpdateType.Manual;
             Fixture("CreateFixture");
@@ -53,24 +69,37 @@ public static class SushiPlatedIngredientRegression
             Run("serialized plated art resolves every ingredient and the new nigiri sprites", ArtBindings);
             Run("all 48 recipes require landed rice or cup before their toppings", FoundationRules);
             Run("normal delivery changes sprites and retains layers under the dish parent", NormalAssembly);
+            Run("custom recipe cards group by ingredients and use distinct plated art", CustomRecipeCards);
+            Run("custom rice triples assemble both toppings after rice", CustomTripleAssembly);
+            Run("rice-free custom pairs accept either ingredient first", CustomRiceFreeAssembly);
             Run("magnet intercepts rice in flight and waits before launching toppings", () => MagnetAssembly(SushiDishId.NigiriOctopus));
             Run("iced tea magnet puts the cup down before tea and ice", () => MagnetAssembly(SushiDishId.IcedGreenTea));
             Run("missing foundation rejects magnet without consuming any ingredient", MissingFoundation);
             Run("reload cancels queued layers and pooled ingredients recover their raw art", CancellationAndPool);
             Run("loss check distinguishes blocked toppings from an incoming foundation", LossWithFoundation);
-            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null) CapturePreview();
-            Check(errors.Count == 0, string.Join("\n", errors));
-            File.WriteAllText("SushiPlatedIngredientsResults.txt", "PASS: " + passed + " scenarios\n");
-            Debug.Log("SUSHI_PLATED_INGREDIENTS_OK: " + passed + " scenarios");
-            EditorApplication.Exit(0);
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null) { CapturePreview(); return; }
+            CompleteChecks();
         }
         catch (Exception error)
         {
-            File.WriteAllText("SushiPlatedIngredientsResults.txt", "FAIL after " + passed + " scenarios\n" + error);
-            Debug.LogException(error);
-            EditorApplication.Exit(1);
+            FailChecks(error);
         }
-        finally { Application.logMessageReceived -= CaptureError; }
+        finally { if (pendingPreview == null) Application.logMessageReceived -= CaptureError; }
+    }
+
+    private static void CompleteChecks()
+    {
+        Check(errors.Count == 0, string.Join("\n", errors));
+        File.WriteAllText("SushiPlatedIngredientsResults.txt", "PASS: " + passed + " scenarios\n");
+        Debug.Log("SUSHI_PLATED_INGREDIENTS_OK: " + passed + " scenarios");
+        EditorApplication.Exit(0);
+    }
+
+    private static void FailChecks(Exception error)
+    {
+        File.WriteAllText("SushiPlatedIngredientsResults.txt", "FAIL after " + passed + " scenarios\n" + error);
+        Debug.LogException(error);
+        EditorApplication.Exit(1);
     }
 
     private static void CaptureError(string message, string stack, LogType type)
@@ -86,26 +115,103 @@ public static class SushiPlatedIngredientRegression
     private static T Prefab<T>(string name) where T : Component =>
         AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_game/Prefabs/" + name + ".prefab").GetComponent<T>();
     private static FoodData Food(PoolType type) => new FoodData { typeFood = type };
-    private static void Advance(float seconds = 1) => DOTween.ManualUpdate(seconds, seconds);
+    private static void Advance(float seconds = 1)
+    {
+        // DOVirtual.DelayedCall uses a normal-update sequence even in a manual fixture.
+        // Move those serving timers onto the same clock as ingredient/dish flights.
+        List<Tween> playing = DOTween.PlayingTweens();
+        if (playing != null) foreach (Tween tween in playing) tween.SetUpdate(UpdateType.Manual);
+        DOTween.ManualUpdate(seconds, seconds);
+    }
     private static Sprite Artwork(FoodShushi food) => Get<SpriteRenderer>(food, "foodRenderer").sprite;
     private static bool Tap(int index) => belt.TryTakeFromQueue(board.FoodQueues[index]);
     private static SushiPreparedDish Dish => belt.PlatedDishes.Values.Single();
 
     private static Customer Prepare(SushiDishId id, int capacity, params FoodData[][] columns)
+        => Prepare(new DishOrderData { dish = id }, capacity, columns);
+
+    private static Customer Prepare(DishOrderData order, int capacity, params FoodData[][] columns)
     {
         level.LoadLevel(0);
         Set(belt, "preparedDishPrefab", Prefab<SushiPreparedDish>("PreparedDish"));
         Set(belt, "tableHoldDuration", 10f);
         Set(belt, "deliveryRange", 100f);
         customers.Init(new List<CustomerOrderData> {
-            new CustomerOrderData { dishes = new List<DishOrderData> { new DishOrderData { dish = id, amount = 1 } } }
+            new CustomerOrderData { dishes = new List<DishOrderData> { order } }
         });
         Fixture("Load", capacity, columns);
         return customers.ActiveCustomers[0];
     }
 
+    private static DishOrderData Custom(SushiRecipeKind kind, PoolType first, PoolType second) =>
+        new DishOrderData { recipeKind = kind, firstIngredient = first, secondIngredient = second };
+
+    private static void CustomRecipeCards()
+    {
+        level.LoadLevel(0);
+        var triple = Custom(SushiRecipeKind.ThreeWithRice, PoolType.Shrimp, PoolType.Avocado);
+        var reverse = Custom(SushiRecipeKind.ThreeWithRice, PoolType.Avocado, PoolType.Shrimp);
+        var other = Custom(SushiRecipeKind.ThreeWithRice, PoolType.Egg, PoolType.Avocado);
+        var pair = Custom(SushiRecipeKind.TwoWithRice, PoolType.Shrimp, PoolType.None);
+        var noRice = Custom(SushiRecipeKind.TwoWithoutRice, PoolType.Shrimp, PoolType.Avocado);
+        customers.Init(new List<CustomerOrderData> {
+            new CustomerOrderData { dishes = new List<DishOrderData> { triple, reverse, other, pair, noRice } }
+        });
+        Customer customer = customers.ActiveCustomers[0];
+        customer.SitDown();
+        var view = customer.GetComponent<CustomerRecipeView>();
+        view.SetSeated(true);
+        Check(view.CardAt(0) == view.CardAt(1) && view.CardAt(0).PortionProgress == "0/2", "swapped toppings were not grouped");
+        Check(view.CardAt(0) != view.CardAt(2) && view.CardAt(0) != view.CardAt(3) && view.CardAt(3) != view.CardAt(4),
+            "different custom recipes shared an order card");
+        var plated = SushiArtCatalog.Default.platedIngredientImages;
+        Check(plated.Find(PoolType.SushiRice, pair.GetRecipe()).sprite != plated.Find(PoolType.SushiRice, triple.GetRecipe()).sprite,
+            "rice pairs and triples reused the same plated rice sprite");
+        Check(plated.Find(PoolType.Shrimp, pair.GetRecipe()).sprite != plated.Find(PoolType.Shrimp, triple.GetRecipe()).sprite,
+            "shrimp pairs and triples reused the same plated topping sprite");
+        var layers = Get<List<UnityEngine.UI.Image>>(view.CardAt(0), "recipeLayers");
+        Check(layers.Count == 3 && layers.All(layer => layer.sprite != null && layer.gameObject.activeInHierarchy), "custom order preview is blank");
+        view.CardAt(0).SetRecipeExpanded(true);
+        Check(layers.All(layer => !layer.gameObject.activeInHierarchy), "composite remains visible over recipe details");
+        view.CardAt(0).SetRecipeExpanded(false);
+        Check(layers.All(layer => layer.gameObject.activeInHierarchy), "composite did not return after closing details");
+    }
+
+    private static void CustomTripleAssembly()
+    {
+        Customer customer = Prepare(Custom(SushiRecipeKind.ThreeWithRice, PoolType.Shrimp, PoolType.Avocado), 3,
+            new[] { Food(PoolType.Shrimp) }, new[] { Food(PoolType.Avocado) }, new[] { Food(PoolType.SushiRice) });
+        Check(Tap(0) && Tap(1), "custom toppings pickup failed"); Advance(); Invoke(belt, "Update");
+        Check(belt.PreparedDishCount == 0, "custom toppings started without rice");
+        Check(Tap(2), "custom rice pickup failed"); Advance(); Invoke(belt, "Update");
+        SushiPreparedDish dish = Dish;
+        Advance(); Invoke(belt, "Update"); Advance(); Invoke(belt, "Update"); Advance();
+        Check(dish.IsReady && dish.AssemblyIngredients.Count == 3, "custom triple did not finish assembly");
+        Check(dish.IngredientTarget(PoolType.Shrimp).localPosition != dish.IngredientTarget(PoolType.Avocado).localPosition,
+            "two arbitrary toppings obscure each other");
+        foreach (FoodShushi food in dish.AssemblyIngredients)
+            Check(Artwork(food) == SushiArtCatalog.Default.platedIngredientImages.Find(food.Type, dish.Order.Recipe).sprite,
+                "custom plate selected the wrong recipe artwork");
+        for (int i = 0; i < 130; i++) Advance(0.1f);
+        Check(customer.Dishes[0].IsComplete && belt.PreparedDishCount == 0, "custom triple failed order delivery");
+    }
+
+    private static void CustomRiceFreeAssembly()
+    {
+        Customer customer = Prepare(Custom(SushiRecipeKind.TwoWithoutRice, PoolType.Shrimp, PoolType.Avocado), 2,
+            new[] { Food(PoolType.Shrimp) }, new[] { Food(PoolType.Avocado) });
+        Check(Tap(1), "rice-free second ingredient pickup failed"); Advance(); Invoke(belt, "Update"); Advance();
+        Check(Dish.AssemblyIngredients.Count == 1 && !Dish.IsReady, "rice-free pair did not accept its second ingredient first");
+        Check(Tap(0), "rice-free first ingredient pickup failed"); Advance(); Invoke(belt, "Update"); Advance();
+        Check(Dish.IsReady && Dish.AssemblyIngredients.Count == 2, "rice-free custom pair did not assemble");
+        for (int i = 0; i < 130; i++) Advance(0.1f);
+        Check(customer.Dishes[0].IsComplete && belt.PreparedDishCount == 0, "rice-free pair failed order delivery");
+    }
+
     private static void ArtBindings()
     {
+        var demo = AssetDatabase.LoadAssetAtPath<SushiLevelData>("Assets/_game/LevelData/SushiCustomRecipesDemo.asset");
+        Check(demo != null && demo.ValidateData() == null && demo.GetTotalFoodCount() == 7, "custom recipe demo is invalid");
         var art = SushiArtCatalog.Default.platedIngredientImages;
         Check(art != null && art.ingredients.Count == 21, "plated art list is not assigned or incomplete");
         foreach (SushiRecipe recipe in SushiRecipeCatalog.All)
@@ -263,9 +369,19 @@ public static class SushiPlatedIngredientRegression
     {
         var preview = new GameObject("Plated ingredients preview").transform;
         preview.position = new Vector3(100, 100, 0);
-        for (int i = 0; i < 8; i++)
+        SushiRecipe[] previewRecipes = {
+            Custom(SushiRecipeKind.TwoWithRice, PoolType.Shrimp, PoolType.None).GetRecipe(),
+            Custom(SushiRecipeKind.TwoWithoutRice, PoolType.Shrimp, PoolType.Avocado).GetRecipe(),
+            Custom(SushiRecipeKind.ThreeWithRice, PoolType.Shrimp, PoolType.Avocado).GetRecipe(),
+            Custom(SushiRecipeKind.ThreeWithRice, PoolType.Egg, PoolType.Salmon).GetRecipe(),
+            SushiRecipeCatalog.Get(SushiDishId.NigiriOctopus),
+            Custom(SushiRecipeKind.TwoWithoutRice, PoolType.Octopus, PoolType.Tuna).GetRecipe(),
+            Custom(SushiRecipeKind.ThreeWithRice, PoolType.Octopus, PoolType.Tuna).GetRecipe(),
+            Custom(SushiRecipeKind.ThreeWithRice, PoolType.Cucumber, PoolType.CrabStick).GetRecipe()
+        };
+        for (int i = 0; i < previewRecipes.Length; i++)
         {
-            var order = new SushiDishOrder(0, SushiRecipeCatalog.Get((SushiDishId)(i + 1)));
+            var order = new SushiDishOrder(0, previewRecipes[i]);
             var dish = Object.Instantiate(Prefab<SushiPreparedDish>("PreparedDish"), preview);
             dish.transform.localPosition = new Vector3((i % 4 - 1.5f) * 1.3f, i < 4 ? 0.65f : -0.65f, 0);
             dish.Bind(null, order); dish.BeginAssembly();
@@ -284,6 +400,13 @@ public static class SushiPlatedIngredientRegression
         camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(0.16f, 0.19f, 0.22f);
         camera.allowHDR = false; camera.allowMSAA = false;
         camera.GetUniversalAdditionalCameraData().renderPostProcessing = false;
+        // Let Unity initialize the render pipeline and native sprite data before the capture.
+        previewFrames = 3;
+        pendingPreview = () => CapturePreviewImage(camera, cameraObject, preview);
+    }
+
+    private static void CapturePreviewImage(Camera camera, GameObject cameraObject, Transform preview)
+    {
         var target = new RenderTexture(1200, 650, 24, RenderTextureFormat.ARGB32);
         target.Create(); camera.targetTexture = target;
         RenderTexture previous = RenderTexture.active;

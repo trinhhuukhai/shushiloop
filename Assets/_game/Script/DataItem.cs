@@ -14,8 +14,29 @@ public class FoodOrderData
 [Serializable]
 public class DishOrderData
 {
+    [Tooltip("Catalog giữ món cũ. Các kiểu còn lại cho phép tự ghép nguyên liệu.")]
+    public SushiRecipeKind recipeKind;
     public SushiDishId dish = SushiDishId.NigiriShrimp;
+    public PoolType firstIngredient = PoolType.Shrimp;
+    public PoolType secondIngredient = PoolType.Avocado;
     [Min(1)] public int amount = 1;
+
+    public bool TryGetRecipe(out SushiRecipe recipe, out string error)
+    {
+        if (recipeKind != SushiRecipeKind.Catalog)
+            return SushiRecipeCatalog.TryCreate(recipeKind, firstIngredient, secondIngredient, out recipe, out error);
+        bool valid = SushiRecipeCatalog.TryGet(dish, out recipe);
+        error = valid ? null : "Mã món trong catalog không hợp lệ.";
+        return valid;
+    }
+
+    public SushiRecipe GetRecipe()
+    {
+        if (!TryGetRecipe(out var recipe, out string error)) throw new InvalidOperationException(error);
+        return recipe;
+    }
+
+    public DishOrderData Copy() => (DishOrderData)MemberwiseClone();
 }
 
 [Serializable]
@@ -51,7 +72,7 @@ public class CustomerOrderData
         foreach (DishOrderData order in dishes)
         {
             if (order == null || order.amount < 1) throw new InvalidOperationException("Order món không hợp lệ.");
-            SushiRecipe recipe = SushiRecipeCatalog.Get(order.dish);
+            SushiRecipe recipe = order.GetRecipe();
             foreach (PoolType type in recipe.Ingredients)
             {
                 FoodOrderData ingredient = result.Find(item => item.typeFood == type);
@@ -68,8 +89,8 @@ public class CustomerOrderData
         long totalIngredients = 0;
         foreach (var dish in dishes)
         {
-            if (dish == null || dish.amount < 1 || !SushiRecipeCatalog.TryGet(dish.dish, out var recipe))
-                return "Món cần ID công thức 1–48 và số phần >= 1.";
+            if (dish == null || dish.amount < 1) return "Món cần số phần >= 1.";
+            if (!dish.TryGetRecipe(out var recipe, out string error)) return error;
             totalIngredients += (long)dish.amount * recipe.Ingredients.Count;
             if (totalIngredients > int.MaxValue) return "Tổng nguyên liệu trong đơn vượt giới hạn dữ liệu.";
         }

@@ -8,9 +8,9 @@ Luật triển khai theo tài liệu người dùng cung cấp ngày 21/10/2026.
 
 ## Order món và công thức
 
-`SushiRecipeCatalog` có đủ 48 công thức, ID 1–48 trùng bảng thiết kế: 12 Nigiri, 8 Maki, 11 Gunkan, 15 Sashimi và 2 trà. Maki/Gunkan dùng rong biển + cơm + topping; đế và cách trình bày không phải nguyên liệu cần pick thêm.
+`SushiRecipeCatalog` giữ 48 món có sẵn và hỗ trợ ba kiểu công thức tự ghép: **2 nguyên liệu có cơm**, **2 nguyên liệu không cơm**, **3 nguyên liệu với cơm đầu tiên**. Hai topping trong món 3 nguyên liệu có thể là bất kỳ hai loại thực phẩm khác nhau, không bắt buộc rong biển. Chọn trực tiếp trong Level Editor hoặc Inspector; xem [hướng dẫn công thức và ảnh món](../../../Documentation/RecipeDesign.md).
 
-Trong mỗi `CustomerOrderData`, dùng `dishes` gồm `{ dish, amount }`. Ví dụ `NigiriShrimp ×2` và `MakiShrimp ×1` cần 3 cơm + 3 tôm + 1 rong biển. Hệ thống tự tính tổng nguyên liệu, nhóm ×n và thời gian khách vội từ các món này. Đã bỏ trường `customers.orders` cũ; khách bắt buộc có món trong `dishes`. `Customer.Orders` là tiến độ nguyên liệu khi chơi, được tạo từ món khách gọi và vẫn dùng để nhận/giao nguyên liệu.
+Trong mỗi `CustomerOrderData`, dùng `dishes`. Món có sẵn dùng `{ dish, amount }`; món tự ghép dùng `{ recipeKind, firstIngredient, secondIngredient, amount }`, cơm được thêm tự động. Đọc qua `DishOrderData.GetRecipe()`. Ví dụ `NigiriShrimp ×2` và `MakiShrimp ×1` cần 3 cơm + 3 tôm + 1 rong biển. Hệ thống tự tính tổng nguyên liệu, nhóm ×n và thời gian khách vội từ các món này. Đã bỏ trường `customers.orders` cũ; khách bắt buộc có món trong `dishes`. `Customer.Orders` là tiến độ nguyên liệu khi chơi, được tạo từ món khách gọi và vẫn dùng để nhận/giao nguyên liệu.
 
 Khi tất cả nguyên liệu đã rời board và các chuyển động lấy cuối cùng kết thúc, băng chuyền tự chạy ở tốc độ `2×`. Trước đó tốc độ vẫn do nút tốc độ điều khiển; cờ tự động được tính lại liên tục để không tăng tốc sớm trong lúc pickup còn đang chạy.
 

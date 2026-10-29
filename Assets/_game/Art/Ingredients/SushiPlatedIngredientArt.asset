@@ -182,3 +182,249 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     family: 3
+  recipeOverrides:
+  - type: 1
+    sprite: {fileID: 6431893776637633299, guid: 4c06db0014c55de42a7c78f231c61738, type: 3}
+    position: {x: 0, y: -0.04}
+    size: {x: 0.78, y: 0.6}
+    rotation: 0
+    sortingOrder: 0
+    recipeKind: 3
+  - type: 2
+    sprite: {fileID: -9161645240248954025, guid: 4179ad004af8cbe4a93949f4a52a4eb5, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 3
+    sprite: {fileID: -454308146746353795, guid: 5e0886ffe4488eb45ac575a04c591dcc, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 4
+    sprite: {fileID: 1672217460, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 5
+    sprite: {fileID: 6774393580310161239, guid: 5af3f5f09d58d1840920beb3fedaac82, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 6
+    sprite: {fileID: -1491601850, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 7
+    sprite: {fileID: -879040377, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 8
+    sprite: {fileID: -6349360636359246829, guid: 39107f8c8d2c64240b95552defc4459e, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 9
+    sprite: {fileID: 2129861392, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 10
+    sprite: {fileID: 1271661819729597233, guid: 86c1e8e69479da5439850a2e7b7bcdbc, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 11
+    sprite: {fileID: -1089023012, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 12
+    sprite: {fileID: -1556643097, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 13
+    sprite: {fileID: -83717258, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 14
+    sprite: {fileID: 5557510315898984396, guid: 3ac607259c75b724fbc6e07f4693461c, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 15
+    sprite: {fileID: -5541170273893586733, guid: 39cb8cbe90b690a408edc83c581ddf1e, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 16
+    sprite: {fileID: -256871868012664986, guid: 3bbc4cce96647044f8d5e9c9de5f6225, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 17
+    sprite: {fileID: -3334905400810358789, guid: db1cfb1b0657edc40ad8825601ce88e1, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.44, y: 0.36}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 3
+  - type: 18
+    sprite: {fileID: 6531264169912597565, guid: 4a030d5c43c2b114c8ed4a75fd26b264, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.78, y: 0.6}
+    rotation: 0
+    sortingOrder: -1
+    recipeKind: 3
+  - type: 2
+    sprite: {fileID: -9161645240248954025, guid: 4179ad004af8cbe4a93949f4a52a4eb5, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 3
+    sprite: {fileID: -454308146746353795, guid: 5e0886ffe4488eb45ac575a04c591dcc, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 4
+    sprite: {fileID: 1672217460, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 5
+    sprite: {fileID: 6774393580310161239, guid: 5af3f5f09d58d1840920beb3fedaac82, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 6
+    sprite: {fileID: -1491601850, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 7
+    sprite: {fileID: -879040377, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 8
+    sprite: {fileID: -6349360636359246829, guid: 39107f8c8d2c64240b95552defc4459e, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 9
+    sprite: {fileID: 2129861392, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 10
+    sprite: {fileID: 1271661819729597233, guid: 86c1e8e69479da5439850a2e7b7bcdbc, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 11
+    sprite: {fileID: -1089023012, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 12
+    sprite: {fileID: -1556643097, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 13
+    sprite: {fileID: -83717258, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 14
+    sprite: {fileID: 5557510315898984396, guid: 3ac607259c75b724fbc6e07f4693461c, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 15
+    sprite: {fileID: -5541170273893586733, guid: 39cb8cbe90b690a408edc83c581ddf1e, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 16
+    sprite: {fileID: -256871868012664986, guid: 3bbc4cce96647044f8d5e9c9de5f6225, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 17
+    sprite: {fileID: -3334905400810358789, guid: db1cfb1b0657edc40ad8825601ce88e1, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2
+  - type: 18
+    sprite: {fileID: 6531264169912597565, guid: 4a030d5c43c2b114c8ed4a75fd26b264, type: 3}
+    position: {x: 0, y: 0}
+    size: {x: 0.48, y: 0.44}
+    rotation: 0
+    sortingOrder: 2
+    recipeKind: 2

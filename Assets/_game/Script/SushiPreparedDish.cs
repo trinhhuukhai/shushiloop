@@ -32,8 +32,9 @@ public sealed class SushiPreparedDish : MonoBehaviour
             PoolType type = order.Ingredients[i].typeFood;
             var target = new GameObject(type.ToString()).transform;
             target.SetParent(ingredientRoot, false);
-            var artwork = ingredientArt != null ? ingredientArt.Find(type, order.Recipe.Family) : null;
-            target.localPosition = new Vector3(0f, 0f, -0.1f);
+            var artwork = ingredientArt != null ? ingredientArt.Find(type, order.Recipe) : null;
+            Vector2 position = ingredientArt != null ? ingredientArt.GetPosition(type, order.Recipe) : Vector2.zero;
+            target.localPosition = new Vector3(position.x, position.y, -0.1f);
             target.localRotation = Quaternion.Euler(0, 0, artwork != null ? artwork.rotation : 0);
             ingredientTargets.Add(type, target);
         }
@@ -51,10 +52,10 @@ public sealed class SushiPreparedDish : MonoBehaviour
 
     public void ApplyIngredientArtwork(FoodShushi food, bool flying)
     {
-        var artwork = ingredientArt != null ? ingredientArt.Find(food.Type, Order.Recipe.Family) : null;
+        var artwork = ingredientArt != null ? ingredientArt.Find(food.Type, Order.Recipe) : null;
         Sprite sprite = artwork != null ? artwork.sprite : SushiArtCatalog.Default?.GetIngredient(food.Type);
         Vector2 size = artwork != null ? artwork.size : imageSize;
-        int order = (flying ? 31 : 18) + (artwork != null ? artwork.sortingOrder : 0);
+        int order = (flying ? 31 : 18) + (ingredientArt != null ? ingredientArt.GetSortingOrder(food.Type, Order.Recipe) : 0);
         food.SetPlatedArtwork(sprite, size, order);
     }
 

@@ -1,5 +1,7 @@
 # Art cho 48 món order
 
+Ngoài các món có sẵn, `SushiDishArt.asset → customRecipes` cho phép gán ảnh riêng theo kiểu công thức (2 có cơm / 2 không cơm / 3 có cơm) và topping. Khi chưa có ảnh cho tổ hợp mới, thẻ order tự ghép các lớp ảnh từ `SushiPlatedIngredientArt.asset`. Xem [hướng dẫn công thức mới](../../../../Documentation/RecipeDesign.md).
+
 48 PNG 512 x 512, nền trong suốt, không chữ; đúng ID trong SushiRecipeCatalog. [Xem toàn bộ](DishesPreview.png).
 
 Danh mục: `SushiDishArt.asset`. Thẻ order hiện hình món từ khi khách ngồi, kèm các icon nguyên liệu và tiến độ bên dưới.

@@ -47,8 +47,10 @@ public class SushiLevelEditorWindow : EditorWindow
     private int annealIterations = 1500;
     private string diffReport = "";
     private MessageType diffReportType = MessageType.None;
-    private SushiDishId newDish = SushiDishId.NigiriShrimp;
-    private int newAmount = 1;
+    private readonly DishOrderData newOrder = new DishOrderData { recipeKind = SushiRecipeKind.TwoWithRice };
+    private static readonly string[] RecipeKindLabels = { "Món có sẵn", "2 nguyên liệu — có cơm", "2 nguyên liệu — không cơm", "3 nguyên liệu — cơm đầu tiên" };
+    private static readonly PoolType[] ToppingTypes = Enum.GetValues(typeof(PoolType)).Cast<PoolType>().Where(SushiRecipeCatalog.IsFoodTopping).ToArray();
+    private static readonly string[] ToppingNames = ToppingTypes.Select(SushiRecipeCatalog.IngredientName).ToArray();
 
     private bool showIcons = true;
     private string dishFolder = "";
@@ -599,7 +601,7 @@ public class SushiLevelEditorWindow : EditorWindow
             if (showIcons)
             {
                 foreach (var d in cu.dishes)
-                    if (d != null) LayoutIcon(d.dish.ToString(), IconKind.Dish, 28f, d.amount);
+                    if (d != null) DrawDishIcon(d);
             }
             if (GUILayout.Button($"#{i + 1}{(cu.rushCustomer ? " [RUSH]" : "")}  {Summary(cu)}", leftButton, GUILayout.Height(28)))
                 selCustomer = sel ? -1 : i;
@@ -623,21 +625,22 @@ public class SushiLevelEditorWindow : EditorWindow
                     int dj = j;
                     if (cu.dishes[j] == null) cu.dishes[j] = new DishOrderData();
                     DishOrderData d = cu.dishes[j];
-                    EditorGUILayout.BeginHorizontal();
-                    if (showIcons) LayoutIcon(d.dish.ToString(), IconKind.Dish, 28f);
+                    EditorGUILayout.BeginVertical("box");
                     EditorGUI.BeginChangeCheck();
-                    d.dish = (SushiDishId)EditorGUILayout.EnumPopup(d.dish, GUILayout.Height(28));
-                    d.amount = Mathf.Max(1, EditorGUILayout.IntField(d.amount, GUILayout.Width(40), GUILayout.Height(28)));
-                    if (EditorGUI.EndChangeCheck()) pending.Add(SyncBoard);
+                    DrawRecipeInputs(d);
+                    EditorGUILayout.BeginHorizontal();
+                    d.amount = Mathf.Max(1, EditorGUILayout.IntField("Số phần", d.amount));
                     GUI.enabled = cu.dishes.Count > 1;
                     if (GUILayout.Button("X", EditorStyles.miniButton, GUILayout.Width(22), GUILayout.Height(28)))
                         pending.Add(() => { cu.dishes.RemoveAt(dj); SyncBoard(); });
                     GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();
+                    if (EditorGUI.EndChangeCheck() && cu.ValidateOrders() == null) pending.Add(SyncBoard);
+                    EditorGUILayout.EndVertical();
                 }
 
                 if (GUILayout.Button("+ Món", EditorStyles.miniButton))
-                    pending.Add(() => { cu.dishes.Add(new DishOrderData { dish = newDish, amount = 1 }); SyncBoard(); });
+                    pending.Add(() => { cu.dishes.Add(newOrder.Copy()); if (cu.ValidateOrders() == null) SyncBoard(); });
 
                 DrawIngredientIcons(cu);
                 EditorGUILayout.LabelField("Nguyên liệu: " + IngredientText(cu), EditorStyles.wordWrappedMiniLabel);
@@ -646,25 +649,58 @@ public class SushiLevelEditorWindow : EditorWindow
         }
 
         EditorGUILayout.Space(2);
-        EditorGUILayout.BeginHorizontal("box");
-        if (showIcons) LayoutIcon(newDish.ToString(), IconKind.Dish, 28f);
-        newDish = (SushiDishId)EditorGUILayout.EnumPopup(newDish, GUILayout.Height(28));
-        newAmount = Mathf.Max(1, EditorGUILayout.IntField(newAmount, GUILayout.Width(40), GUILayout.Height(28)));
+        EditorGUILayout.BeginVertical("box");
+        DrawRecipeInputs(newOrder);
+        newOrder.amount = Mathf.Max(1, EditorGUILayout.IntField("Số phần", newOrder.amount));
+        GUI.enabled = newOrder.TryGetRecipe(out _, out _);
         if (GUILayout.Button("+ Thêm khách", GUILayout.Width(100), GUILayout.Height(28)))
         {
-            int amount = newAmount; SushiDishId dish = newDish;
+            DishOrderData order = newOrder.Copy();
             pending.Add(() =>
             {
                 level.customers.Add(new CustomerOrderData
                 {
-                    dishes = new List<DishOrderData> { new DishOrderData { dish = dish, amount = amount } }
+                    dishes = new List<DishOrderData> { order }
                 });
                 selCustomer = level.customers.Count - 1;
                 SyncBoard();
             });
         }
-        EditorGUILayout.EndHorizontal();
+        GUI.enabled = true;
+        EditorGUILayout.EndVertical();
     }
+
+    private static void DrawRecipeInputs(DishOrderData order)
+    {
+        order.recipeKind = (SushiRecipeKind)EditorGUILayout.Popup("Công thức", (int)order.recipeKind, RecipeKindLabels);
+        if (order.recipeKind == SushiRecipeKind.Catalog)
+            order.dish = (SushiDishId)EditorGUILayout.EnumPopup("Món", order.dish);
+        else
+        {
+            if (order.recipeKind != SushiRecipeKind.TwoWithoutRice)
+                EditorGUILayout.LabelField("Nguyên liệu 1", "Cơm (nền)");
+            order.firstIngredient = ToppingPopup(order.recipeKind == SushiRecipeKind.TwoWithoutRice ? "Nguyên liệu 1" : "Nguyên liệu 2", order.firstIngredient);
+            if (order.recipeKind != SushiRecipeKind.TwoWithRice)
+                order.secondIngredient = ToppingPopup(order.recipeKind == SushiRecipeKind.TwoWithoutRice ? "Nguyên liệu 2" : "Nguyên liệu 3", order.secondIngredient);
+        }
+        if (!order.TryGetRecipe(out _, out string error)) EditorGUILayout.HelpBox(error, MessageType.Warning);
+    }
+
+    private static PoolType ToppingPopup(string label, PoolType value)
+    {
+        int index = Array.IndexOf(ToppingTypes, value);
+        int selected = EditorGUILayout.Popup(label, index, ToppingNames);
+        return selected >= 0 && selected < ToppingTypes.Length ? ToppingTypes[selected] : value;
+    }
+
+    private void DrawDishIcon(DishOrderData order)
+    {
+        if (order.recipeKind == SushiRecipeKind.Catalog) LayoutIcon(order.dish.ToString(), IconKind.Dish, 28f, order.amount);
+        else if (order.TryGetRecipe(out var recipe, out _))
+            foreach (PoolType type in recipe.Ingredients) LayoutIcon(type.ToString(), IconKind.Ingredient, 22f);
+    }
+
+    private static string DishLabel(DishOrderData order) => order.TryGetRecipe(out var recipe, out _) ? recipe.Name : "Công thức chưa hợp lệ";
 
     private void DrawIngredientIcons(CustomerOrderData cu)
     {
@@ -683,7 +719,7 @@ public class SushiLevelEditorWindow : EditorWindow
     private static string Summary(CustomerOrderData cu)
     {
         if (cu.dishes == null || cu.dishes.Count == 0) return "(trống)";
-        return string.Join(", ", cu.dishes.Where(d => d != null).Select(d => d.amount > 1 ? $"{d.dish} ×{d.amount}" : d.dish.ToString()));
+        return string.Join(", ", cu.dishes.Where(d => d != null).Select(d => d.amount > 1 ? $"{DishLabel(d)} ×{d.amount}" : DishLabel(d)));
     }
 
     private static string IngredientText(CustomerOrderData cu)
@@ -709,7 +745,7 @@ public class SushiLevelEditorWindow : EditorWindow
         {
             rushCustomer = src.rushCustomer,
             rushSeconds = src.rushSeconds,
-            dishes = src.dishes.Select(d => new DishOrderData { dish = d.dish, amount = d.amount }).ToList()
+            dishes = src.dishes.Select(d => d?.Copy()).ToList()
         };
         level.customers.Insert(i + 1, copy);
         selCustomer = i + 1;
@@ -1231,7 +1267,7 @@ public class SushiLevelEditorWindow : EditorWindow
         if (cu == null || cu.dishes == null) return;
         foreach (var o in cu.dishes)
         {
-            if (o == null || o.amount < 1 || !SushiRecipeCatalog.TryGet(o.dish, out var recipe)) continue;
+            if (o == null || o.amount < 1 || !o.TryGetRecipe(out var recipe, out _)) continue;
             foreach (PoolType t in recipe.Ingredients)
             {
                 if (!counts.ContainsKey(t)) { counts[t] = 0; order.Add(t); }
@@ -1290,6 +1326,8 @@ public class SushiLevelEditorWindow : EditorWindow
     /// Thêm nguyên liệu còn thiếu / bớt nguyên liệu thừa để khớp các món khách gọi.
     private void SyncBoard()
     {
+        // Do not remove tiles while a recipe is only half-edited or invalid.
+        if (level.customers.Any(customer => customer == null || customer.ValidateOrders() != null)) return;
         EnsureColumns();
         var order = new List<PoolType>();
         var expected = Expected(order);

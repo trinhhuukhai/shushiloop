@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13d15152b00bf8346a5a306d9c9e3341, type: 3}
+  m_Name: SushiCustomRecipesDemo
+  m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
+  number: 20
+  levelName: Custom recipes demo
+  hint: Rice + shrimp; salmon + avocado; rice + shrimp + avocado.
+  beltSlots: 14
+  loopsPerSecond: 0.08
+  numberColumns: 4
+  boardSeed: 1
+  shuffleFoods: 0
+  maxIngredientsPerTile: 1
+  customers:
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 1
+      dish: 5
+      firstIngredient: 2
+      secondIngredient: 14
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 2
+      dish: 5
+      firstIngredient: 5
+      secondIngredient: 14
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 3
+      dish: 5
+      firstIngredient: 2
+      secondIngredient: 14
+      amount: 1
+  boardColumns: []

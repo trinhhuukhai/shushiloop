@@ -52,7 +52,7 @@ public class CustomerRecipeView : MonoBehaviour
         }
         foreach (var dish in customer.Dishes)
         {
-            var group = groups.Find(g => g[0].Recipe.Id == dish.Recipe.Id);
+            var group = groups.Find(g => g[0].Recipe.Key == dish.Recipe.Key);
             if (group == null) { group = new List<SushiDishOrder>(); groups.Add(group); }
             group.Add(dish);
         }
@@ -69,7 +69,7 @@ public class CustomerRecipeView : MonoBehaviour
             cards.Add(card);
         }
         foreach (var dish in customer.Dishes)
-            dishCards.Add(cards[groups.FindIndex(g => g[0].Recipe.Id == dish.Recipe.Id)]);
+            dishCards.Add(cards[groups.FindIndex(g => g[0].Recipe.Key == dish.Recipe.Key)]);
         LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
         RefreshOrderLayout();
         customer.OnOrderChanged += Refresh;

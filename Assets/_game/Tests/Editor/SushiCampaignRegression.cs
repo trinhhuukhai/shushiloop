@@ -91,7 +91,7 @@ public static class SushiCampaignRegression
             "Level 1 must preserve the configured single shrimp tutorial target in column 2.");
         CustomerOrderData tutorialCustomer = campaign.listAllLevel[0].customers[0];
         Check(tutorialCustomer.UsesRecipes && tutorialCustomer.dishes.Count > 0 &&
-            SushiRecipeCatalog.Get(tutorialCustomer.dishes[0].dish).Ingredients.Contains(PoolType.Shrimp),
+            tutorialCustomer.dishes[0].GetRecipe().Ingredients.Contains(PoolType.Shrimp),
             "The first customer's first dish must include the configured tutorial shrimp.");
         Pass("All 50 assets validate, have exact ingredient balances, and have a legal normal-tap solution.");
     }
@@ -378,7 +378,7 @@ public static class SushiCampaignRegression
                     for (int portion = 0; portion < dish.amount; portion++)
                     {
                         var needs = new int[typeCount];
-                        foreach (var type in SushiRecipeCatalog.Get(dish.dish).Ingredients) needs[(int)type]++;
+                        foreach (var type in dish.GetRecipe().Ingredients) needs[(int)type]++;
                         portions.Add(needs);
                     }
                 recipes[i] = portions.ToArray();

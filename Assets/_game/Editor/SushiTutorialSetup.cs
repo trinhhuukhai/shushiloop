@@ -200,7 +200,7 @@ public static class SushiTutorialSetup
                 int expandedDishIndex = 0;
                 foreach (DishOrderData requested in order.dishes)
                 {
-                    if (SushiRecipeCatalog.Get(requested.dish).Ingredients.Contains(food.typeFood))
+                    if (requested.GetRecipe().Ingredients.Contains(food.typeFood))
                     {
                         column = index; ingredient = food.typeFood; customer = customerIndex; dish = expandedDishIndex;
                         return;

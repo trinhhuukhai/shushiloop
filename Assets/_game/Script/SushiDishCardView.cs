@@ -36,6 +36,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     private bool orderComplete;
     private bool hasCachedRecipeLayout;
     private bool recipeExpanded;
+    private readonly List<Image> recipeLayers = new List<Image>();
 
     public RectTransform Rect => (RectTransform)transform;
     public Image DishImage => finished;
@@ -93,10 +94,44 @@ public sealed class SushiDishCardView : MonoBehaviour
 
     public void RefreshArtwork(Customer customer, SushiDishOrder dish, SushiDishArtLibrary art)
     {
-        finished.sprite = art != null ? art.GetSprite(dish.Recipe.Id) : null;
+        finished.sprite = art != null ? art.GetSprite(dish.Recipe) : null;
         finished.enabled = !recipeExpanded && finished.sprite != null;
+        RefreshRecipeLayers(customer, dish.Recipe);
         for (int i = 0; i < dish.Ingredients.Count; i++)
             ingredients[i].SetSprite(customer.GetIngredientSprite(dish.Ingredients[i].typeFood));
+    }
+
+    private void RefreshRecipeLayers(Customer customer, SushiRecipe recipe)
+    {
+        foreach (Image layer in recipeLayers) layer.gameObject.SetActive(false);
+        if (finished.sprite != null) return;
+        SushiPlatedIngredientArtLibrary plated = SushiArtCatalog.Default?.platedIngredientImages;
+        var types = new List<PoolType>(recipe.Ingredients);
+        if (plated != null) types.Sort((a, b) => plated.GetSortingOrder(a, recipe).CompareTo(plated.GetSortingOrder(b, recipe)));
+        for (int i = 0; i < types.Count; i++)
+        {
+            if (recipeLayers.Count <= i)
+            {
+                var layerObject = new GameObject("Recipe layer " + i, typeof(RectTransform), typeof(Image));
+                layerObject.layer = finished.gameObject.layer;
+                layerObject.transform.SetParent(finished.transform, false);
+                var newLayer = layerObject.GetComponent<Image>();
+                newLayer.raycastTarget = false;
+                newLayer.preserveAspect = true;
+                recipeLayers.Add(newLayer);
+            }
+            Image layer = recipeLayers[i];
+            var entry = plated != null ? plated.Find(types[i], recipe) : null;
+            layer.sprite = entry != null ? entry.sprite : customer.GetIngredientSprite(types[i]);
+            Vector2 position = plated != null ? plated.GetPosition(types[i], recipe) : new Vector2((i - 1) * 0.25f, 0);
+            Vector2 size = entry != null ? entry.size : new Vector2(0.45f, 0.45f);
+            // Relative anchors keep the composed art responsive to the authored image frame.
+            layer.rectTransform.anchorMin = Vector2.one * 0.5f + position - size * 0.5f;
+            layer.rectTransform.anchorMax = Vector2.one * 0.5f + position + size * 0.5f;
+            layer.rectTransform.offsetMin = layer.rectTransform.offsetMax = Vector2.zero;
+            layer.rectTransform.localRotation = Quaternion.Euler(0, 0, entry != null ? entry.rotation : 0);
+            layer.gameObject.SetActive(layer.sprite != null);
+        }
     }
 
     public void Refresh(SushiDishOrder dish, bool targeting)

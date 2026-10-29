@@ -233,7 +233,7 @@ public class Customer : MonoBehaviour
         {
             foreach (DishOrderData order in data.dishes)
                 for (int portion = 0; portion < order.amount; portion++)
-                    dishes.Add(new SushiDishOrder(dishes.Count, SushiRecipeCatalog.Get(order.dish)));
+                    dishes.Add(new SushiDishOrder(dishes.Count, order.GetRecipe()));
             recipeView.Setup(this, art);
             foreach (var dish in dishes)
             {

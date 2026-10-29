@@ -230,7 +230,7 @@ public static class SushiDifficulty
             if (cu == null || cu.dishes == null) { error = "Có khách rỗng."; return null; }
             foreach (var o in cu.dishes)
             {
-                if (o == null || o.amount < 1 || !SushiRecipeCatalog.TryGet(o.dish, out var recipe)) { error = "Có món không hợp lệ."; return null; }
+                if (o == null || o.amount < 1 || !o.TryGetRecipe(out var recipe, out _)) { error = "Có món không hợp lệ."; return null; }
                 foreach (PoolType t in recipe.Ingredients)
                 {
                     int i = Idx(t);
