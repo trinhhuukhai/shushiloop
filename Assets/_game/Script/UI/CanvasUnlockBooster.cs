@@ -4,29 +4,31 @@ using UnityEngine.UI;
 
 public class CanvasUnlockBooster : UICanvas
 {
-    public TMP_Text txtLive;
-    public GameObject timeObject;
-    public TMP_Text time;
+
+    public TMP_Text des;
     public TMP_Text txtTile;
 
-    public GameObject HeartRed;
-    public GameObject HeartBlack;
+    public GameObject togs;
+    public GameObject swap;
+    public GameObject magnet;
 
     public override void Open()
     {
         base.Open();
+        Setupp();
     }
-    public void CheckShowTime()
+
+    public void Setupp()
     {
 
     }
 
-    public void RefillFullLive()
+    public void btnGold()
     {
 
     }
 
-    public void RefillAds()
+    public void BtnAds()
     {
 
     }
