@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Spine.Unity;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,6 +37,10 @@ public class CanvasGamePlay : UICanvas
     private bool hasSeenBoardIngredients;
     private bool boosterGroupSlidDown;
 
+    public CanvasGroup AnimLevelHardGroup;
+    public SkeletonGraphic animHard;
+    public SkeletonGraphic animSHard;
+
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
@@ -50,8 +55,36 @@ public class CanvasGamePlay : UICanvas
     public override void Open()
     {
         base.Open();
+        ShowAnim();
         input = FindFirstObjectByType<FoodInputController>();
         Refresh();
+    }
+
+    public void ShowAnim()
+    {
+        AnimLevelHardGroup.gameObject.SetActive(false);
+        animHard.gameObject.SetActive(false);
+        animSHard.gameObject.SetActive(false);
+        AnimLevelHardGroup.alpha = 1.0f;
+        if (LevelManager.Ins.CurrentLevel.TypeLevel == TypeLevel.Hard)
+        {
+            AnimLevelHardGroup.gameObject.SetActive(true);
+            animHard.gameObject.SetActive(true);
+            animHard.DOPlay();
+        }else if (LevelManager.Ins.CurrentLevel.TypeLevel == TypeLevel.SuperHard)
+        {
+            AnimLevelHardGroup.gameObject.SetActive(true);
+            animSHard.gameObject.SetActive(true);
+            animSHard.DOPlay();
+        }
+
+        DOVirtual.DelayedCall(1.8f, () =>
+        {
+
+                AnimLevelHardGroup.gameObject.SetActive(false);
+
+            
+        });
     }
 
     private void Update() => Refresh();

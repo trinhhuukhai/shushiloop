@@ -1,4 +1,4 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -235,13 +235,21 @@ public class GameManager : MonoBehaviour
                 Debug.LogError("GamePlay scene is missing its LevelManager.");
             else if (!CanOpenMainMenu)
             {
-                // The startup cover is not a UICanvas, so hold its own pause while creating the first board.
                 coveredLevel = level;
                 coveredLevel.SetPopupOpen(true);
                 level.LoadLevel(SelectedLevelIndex(), false);
                 enteredGameplay = level.IsPlaying;
                 yield return null;
                 yield return null;
+
+                if (enteredGameplay)
+                {
+                    // Mở HUD khi loading còn che, đợi canvas build + render xong.
+                    level.ShowGameplayHud(true);
+                    yield return null;
+                    Canvas.ForceUpdateCanvases();
+                    yield return new WaitForEndOfFrame();
+                }
             }
 
             if (loading != null) loading.SetPercent(1, 0.25f);
@@ -315,9 +323,15 @@ public class GameManager : MonoBehaviour
             yield return transit.CoverLevel(index);
             level.LoadLevel(index, false);
             if (!level.IsPlaying) yield break;
-            // Keep gameplay paused under the cover while layout and world sprites settle.
             yield return null;
             yield return null;
+
+            // Mở HUD dưới lớp transit, rồi mới reveal.
+            level.ShowGameplayHud(true);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return new WaitForEndOfFrame();
+
             yield return transit.RevealLevel(false);
         }
         finally

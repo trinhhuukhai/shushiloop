@@ -277,10 +277,10 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         ApplyPopupPause();
     }
 
-    public void ShowGameplayHud()
+    public void ShowGameplayHud(bool force = false)
     {
         if (!IsPlaying || !showGameplayHud || UIManager.Ins == null || gameplayHudShown ||
-            (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return;
+            (!force && GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return;
         UIManager.Ins.OpenUI<CanvasGamePlay>();
         UIManager.Ins.OpenUI<CanvasFloating>();
         gameplayHudShown = true;
