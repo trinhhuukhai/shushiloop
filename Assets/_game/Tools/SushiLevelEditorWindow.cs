@@ -7,15 +7,32 @@ using UnityEngine;
 
 /// <summary>
 /// Đặt file này trong thư mục Editor. Menu: SushiKhai/Level Editor (hoặc double-click asset SushiLevelData).
-/// - Trái: cài đặt level + danh sách khách (thêm/sửa/xóa/đổi thứ tự/nhân bản).
-/// - Phải: board đúng hàng/cột, kéo thả để đổi chỗ, chỉnh element (Ice/Hidden/Link/Tray).
+/// - Trái: cài đặt level + danh sách khách (thêm/sửa/xóa/đổi thứ tự/nhân bản), hiển thị icon món và nguyên liệu.
+/// - Phải: board đúng hàng/cột, kéo thả để đổi chỗ, chỉnh element (Ice/Hidden/Link/Tray), mỗi ô có icon nguyên liệu.
 /// - Thêm/sửa/xóa khách hoặc món => board tự thêm/bớt nguyên liệu tương ứng.
+/// Icon lấy từ SushiArtCatalog (dishImages cho món, ingredientImages cho nguyên liệu). Nếu catalog không có thì tìm theo TÊN FILE trùng tên enum:
+///   1) Sprite/Texture có tên file trùng (bỏ qua hoa/thường, dấu _ và tiền tố icon/ic/spr/sprite/img/ui)
+///   2) Prefab trùng tên: lấy SpriteRenderer trong prefab, nếu không có thì dùng ảnh preview của prefab.
 /// </summary>
 public class SushiLevelEditorWindow : EditorWindow
 {
     private enum Element { Normal, Ice, Hidden, Link, Tray }
+    private enum IconKind { Dish, Ingredient }
 
-    private const float CellW = 80f, CellH = 50f, Gap = 4f, HeaderW = 40f, HeaderH = 22f;
+    private class Icon { public Texture tex; public Rect uv; }
+
+    private class IconIndex
+    {
+        public readonly Dictionary<string, string> textures = new Dictionary<string, string>();
+        public readonly Dictionary<string, string> prefabs = new Dictionary<string, string>();
+    }
+
+    private const float CellW = 100f, CellH = 56f, Gap = 4f, HeaderW = 40f, HeaderH = 22f;
+    private const float CellIcon = 44f;
+
+    private const string PrefShowIcons = "SushiLevelEditor.ShowIcons";
+    private const string PrefDishFolder = "SushiLevelEditor.IconFolder.Dish";
+    private const string PrefIngredientFolder = "SushiLevelEditor.IconFolder.Ingredient";
 
     private SushiLevelData level;
     private Vector2 leftScroll, boardScroll;
@@ -33,15 +50,23 @@ public class SushiLevelEditorWindow : EditorWindow
     private SushiDishId newDish = SushiDishId.NigiriShrimp;
     private int newAmount = 1;
 
+    private bool showIcons = true;
+    private string dishFolder = "";
+    private string ingredientFolder = "";
+    private readonly Dictionary<string, Icon> iconCache = new Dictionary<string, Icon>();
+    private readonly Dictionary<IconKind, IconIndex> iconIndex = new Dictionary<IconKind, IconIndex>();
+    private bool previewPending;
+    private string tileWarning;
+
     private readonly List<Action> pending = new List<Action>();
     private bool dirty;
-    private GUIStyle cellStyle, leftButton;
+    private GUIStyle cellStyle, leftButton, countStyle;
 
     [MenuItem("SushiKhai/Level Editor")]
     private static void Open()
     {
         var w = GetWindow<SushiLevelEditorWindow>("Sushi Level Editor");
-        w.minSize = new Vector2(980, 560);
+        w.minSize = new Vector2(1020, 560);
     }
 
     [UnityEditor.Callbacks.OnOpenAsset(0)]
@@ -50,7 +75,7 @@ public class SushiLevelEditorWindow : EditorWindow
         var data = EditorUtility.InstanceIDToObject(instanceId) as SushiLevelData;
         if (data == null) return false;
         var w = GetWindow<SushiLevelEditorWindow>("Sushi Level Editor");
-        w.minSize = new Vector2(980, 560);
+        w.minSize = new Vector2(1020, 560);
         w.level = data;
         w.ResetSelection();
         w.LoadK();
@@ -58,8 +83,324 @@ public class SushiLevelEditorWindow : EditorWindow
         return true;
     }
 
-    private void OnEnable() { Undo.undoRedoPerformed += Repaint; }
+    private void OnEnable()
+    {
+        Undo.undoRedoPerformed += Repaint;
+        showIcons = EditorPrefs.GetBool(PrefShowIcons, true);
+        dishFolder = EditorPrefs.GetString(PrefDishFolder, "");
+        ingredientFolder = EditorPrefs.GetString(PrefIngredientFolder, "");
+    }
+
     private void OnDisable() { Undo.undoRedoPerformed -= Repaint; }
+
+    private void OnProjectChange() { ClearIcons(); Repaint(); }
+
+    // ───────────────────────── Icons ─────────────────────────
+
+    private void ClearIcons()
+    {
+        iconCache.Clear();
+        iconIndex.Clear();
+        artCatalogLoaded = false;
+        artCatalog = null;
+    }
+
+    private static string Norm(string s)
+    {
+        var chars = s.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray();
+        return new string(chars);
+    }
+
+    private static readonly string[] IconPrefixes = { "icon", "ic", "spr", "sprite", "img", "ui" };
+
+    private static void AddKey(Dictionary<string, string> map, string fileName, string path)
+    {
+        string n = Norm(fileName);
+        if (n.Length == 0) return;
+        map.TryAdd(n, path);
+        foreach (var p in IconPrefixes)
+            if (n.StartsWith(p) && n.Length > p.Length) map.TryAdd(n.Substring(p.Length), path);
+    }
+
+    private IconIndex GetIndex(IconKind kind)
+    {
+        if (iconIndex.TryGetValue(kind, out var idx)) return idx;
+        idx = new IconIndex();
+        string folder = kind == IconKind.Dish ? dishFolder : ingredientFolder;
+        string[] roots = !string.IsNullOrEmpty(folder) && AssetDatabase.IsValidFolder(folder)
+            ? new[] { folder } : new[] { "Assets" };
+
+        foreach (string guid in AssetDatabase.FindAssets("t:Texture2D", roots))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            AddKey(idx.textures, System.IO.Path.GetFileNameWithoutExtension(path), path);
+        }
+        foreach (string guid in AssetDatabase.FindAssets("t:Prefab", roots))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            AddKey(idx.prefabs, System.IO.Path.GetFileNameWithoutExtension(path), path);
+        }
+        iconIndex[kind] = idx;
+        return idx;
+    }
+
+    private Icon GetIcon(string name, IconKind kind)
+    {
+        string key = (int)kind + ":" + name;
+        if (iconCache.TryGetValue(key, out var icon)) return icon;
+        icon = ResolveIcon(name, kind, out bool final);
+        if (final) iconCache[key] = icon;
+        else previewPending = true;
+        return icon;
+    }
+
+    private static Icon FromSprite(Sprite s)
+    {
+        var tex = s.texture;
+        var r = s.textureRect;
+        return new Icon { tex = tex, uv = new Rect(r.x / tex.width, r.y / tex.height, r.width / tex.width, r.height / tex.height) };
+    }
+
+    private Icon ResolveIcon(string name, IconKind kind, out bool final)
+    {
+        final = true;
+        string n = Norm(name);
+
+        // Ưu tiên lấy từ SushiArtCatalog (dishImages / ingredientImages).
+        var fromCatalog = ResolveFromCatalog(name, kind);
+        if (fromCatalog != null) return fromCatalog;
+
+        var idx = GetIndex(kind);
+
+        if (idx.textures.TryGetValue(n, out string path))
+        {
+            var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToList();
+            Sprite s = sprites.FirstOrDefault(x => Norm(x.name) == n) ?? sprites.FirstOrDefault();
+            if (s != null) return FromSprite(s);
+            var t = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (t != null) return new Icon { tex = t, uv = new Rect(0, 0, 1, 1) };
+        }
+
+        if (idx.prefabs.TryGetValue(n, out string prefabPath))
+        {
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (go != null)
+            {
+                var sr = go.GetComponentInChildren<SpriteRenderer>(true);
+                if (sr != null && sr.sprite != null) return FromSprite(sr.sprite);
+
+                var preview = AssetPreview.GetAssetPreview(go);
+                if (preview != null) return new Icon { tex = preview, uv = new Rect(0, 0, 1, 1) };
+                if (AssetPreview.IsLoadingAssetPreview(go.GetInstanceID())) final = false;
+            }
+        }
+        return null;
+    }
+
+    // ── SushiArtCatalog: đọc dishImages / ingredientImages bằng SerializedObject (không phụ thuộc API của catalog) ──
+
+    private ScriptableObject artCatalog;
+    private bool artCatalogLoaded;
+
+    private ScriptableObject GetArtCatalog()
+    {
+        if (artCatalogLoaded) return artCatalog;
+        artCatalogLoaded = true;
+        foreach (string guid in AssetDatabase.FindAssets("t:SushiArtCatalog"))
+        {
+            artCatalog = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
+            if (artCatalog != null) break;
+        }
+        return artCatalog;
+    }
+
+    private Icon ResolveFromCatalog(string name, IconKind kind)
+    {
+        var catalog = GetArtCatalog();
+        if (catalog == null) return null;
+        var prop = new SerializedObject(catalog).FindProperty(kind == IconKind.Dish ? "dishImages" : "ingredientImages");
+        if (prop == null || prop.objectReferenceValue == null) return null;
+
+        Type enumType = kind == IconKind.Dish ? typeof(SushiDishId) : typeof(PoolType);
+        if (!Enum.TryParse(enumType, name, out object parsed)) return null;
+        int value = Convert.ToInt32(parsed);
+
+        UnityEngine.Object found = FindImageInMap(prop.objectReferenceValue, name, value, enumType);
+        if (found is Sprite sp) return FromSprite(sp);
+        if (found is Texture2D tex) return new Icon { tex = tex, uv = new Rect(0, 0, 1, 1) };
+        return null;
+    }
+
+    private static bool KeyMatches(SerializedProperty e, string name, int value)
+    {
+        switch (e.propertyType)
+        {
+            case SerializedPropertyType.Enum:
+                int i = e.enumValueIndex;
+                return i >= 0 && i < e.enumNames.Length && Norm(e.enumNames[i]) == Norm(name);
+            case SerializedPropertyType.String:
+                return Norm(e.stringValue ?? "") == Norm(name);
+            case SerializedPropertyType.Integer:
+                return e.intValue == value;
+        }
+        return false;
+    }
+
+    private static UnityEngine.Object AsImage(SerializedProperty p)
+    {
+        if (p.propertyType != SerializedPropertyType.ObjectReference) return null;
+        var o = p.objectReferenceValue;
+        return o is Sprite || o is Texture2D ? o : null;
+    }
+
+    private static UnityEngine.Object FindImageInMap(UnityEngine.Object map, string name, int value, Type enumType)
+    {
+        var so = new SerializedObject(map);
+        var it = so.GetIterator();
+        if (!it.NextVisible(true)) return null;
+
+        var imageArrays = new List<SerializedProperty>();
+        var keyArrays = new List<SerializedProperty>();
+        string n = Norm(name);
+
+        do
+        {
+            if (it.propertyPath == "m_Script" || !it.isArray || it.propertyType != SerializedPropertyType.Generic) continue;
+            if (it.arraySize == 0) continue;
+            var first = it.GetArrayElementAtIndex(0);
+
+            if (first.propertyType == SerializedPropertyType.ObjectReference) imageArrays.Add(it.Copy());
+            else if (first.propertyType == SerializedPropertyType.Enum || first.propertyType == SerializedPropertyType.String
+                     || first.propertyType == SerializedPropertyType.Integer) keyArrays.Add(it.Copy());
+            else if (first.propertyType == SerializedPropertyType.Generic)
+            {
+                // Mảng struct: mỗi phần tử có key (enum/string/int) + sprite.
+                for (int i = 0; i < it.arraySize; i++)
+                {
+                    var el = it.GetArrayElementAtIndex(i);
+                    var child = el.Copy();
+                    var end = el.GetEndProperty();
+                    bool match = false;
+                    UnityEngine.Object img = null;
+                    bool enter = child.NextVisible(true);
+                    while (enter && !SerializedProperty.EqualContents(child, end))
+                    {
+                        if (child.propertyType == SerializedPropertyType.Integer)
+                        {
+                            string p = child.name.ToLowerInvariant();
+                            if ((p.Contains("type") || p.Contains("id") || p.Contains("key") || p.Contains("food")
+                                 || p.Contains("dish") || p.Contains("ingredient")) && child.intValue == value) match = true;
+                        }
+                        else if (KeyMatches(child, name, value)) match = true;
+                        if (img == null) img = AsImage(child);
+                        enter = child.NextVisible(false);
+                    }
+                    if (match && img != null) return img;
+                }
+            }
+        } while (it.NextVisible(false));
+
+        if (imageArrays.Count == 0) return null;
+        var images = imageArrays[0];
+
+        // Mảng key song song với mảng ảnh.
+        foreach (var keys in keyArrays)
+        {
+            if (keys.arraySize != images.arraySize) continue;
+            for (int i = 0; i < keys.arraySize; i++)
+                if (KeyMatches(keys.GetArrayElementAtIndex(i), name, value))
+                    return AsImage(images.GetArrayElementAtIndex(i));
+        }
+
+        // Chỉ có mảng ảnh: ưu tiên khớp theo tên sprite, sau đó theo index enum.
+        for (int i = 0; i < images.arraySize; i++)
+        {
+            var img = AsImage(images.GetArrayElementAtIndex(i));
+            if (img != null && Norm(img.name) == n) return img;
+        }
+        if (value >= 0 && value < images.arraySize)
+        {
+            var img = AsImage(images.GetArrayElementAtIndex(value));
+            if (img != null) return img;
+        }
+        int pos = Array.IndexOf(Enum.GetValues(enumType), Enum.ToObject(enumType, value));
+        if (pos >= 0 && pos < images.arraySize) return AsImage(images.GetArrayElementAtIndex(pos));
+        return null;
+    }
+
+    /// Vẽ icon (giữ tỉ lệ). Trả về true nếu có icon để vẽ.
+    private bool DrawIcon(Rect r, string name, IconKind kind)
+    {
+        if (!showIcons || Event.current.type != EventType.Repaint) return false;
+        var ic = GetIcon(name, kind);
+        if (ic == null || ic.tex == null) return false;
+
+        float pw = ic.uv.width * ic.tex.width, ph = ic.uv.height * ic.tex.height;
+        if (pw <= 0 || ph <= 0) return false;
+        float scale = Mathf.Min(r.width / pw, r.height / ph);
+        var fit = new Rect(r.x + (r.width - pw * scale) * 0.5f, r.y + (r.height - ph * scale) * 0.5f, pw * scale, ph * scale);
+        GUI.DrawTextureWithTexCoords(fit, ic.tex, ic.uv, true);
+        return true;
+    }
+
+    private void DrawCount(Rect r, int amount)
+    {
+        if (Event.current.type != EventType.Repaint || amount <= 1) return;
+        string t = "×" + amount;
+        var shadow = new Rect(r.x + 1, r.y + 1, r.width, r.height);
+        var old = countStyle.normal.textColor;
+        countStyle.normal.textColor = Color.black;
+        GUI.Label(shadow, t, countStyle);
+        countStyle.normal.textColor = Color.white;
+        GUI.Label(r, t, countStyle);
+        countStyle.normal.textColor = old;
+    }
+
+    /// Icon + (nếu thiếu icon thì vẽ tên rút gọn) trong ô vuông size×size ở layout hiện tại.
+    private void LayoutIcon(string name, IconKind kind, float size, int amount = 1)
+    {
+        Rect r = GUILayoutUtility.GetRect(size, size, GUILayout.Width(size), GUILayout.Height(size));
+        if (!showIcons || Event.current.type != EventType.Repaint) return;
+        if (!DrawIcon(r, name, kind))
+        {
+            EditorGUI.DrawRect(r, new Color(0f, 0f, 0f, 0.15f));
+            GUI.Label(r, name.Length > 4 ? name.Substring(0, 4) : name, EditorStyles.centeredGreyMiniLabel);
+        }
+        DrawCount(r, amount);
+    }
+
+    private void DrawIconSettings()
+    {
+        EditorGUILayout.Space(4);
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.LabelField("Hình ảnh (icon)", EditorStyles.boldLabel);
+
+        EditorGUI.BeginChangeCheck();
+        bool show = EditorGUILayout.Toggle("Hiển thị icon", showIcons);
+        string dish = FolderField("Thư mục icon món (trống = cả project)", dishFolder);
+        string ing = FolderField("Thư mục icon nguyên liệu (trống = cả project)", ingredientFolder);
+        if (EditorGUI.EndChangeCheck())
+        {
+            showIcons = show; dishFolder = dish; ingredientFolder = ing;
+            EditorPrefs.SetBool(PrefShowIcons, showIcons);
+            EditorPrefs.SetString(PrefDishFolder, dishFolder);
+            EditorPrefs.SetString(PrefIngredientFolder, ingredientFolder);
+            ClearIcons();
+        }
+
+        if (GUILayout.Button("Làm mới icon")) ClearIcons();
+        EditorGUILayout.LabelField("Icon lấy từ SushiArtCatalog; nếu thiếu thì tìm theo tên file trùng tên enum (thư mục bên trên).", EditorStyles.wordWrappedMiniLabel);
+        EditorGUILayout.EndVertical();
+    }
+
+    private static string FolderField(string label, string current)
+    {
+        var obj = string.IsNullOrEmpty(current) ? null : AssetDatabase.LoadAssetAtPath<DefaultAsset>(current);
+        var picked = (DefaultAsset)EditorGUILayout.ObjectField(label, obj, typeof(DefaultAsset), false);
+        if (picked == null) return "";
+        string path = AssetDatabase.GetAssetPath(picked);
+        return AssetDatabase.IsValidFolder(path) ? path : current;
+    }
 
     // ───────────────────────── GUI ─────────────────────────
 
@@ -76,6 +417,7 @@ public class SushiLevelEditorWindow : EditorWindow
             };
             cellStyle.normal.textColor = Color.black;
             leftButton = new GUIStyle(EditorStyles.miniButton) { alignment = TextAnchor.MiddleLeft };
+            countStyle = new GUIStyle(EditorStyles.miniBoldLabel) { alignment = TextAnchor.LowerRight, fontSize = 10 };
         }
 
         Event e = Event.current;
@@ -143,6 +485,9 @@ public class SushiLevelEditorWindow : EditorWindow
         }
 
         if (dirty) EditorUtility.SetDirty(level);
+
+        // Preview prefab được Unity nạp bất đồng bộ -> vẽ lại cho đến khi xong.
+        if (previewPending && e.type == EventType.Repaint) { previewPending = false; Repaint(); }
     }
 
     private void DrawSettings()
@@ -168,6 +513,7 @@ public class SushiLevelEditorWindow : EditorWindow
         level.maxIngredientsPerTile = EditorGUILayout.IntSlider("Max ×/ô (ô mới)", level.maxIngredientsPerTile, 1, 3);
         EditorGUILayout.EndVertical();
 
+        DrawIconSettings();
         DrawDifficulty();
     }
 
@@ -250,15 +596,20 @@ public class SushiLevelEditorWindow : EditorWindow
             GUI.backgroundColor = old;
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button($"#{i + 1}{(cu.rushCustomer ? " [RUSH]" : "")}  {Summary(cu)}", leftButton))
+            if (showIcons)
+            {
+                foreach (var d in cu.dishes)
+                    if (d != null) LayoutIcon(d.dish.ToString(), IconKind.Dish, 28f, d.amount);
+            }
+            if (GUILayout.Button($"#{i + 1}{(cu.rushCustomer ? " [RUSH]" : "")}  {Summary(cu)}", leftButton, GUILayout.Height(28)))
                 selCustomer = sel ? -1 : i;
             GUI.enabled = i > 0;
-            if (GUILayout.Button("↑", EditorStyles.miniButtonLeft, GUILayout.Width(22))) pending.Add(() => MoveCustomer(index, -1));
+            if (GUILayout.Button("↑", EditorStyles.miniButtonLeft, GUILayout.Width(22), GUILayout.Height(28))) pending.Add(() => MoveCustomer(index, -1));
             GUI.enabled = i < level.customers.Count - 1;
-            if (GUILayout.Button("↓", EditorStyles.miniButtonMid, GUILayout.Width(22))) pending.Add(() => MoveCustomer(index, 1));
+            if (GUILayout.Button("↓", EditorStyles.miniButtonMid, GUILayout.Width(22), GUILayout.Height(28))) pending.Add(() => MoveCustomer(index, 1));
             GUI.enabled = true;
-            if (GUILayout.Button("C", EditorStyles.miniButtonMid, GUILayout.Width(22))) pending.Add(() => DuplicateCustomer(index));
-            if (GUILayout.Button("X", EditorStyles.miniButtonRight, GUILayout.Width(22))) pending.Add(() => RemoveCustomer(index));
+            if (GUILayout.Button("C", EditorStyles.miniButtonMid, GUILayout.Width(22), GUILayout.Height(28))) pending.Add(() => DuplicateCustomer(index));
+            if (GUILayout.Button("X", EditorStyles.miniButtonRight, GUILayout.Width(22), GUILayout.Height(28))) pending.Add(() => RemoveCustomer(index));
             EditorGUILayout.EndHorizontal();
 
             if (sel)
@@ -273,12 +624,13 @@ public class SushiLevelEditorWindow : EditorWindow
                     if (cu.dishes[j] == null) cu.dishes[j] = new DishOrderData();
                     DishOrderData d = cu.dishes[j];
                     EditorGUILayout.BeginHorizontal();
+                    if (showIcons) LayoutIcon(d.dish.ToString(), IconKind.Dish, 28f);
                     EditorGUI.BeginChangeCheck();
-                    d.dish = (SushiDishId)EditorGUILayout.EnumPopup(d.dish);
-                    d.amount = Mathf.Max(1, EditorGUILayout.IntField(d.amount, GUILayout.Width(40)));
+                    d.dish = (SushiDishId)EditorGUILayout.EnumPopup(d.dish, GUILayout.Height(28));
+                    d.amount = Mathf.Max(1, EditorGUILayout.IntField(d.amount, GUILayout.Width(40), GUILayout.Height(28)));
                     if (EditorGUI.EndChangeCheck()) pending.Add(SyncBoard);
                     GUI.enabled = cu.dishes.Count > 1;
-                    if (GUILayout.Button("X", EditorStyles.miniButton, GUILayout.Width(22)))
+                    if (GUILayout.Button("X", EditorStyles.miniButton, GUILayout.Width(22), GUILayout.Height(28)))
                         pending.Add(() => { cu.dishes.RemoveAt(dj); SyncBoard(); });
                     GUI.enabled = true;
                     EditorGUILayout.EndHorizontal();
@@ -287,6 +639,7 @@ public class SushiLevelEditorWindow : EditorWindow
                 if (GUILayout.Button("+ Món", EditorStyles.miniButton))
                     pending.Add(() => { cu.dishes.Add(new DishOrderData { dish = newDish, amount = 1 }); SyncBoard(); });
 
+                DrawIngredientIcons(cu);
                 EditorGUILayout.LabelField("Nguyên liệu: " + IngredientText(cu), EditorStyles.wordWrappedMiniLabel);
             }
             EditorGUILayout.EndVertical();
@@ -294,9 +647,10 @@ public class SushiLevelEditorWindow : EditorWindow
 
         EditorGUILayout.Space(2);
         EditorGUILayout.BeginHorizontal("box");
-        newDish = (SushiDishId)EditorGUILayout.EnumPopup(newDish);
-        newAmount = Mathf.Max(1, EditorGUILayout.IntField(newAmount, GUILayout.Width(40)));
-        if (GUILayout.Button("+ Thêm khách", GUILayout.Width(100)))
+        if (showIcons) LayoutIcon(newDish.ToString(), IconKind.Dish, 28f);
+        newDish = (SushiDishId)EditorGUILayout.EnumPopup(newDish, GUILayout.Height(28));
+        newAmount = Mathf.Max(1, EditorGUILayout.IntField(newAmount, GUILayout.Width(40), GUILayout.Height(28)));
+        if (GUILayout.Button("+ Thêm khách", GUILayout.Width(100), GUILayout.Height(28)))
         {
             int amount = newAmount; SushiDishId dish = newDish;
             pending.Add(() =>
@@ -309,6 +663,20 @@ public class SushiLevelEditorWindow : EditorWindow
                 SyncBoard();
             });
         }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawIngredientIcons(CustomerOrderData cu)
+    {
+        if (!showIcons) return;
+        var counts = new Dictionary<PoolType, int>();
+        var order = new List<PoolType>();
+        AccumulateIngredients(cu, counts, order);
+        if (order.Count == 0) return;
+
+        EditorGUILayout.BeginHorizontal();
+        foreach (var t in order) LayoutIcon(t.ToString(), IconKind.Ingredient, 26f, counts[t]);
+        GUILayout.FlexibleSpace();
         EditorGUILayout.EndHorizontal();
     }
 
@@ -451,7 +819,11 @@ public class SushiLevelEditorWindow : EditorWindow
             {
                 Color col = TypeColor(f.typeFood); col.a = 0.75f;
                 EditorGUI.DrawRect(g, col);
-                GUI.Label(g, f.typeFood.ToString(), cellStyle);
+                var gi = new Rect(g.x + 3, g.y + (CellH - CellIcon) * 0.5f, CellIcon, CellIcon);
+                if (DrawIcon(gi, f.typeFood.ToString(), IconKind.Ingredient))
+                    GUI.Label(new Rect(g.x + CellIcon + 6, g.y, g.width - CellIcon - 8, g.height), $"{f.typeFood}\n×{f.amount}", cellStyle);
+                else
+                    GUI.Label(g, f.typeFood.ToString(), cellStyle);
             }
         }
 
@@ -475,6 +847,7 @@ public class SushiLevelEditorWindow : EditorWindow
             return;
         }
         selCol = c; selRow = r;
+        tileWarning = null;
         dragCol = c; dragRow = r;
         Repaint();
     }
@@ -494,16 +867,31 @@ public class SushiLevelEditorWindow : EditorWindow
         switch (el)
         {
             case Element.Ice: badge = $"ICE{f.iceLayers}"; border = new Color(0.1f, 0.7f, 1f); break;
-            case Element.Hidden: badge = "HIDDEN"; border = Color.gray; EditorGUI.DrawRect(rc, new Color(0.3f, 0.3f, 0.3f, 0.45f)); break;
+            case Element.Hidden: badge = "HIDDEN"; border = Color.gray; break;
             case Element.Link: badge = $"LINK{(f.linkId > 0 ? f.linkId : f.lockId)}"; border = new Color(0.9f, 0.2f, 0.9f); break;
             case Element.Tray: badge = $"TRAY{f.trayId}"; border = new Color(1f, 0.55f, 0.1f); break;
         }
+
+        // Icon nguyên liệu (nằm dưới lớp phủ Hidden để vẫn nhìn thấy mờ mờ).
+        var iconRect = new Rect(rc.x + 3, rc.y + (rc.height - CellIcon) * 0.5f, CellIcon, CellIcon);
+        bool hasIcon = DrawIcon(iconRect, f.typeFood.ToString(), IconKind.Ingredient);
+        if (hasIcon) DrawCount(iconRect, f.amount);
+
+        if (el == Element.Hidden) EditorGUI.DrawRect(rc, new Color(0.3f, 0.3f, 0.3f, 0.45f));
 
         if (highlight != null && highlight.Contains(f.typeFood)) DrawBorder(rc, new Color(0.1f, 0.8f, 0.1f), 1f);
         if (border.a > 0) DrawBorder(rc, border, 3f);
         if (selected) DrawBorder(rc, Color.yellow, 3f);
 
-        GUI.Label(rc, $"{f.typeFood}\n×{f.amount}  {badge}", cellStyle);
+        if (hasIcon)
+        {
+            var textRect = new Rect(rc.x + CellIcon + 6, rc.y, rc.width - CellIcon - 8, rc.height);
+            GUI.Label(textRect, $"{f.typeFood}\n{badge}", cellStyle);
+        }
+        else
+        {
+            GUI.Label(rc, $"{f.typeFood}\n×{f.amount}  {badge}", cellStyle);
+        }
     }
 
     private static void DrawBorder(Rect r, Color c, float t)
@@ -533,9 +921,25 @@ public class SushiLevelEditorWindow : EditorWindow
             return;
         }
 
-        EditorGUILayout.LabelField($"Ô đang chọn: Cột {selCol + 1}, Hàng {selRow + 1}", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+        if (showIcons) LayoutIcon(f.typeFood.ToString(), IconKind.Ingredient, 32f);
+        EditorGUILayout.LabelField($"Ô đang chọn: Cột {selCol + 1}, Hàng {selRow + 1}", EditorStyles.boldLabel, GUILayout.Height(32));
+        EditorGUILayout.EndHorizontal();
+
         f.typeFood = (PoolType)EditorGUILayout.EnumPopup("Nguyên liệu", f.typeFood);
-        f.amount = EditorGUILayout.IntSlider("Số lượng (×)", f.amount, 1, 3);
+        int wanted = EditorGUILayout.IntSlider("Số lượng (×)", f.amount, 1, 3);
+        if (wanted != f.amount)
+        {
+            int wc = selCol, wr = selRow;
+            pending.Add(() => SetTileAmount(wc, wr, wanted));
+        }
+        {
+            var exp = Expected(new List<PoolType>());
+            exp.TryGetValue(f.typeFood, out int want);
+            CountBoard().TryGetValue(f.typeFood, out int have);
+            EditorGUILayout.LabelField($"Tổng {f.typeFood}: board {have} / đơn {want}", EditorStyles.miniLabel);
+        }
+        if (!string.IsNullOrEmpty(tileWarning)) EditorGUILayout.HelpBox(tileWarning, MessageType.Warning);
 
         Element cur = GetElement(f);
         var next = (Element)EditorGUILayout.EnumPopup("Element", cur);
@@ -591,6 +995,104 @@ public class SushiLevelEditorWindow : EditorWindow
         foreach (var c in level.boardColumns)
             foreach (var f in c.foods)
                 if (f != null) yield return f;
+    }
+
+    private void Warn(string msg)
+    {
+        tileWarning = msg;
+        ShowNotification(new GUIContent(msg));
+    }
+
+    /// Đổi số lượng (×) của một ô và bù/trừ vào các ô cùng loại để tổng nguyên liệu vẫn khớp đơn khách.
+    private void SetTileAmount(int c, int r, int wanted)
+    {
+        var f = FoodAt(c, r);
+        if (f == null) return;
+        wanted = Mathf.Clamp(wanted, 1, 3);
+        if (wanted == f.amount) return;
+
+        var expectedMap = Expected(new List<PoolType>());
+        expectedMap.TryGetValue(f.typeFood, out int expected);
+
+        if (wanted > expected)
+        {
+            Warn($"Không đủ nguyên liệu: đơn khách chỉ có {expected} {f.typeFood}, không thể ghi ×{wanted}.");
+            return;
+        }
+
+        var others = new List<(int col, int row, FoodData tile)>();
+        int othersSum = 0;
+        for (int cc = 0; cc < level.boardColumns.Count; cc++)
+        {
+            var foods = level.boardColumns[cc].foods;
+            for (int rr = 0; rr < foods.Count; rr++)
+            {
+                var t = foods[rr];
+                if (t == null || t == f || t.typeFood != f.typeFood) continue;
+                others.Add((cc, rr, t));
+                othersSum += t.amount;
+            }
+        }
+
+        int diff = (expected - wanted) - othersSum; // <0: cần bớt ở ô khác, >0: cần thêm vào ô khác
+        if (diff < 0)
+        {
+            int need = -diff;
+            int removable = others.Sum(x => GetElement(x.tile) == Element.Normal ? x.tile.amount : x.tile.amount - 1);
+            if (need > removable)
+            {
+                Warn($"Không thể ghi ×{wanted}: cần bớt {need} {f.typeFood} ở ô khác nhưng chỉ bù được {removable} (ô có element không bị xóa).");
+                return;
+            }
+            // Bước 1: giảm số lượng các ô khác (nhiều nhất trước) xuống tối thiểu ×1.
+            foreach (var o in others.OrderByDescending(x => x.tile.amount).ToList())
+            {
+                if (need <= 0) break;
+                int take = Mathf.Min(o.tile.amount - 1, need);
+                o.tile.amount -= take;
+                need -= take;
+            }
+            // Bước 2: nếu vẫn dư thì xóa các ô thường (từ cuối lên).
+            for (int i = others.Count - 1; i >= 0 && need > 0; i--)
+            {
+                var o = others[i];
+                if (GetElement(o.tile) != Element.Normal) continue;
+                need -= o.tile.amount;
+                level.boardColumns[o.col].foods.Remove(o.tile);
+            }
+        }
+        else if (diff > 0)
+        {
+            int add = diff;
+            // Bước 1: cộng vào các ô thường cùng loại (tối đa ×3).
+            foreach (var o in others)
+            {
+                if (add <= 0) break;
+                if (GetElement(o.tile) != Element.Normal) continue;
+                int take = Mathf.Min(3 - o.tile.amount, add);
+                o.tile.amount += take;
+                add -= take;
+            }
+            // Bước 2: còn dư thì sinh ô mới vào cột ngắn nhất.
+            int per = Mathf.Clamp(level.maxIngredientsPerTile, 1, 3);
+            while (add > 0)
+            {
+                int amt = Mathf.Min(per, add);
+                AddToShortest(new FoodData { typeFood = f.typeFood, amount = amt });
+                add -= amt;
+            }
+        }
+
+        f.amount = wanted;
+        tileWarning = null;
+
+        // Vị trí ô đang chọn có thể đổi nếu có ô bị xóa.
+        selCol = selRow = -1;
+        for (int cc = 0; cc < level.boardColumns.Count; cc++)
+        {
+            int idx = level.boardColumns[cc].foods.IndexOf(f);
+            if (idx >= 0) { selCol = cc; selRow = idx; break; }
+        }
     }
 
     private void MoveTile(int c1, int r1, int c2, int r2)
@@ -901,6 +1403,7 @@ public class SushiLevelEditorWindow : EditorWindow
     private void ResetSelection(bool keepCustomer = false)
     {
         selCol = selRow = dragCol = dragRow = -1;
+        tileWarning = null;
         linkMode = false;
         if (!keepCustomer) selCustomer = -1;
     }
