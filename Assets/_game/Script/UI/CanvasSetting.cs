@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,10 +12,17 @@ public class CanvasSetting : UICanvas
     public Button backbuttonLanguage;
     public GameObject panelSettingLanguage;
     public RectTransform mainPanelRect;
+    private Tween popTween;
+
 
     public override void Open()
     {
         base.Open();
+
+        popTween?.Kill();
+        mainPanelRect.localScale = Vector3.zero;
+        popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
+
         Time.timeScale = 0f;
         bool inGame = LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null;
         bool allowHome = inGame && GameManager.ins != null && GameManager.ins.CanReturnHome;
@@ -37,15 +45,40 @@ public class CanvasSetting : UICanvas
     public void OnReplayLevel() => OnReplay();
     public void OnReplay()
     {
-        Time.timeScale = 1f;
-        if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel()) CloseDirectly();
+
+
+        bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
+        //ObjLive.SetActive(!isUnlimited);
+        if (isUnlimited)
+        {
+            Time.timeScale = 1f;
+            if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel()) CloseDirectly();
+        }
+        else
+        {
+            UIManager.Ins.OpenUI<CanvasWarningLiveSetting>().Setupp(false);
+        }
+
     }
     public void OnGiveUp() { CloseDirectly(); LevelManager.Ins?.LoseLevel(); }
     public void OnBackHome()
     {
-        if (GameManager.ins == null || !GameManager.ins.CanReturnHome || GameManager.ins.IsLoadingLevel) return;
-         Time.timeScale = 1f;
-        GameManager.ins.ReturnToMainMenu();
+
+
+        bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
+        //ObjLive.SetActive(!isUnlimited);
+        if (isUnlimited)
+        {
+            if (GameManager.ins == null || !GameManager.ins.CanReturnHome || GameManager.ins.IsLoadingLevel) return;
+            Time.timeScale = 1f;
+            GameManager.ins.ReturnToMainMenu();
+        }
+        else
+        {
+            UIManager.Ins.OpenUI<CanvasWarningLiveSetting>().Setupp(true);
+
+        }
+
     }
     public void OnSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(true); }
     public void CloseSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(false); }

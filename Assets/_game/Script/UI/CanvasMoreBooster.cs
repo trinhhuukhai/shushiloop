@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CanvasMoreBooster : UICanvas
 {
-    public RectTransform textNotiTf;
+    //public RectTransform textNotiTf;
     public Transform UITf;
     public Tween scaleTween;
     private BoosterType boosterType;
@@ -15,9 +15,11 @@ public class CanvasMoreBooster : UICanvas
     [SerializeField] private GameObject magnet;
 
     [SerializeField] private TMP_Text  titleTxt;
+    [SerializeField] private TMP_Text  titleTxt2;
     [SerializeField] private TMP_Text priceTxt;
     [SerializeField] private TMP_Text descriptionTxt;
     [SerializeField] private TMP_Text amountBooster;
+    public TMP_Text txtGold;
 
     public bool isCloseAds;
     //public Text txtTotalGoal;
@@ -30,19 +32,16 @@ public class CanvasMoreBooster : UICanvas
         base.Open();
         LevelManager.Ins.isPlay = false;
         isCloseAds = false;
-        UIManager.Ins.GetUI<CanvasFloating>().ShowGold_Heart();
-        UIManager.Ins.GetUI<CanvasFloating>().HideAllSetting();
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
+        scaleTween?.Kill();
+        UITf.localScale = 0.6f * Vector3.one;
+        scaleTween = UITf.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+
+        //Time.timeScale = 0f;
         //ShowGold();
 
     }
 
-
-    private void OnEnable()
-    {
-        scaleTween?.Kill();
-        UITf.localScale = 0.6f * Vector3.one;
-        scaleTween = UITf.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
-    }
 
     public void Innit(BoosterType type)
     {
@@ -55,34 +54,39 @@ public class CanvasMoreBooster : UICanvas
         {
             case BoosterType.Click:
                 clear.SetActive(true);
-                titleTxt.text = "CLEAR".ToUpper();
+                titleTxt.text = "TONGS".ToUpper();
+                titleTxt2.text = "Booster Tongs";
                 priceTxt.text = price.ToString();
                 amountBooster.text = "+1";
                 if (GameDataFragment.cur.dataPlayer.money < price)
                     priceTxt.color = Color.red;
                 else priceTxt.color = Color.white;
-                descriptionTxt.text = "Fill 1 random bucket in the waiting board";
+                descriptionTxt.text = "Pick 1 visible item and send it to the conveyor.";
                 break;
             case BoosterType.Shuffle:
                 suffle.SetActive(true);
-                titleTxt.text = "Shuffle".ToUpper();
+                titleTxt.text = "Swap Row".ToUpper();
+                titleTxt2.text = "Booster Swap Row";
+
                 priceTxt.text = price.ToString();
                 amountBooster.text = "+1";
                 if (GameDataFragment.cur.dataPlayer.money < price)
                     priceTxt.color = Color.red;
                 else priceTxt.color = Color.white;
-                descriptionTxt.text = "Shuffle the buckets";
+                descriptionTxt.text = "Move the top row to the bottom and orther rows shift up.";
                 break;
 
             case BoosterType.Magnet:
                 magnet.SetActive(true);
                 titleTxt.text = "Magnet".ToUpper();
+                titleTxt2.text = "Booster Magnet";
+
                 priceTxt.text = price.ToString();
                 amountBooster.text = "+1";
                 if (GameDataFragment.cur.dataPlayer.money < price)
                     priceTxt.color = Color.red;
                 else priceTxt.color = Color.white;
-                descriptionTxt.text = "Fill one bucket of sand that's on the conveyor belt.";
+                descriptionTxt.text = "Collect all ingredients to instantly complete 1 dish.";
                 break;
             default:
                 Debug.LogError("Booster Item doesn't exist !!!");
@@ -141,6 +145,7 @@ public class CanvasMoreBooster : UICanvas
     {
         //UIManager.Ins.GetUI<CanvasFloating>().AnimGold(gold, false);
         UIManager.Ins.GetUI<CanvasFloating>().ShowGold();
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0"); ;
 
     }
 
@@ -156,7 +161,7 @@ public class CanvasMoreBooster : UICanvas
         //    OnAdsClosed,
         //    OnFail
         //);
-
+        OnAdsClosed();
         void OnFail()
         {
             //UIManager.Ins.GetUI<CanvasFloating>().showBtnSettingInGame(true);
@@ -168,50 +173,40 @@ public class CanvasMoreBooster : UICanvas
     {
 
         LevelManager.Ins.isPlay = false;
-
+        //Time.timeScale = 1f;
         switch (boosterType)
         {
             case BoosterType.Click:
 
-                //MaxManager.Ins.ShowReward("ingame_booster_hint", "ingame", () =>
-                //{
-                //    DataManager.Ins.ChangeHints(1, "ads_reward");
-                //GameDataFragment.cur.ChangeBoosterCount(BoosterType.Click, 1, "ads rw more booster");
+                GameDataFragment.cur.ChangeBoosterCount(BoosterType.Click, 1, "ads rw more booster");
                 UIManager.Ins.GetUI<CanvasGamePlay>().ButtonBoosterPick();
                 UIManager.Ins.CloseUI<CanvasMoreBooster>();
                 LevelManager.Ins.isPlay = true;
-                //UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterClick();
-                //});
+                UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterClick();
+
                 break;
             case BoosterType.Shuffle:
-                //MaxManager.Ins.ShowReward("ingame_booster_undo", "ingame", () =>
-                //{
-                //    DataManager.Ins.ChangeBoosterUndo(1, "ads_reward");
-                //GameDataFragment.cur.ChangeBoosterCount(BoosterType.Suffle, 1, "ads rw more booster");
+                GameDataFragment.cur.ChangeBoosterCount(BoosterType.Shuffle, 1, "ads rw more booster");
                 UIManager.Ins.GetUI<CanvasGamePlay>().ButtonBoosterHoanDoi();
                 UIManager.Ins.CloseUI<CanvasMoreBooster>();
                 LevelManager.Ins.isPlay = true;
-                UIManager.Ins.GetUI<CanvasFloating>().showBtnSettingInGame(true);
-                //UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterSuffle();
+                UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterSuffle();
 
-                //});
+
                 break;
             case BoosterType.Magnet:
-                //MaxManager.Ins.ShowReward("ingame_booster_undo", "ingame", () =>
-                //{
-                //    DataManager.Ins.ChangeBoosterUndo(1, "ads_reward");
-                //GameDataFragment.cur.ChangeBoosterCount(BoosterType.Hut, 1, "ads rw more booster");
+                GameDataFragment.cur.ChangeBoosterCount(BoosterType.Magnet, 1, "ads rw more booster");
                 UIManager.Ins.GetUI<CanvasGamePlay>().ButtonBoosterHut();
                 UIManager.Ins.CloseUI<CanvasMoreBooster>();
                 LevelManager.Ins.isPlay = true;
-                //UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterHut();
-                //});
+                UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterHut();
+
                 break;
             default:
                 Debug.LogError("Lifeline doesn't exist !!!");
                 break;
         }
-        UIManager.Ins.GetUI<CanvasFloating>().HideGold_Heart();
+        //UIManager.Ins.GetUI<CanvasFloating>().HideGold_Heart();
 
         //UIManager.Ins.CloseUI<CanvasMoreBooster>();
         //DOVirtual.DelayedCall(0.05f, () =>
@@ -234,9 +229,8 @@ public class CanvasMoreBooster : UICanvas
                 {
                     isEnough = true;
                     GameDataFragment.cur.ChangeMoney(-price, "buy_booster_clear");
-                    //GameDataFragment.cur.ChangeBoosterCount(BoosterType.Click, 1, "popup more booster");
+                    GameDataFragment.cur.ChangeBoosterCount(BoosterType.Click, 1, "popup more booster");
                     gold = price;
-                    UIManager.Ins.GetUI<CanvasGamePlay>().ButtonBoosterPick();
                     UIManager.Ins.CloseUI<CanvasMoreBooster>();
                     LevelManager.Ins.isPlay = true;
                     //DataManager.Ins.ChangeGolds(-price, "buy_booster");
@@ -252,9 +246,8 @@ public class CanvasMoreBooster : UICanvas
                 {
                     isEnough = true;
                     GameDataFragment.cur.ChangeMoney(-price, "buy_booster_suffle");
-                    //GameDataFragment.cur.ChangeBoosterCount(BoosterType.Suffle, 1, "popup more booster");
+                    GameDataFragment.cur.ChangeBoosterCount(BoosterType.Shuffle, 1, "popup more booster");
                     gold = price;
-                    UIManager.Ins.GetUI<CanvasGamePlay>().ButtonBoosterHoanDoi();
                     UIManager.Ins.CloseUI<CanvasMoreBooster>();
                     LevelManager.Ins.isPlay = true;
                     //DataManager.Ins.ChangeGolds(-price, "buy_booster");
@@ -270,9 +263,8 @@ public class CanvasMoreBooster : UICanvas
                 {
                     isEnough = true;
                     GameDataFragment.cur.ChangeMoney(-price, "buy_booster_magnet");
-                    //GameDataFragment.cur.ChangeBoosterCount(BoosterType.Hut, 1, "popup more booster");
+                    GameDataFragment.cur.ChangeBoosterCount(BoosterType.Magnet, 1, "popup more booster");
                     gold = price;
-                    UIManager.Ins.GetUI<CanvasGamePlay>().ButtonBoosterHut();
                     UIManager.Ins.CloseUI<CanvasMoreBooster>();
                     LevelManager.Ins.isPlay = true;
                     //DataManager.Ins.ChangeGolds(-price, "buy_booster");
@@ -295,33 +287,31 @@ public class CanvasMoreBooster : UICanvas
 
         if (isEnough)
         {
+
             UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterClick();           
             UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterHut();           
-            UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterSuffle();   
-            UIManager.Ins.GetUI<CanvasFloating>().HideGold_Heart();
-
-            UIManager.Ins.GetUI<CanvasGamePlay>().setTxtGold();
+            UIManager.Ins.GetUI<CanvasGamePlay>().UpdateBoosterSuffle(); 
             
-            if (boosterType == BoosterType.Shuffle)
-                UIManager.Ins.GetUI<CanvasFloating>().showBtnSettingInGame(true);
+            UIManager.Ins.GetUI<CanvasGamePlay>().setTxtGold();
             UpdateGold(-gold);
 
 
         }
         else
         {
-            DOTween.Kill(textNotiTf, true);
-            textNotiTf.gameObject.SetActive(true);
+            //DOTween.Kill(textNotiTf, true);
+            //textNotiTf.gameObject.SetActive(true);
 
-            Vector3 oldPos = textNotiTf.localPosition;
-            textNotiTf.DOLocalMoveY(oldPos.y + 7f, 0.5f).SetEase(Ease.OutSine).OnComplete(() =>
-            {
+            //Vector3 oldPos = textNotiTf.localPosition;
+            //textNotiTf.DOLocalMoveY(oldPos.y + 7f, 0.5f).SetEase(Ease.OutSine).OnComplete(() =>
+            //{
 
-                textNotiTf.gameObject.SetActive(false);
-                textNotiTf.localPosition = oldPos;
-            });
+            //    textNotiTf.gameObject.SetActive(false);
+            //    textNotiTf.localPosition = oldPos;
+            //});
 
-            //UIManager.Ins.OpenUI<CanvasShop>().ScrollToGold();
+            //CloseDirectly();
+            //UIManager.Ins.OpenUI<CanvasShop>();
 
         }
     }
@@ -329,15 +319,7 @@ public class CanvasMoreBooster : UICanvas
     public void BackBtn()
     {
         LevelManager.Ins.isPlay = true;
-        //SoundManager.PlayEfx(SoundID.sfx_click);
-
-        if (boosterType == BoosterType.Magnet)
-        {
-            //BoosterManager.Ins.UnLockhutCat();
-
-        }
-        UIManager.Ins.GetUI<CanvasFloating>().HideGold_Heart();
-        UIManager.Ins.GetUI<CanvasFloating>().showBtnSettingInGame(true);
+        //Time.timeScale = 1f;
         UIManager.Ins.CloseUI<CanvasMoreBooster>();
 
     }

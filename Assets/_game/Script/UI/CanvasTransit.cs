@@ -1,81 +1,127 @@
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// UICTransis owns the visual cover. GameManager owns the level-loading coroutine.
 public class CanvasTransit : UICanvas
 {
-    public List<GameObject> tutorials = new List<GameObject>();
-    public Image fill;
-    [SerializeField] private CanvasGroup fadeGroup;
-    [SerializeField] private TMP_Text levelLabel;
-    [SerializeField, Min(0.1f)] private float preparationDuration = 0.45f;
-    private Coroutine delayedTransition;
+
+    public List<GameObject> tutorials;
+    public TMP_Text txtLevel;
+
+    private void Awake()
+    {
+
+        var ratio = ((float)Screen.width / Screen.height) / (1080f / 1920);
+    }
 
     public override void Open()
     {
         base.Open();
-        if (fadeGroup != null) { fadeGroup.DOKill(); fadeGroup.alpha = 0; fadeGroup.blocksRaycasts = true; }
-        SetProgress(0);
+        txtLevel.text = "LEVEL " + (GameDataFragment.cur.dataPlayer.cur_level + 1).ToString();
     }
 
-    public IEnumerator CoverLevel(int levelIndex)
+    private int UCLN(int a, int b)
     {
-        if (levelLabel != null) levelLabel.text = "Level " + (levelIndex + 1);
-        if (fadeGroup != null)
-            yield return fadeGroup.DOFade(1, 0.16f).SetUpdate(true).WaitForCompletion();
-        if (fill != null)
-            yield return fill.DOFillAmount(0.75f, preparationDuration).SetEase(Ease.OutSine).SetUpdate(true).WaitForCompletion();
-        else yield return new WaitForSecondsRealtime(preparationDuration);
-    }
+        int maxNum = 100;
+        while (a != b)
+        {
+            if (a > b)
+                a = a - b;
+            else
+                b = b - a;
 
-    public void SetProgress(float progress)
+            maxNum--;
+            if (maxNum < 0) return 0;
+        }
+
+        return a; // or return b; a = b
+    }
+    private void SelectTut(int currentLevel)
     {
-        if (fill == null) return;
-        fill.DOKill(); fill.gameObject.SetActive(true); fill.fillAmount = Mathf.Clamp01(progress);
+        if (tutorials == null || tutorials.Count == 0) return;
+        tutorials.ForEach(tut => { if (tut != null) tut.SetActive(false); });
+
+        int maxIndex = tutorials.Count - 1;
+        int chosenIndex;
+
+        // Rule:
+        // level 0 -> 4 : tut 0
+        // level 5 : tut 1
+        // level 6 -> 9 : random 0 1
+        // level 10 : tut 2
+        // level 11 -> 14 : random 0 1 2
+        // level 15 : tut 3
+        // còn lại : random 0 1 2 3
+        if (currentLevel <= 4)
+        {
+            chosenIndex = 0;
+        }
+        else if (currentLevel == 5)
+        {
+            chosenIndex = 1;
+        }
+        else if (currentLevel < 10)
+        {
+            chosenIndex = UnityEngine.Random.Range(0, 2); // 0..1
+        }
+        else if (currentLevel == 10)
+        {
+            chosenIndex = 2;
+        }
+        else if (currentLevel < 15)
+        {
+            chosenIndex = UnityEngine.Random.Range(0, 3); // 0..2
+        }
+        else if (currentLevel == 15)
+        {
+            chosenIndex = 3;
+        }
+        else
+        {
+            chosenIndex = UnityEngine.Random.Range(0, 4); // 0..3
+        }
+
+        chosenIndex = Mathf.Clamp(chosenIndex, 0, maxIndex);
+        if (tutorials[chosenIndex] != null)
+            tutorials[chosenIndex].SetActive(true);
+
     }
 
-    public IEnumerator RevealLevel(bool closeWhenComplete = true)
+#if UNITY_EDITOR
+    [ContextMenu("AAA")]
+    public void Trns()
     {
-        SetProgress(1);
-        yield return new WaitForSecondsRealtime(0.12f);
-        if (fadeGroup != null)
-            yield return fadeGroup.DOFade(0, 0.2f).SetUpdate(true).WaitForCompletion();
-        if (closeWhenComplete) CloseDirectly();
+        MakeTransit();
+    }
+#endif
+    public void MakeTransit(Action onDone = null)
+    {
+
+        onDone?.Invoke();
+        base.CloseDirectly();
     }
 
-    public void MakeTransit(Action onDone = null) => MakeDelayTransit(onDone, preparationDuration);
-
+    public Image fill;
     public void MakeDelayTransit(Action action, float delay = 1.44f)
     {
-        if (delayedTransition != null) StopCoroutine(delayedTransition);
-        Open();
-        delayedTransition = StartCoroutine(DelayedTransition(action, Mathf.Max(0, delay)));
-    }
+        //SelectTut(LevelDataFragment.cur.gameData.level);
+        fill.DOKill();
+        fill.gameObject.SetActive(true);
+        fill.fillAmount = 0f;
+        fill.DOFillAmount(1f, delay).SetEase(Ease.Linear);
+        SoundManager.PlayEfx(SoundID.sfx_game_loading);
+        Timer.ScheduleSupreme(delay, () =>
+        {
+            fill.DOKill();
+            fill.fillAmount = 0f;
+            fill.gameObject.SetActive(false);
 
-    private IEnumerator DelayedTransition(Action action, float delay)
-    {
-        if (fadeGroup != null) fadeGroup.alpha = 1;
-        if (fill != null) fill.DOFillAmount(0.75f, delay).SetUpdate(true);
-        yield return new WaitForSecondsRealtime(delay);
-        bool completed = false;
-        try { action?.Invoke(); completed = true; }
-        finally { delayedTransition = null; if (!completed) CloseDirectly(); }
-        yield return RevealLevel();
+            action?.Invoke();
+            Time.timeScale = 1f;
+            base.CloseDirectly();
+        });
     }
-
-    protected override void OnDisable()
-    {
-        if (delayedTransition != null) StopCoroutine(delayedTransition);
-        delayedTransition = null;
-        if (fill != null) fill.DOKill();
-        if (fadeGroup != null) fadeGroup.DOKill();
-        base.OnDisable();
-    }
-
-    public override void BackKey() { }
 }

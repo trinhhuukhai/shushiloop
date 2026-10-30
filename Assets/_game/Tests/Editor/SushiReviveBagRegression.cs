@@ -87,7 +87,7 @@ public static partial class SushiGameplayRegression
         Check(!FirstBag.IsPacking && !conveyor.CanMakeProgress, "irrelevant stored toppings hid a real deadlock");
         FillBagBelt();
         CheckLevelState(5);
-        level.TryReviveWithAd();
+        //level.TryReviveWithAd();
         Check(level.PendingRevive == SushiReviveReason.None && conveyor.FreeSlotCount == 4 && payment.balance == 700,
             "rewarded revive did not pack a bag or charged coins");
         FillBagBelt();

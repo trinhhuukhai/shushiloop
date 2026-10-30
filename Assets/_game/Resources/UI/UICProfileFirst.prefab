@@ -716,6 +716,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IsDestroyOnClose: 0
   inputField: {fileID: 6002441288537369164}
+  mainPanelRect: {fileID: 7235166077660195692}
 --- !u!1 &5229612920633378891
 GameObject:
   m_ObjectHideFlags: 0

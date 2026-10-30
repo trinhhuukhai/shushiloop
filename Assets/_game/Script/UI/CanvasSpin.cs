@@ -175,8 +175,8 @@ public class CanvasSpin : UICanvas
         //AudioManager.ins.PlaySound(SoundType.UIClick);
         //SoundManager.PlayEfx(SoundID.sfx_ui_popup_disappear);
         BlockUI.Ins.UnBlock();
-        UIManager.Ins.GetUI<CanvasFloating>().ShowGoldAndHeart();
-        UIManager.Ins.GetUI<CanvasFloating>().ShowSettingButton(true);
+        //UIManager.Ins.GetUI<CanvasFloating>().ShowGoldAndHeart();
+        //UIManager.Ins.GetUI<CanvasFloating>().ShowSettingButton(true);
         Close();
     }
 

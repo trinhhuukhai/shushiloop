@@ -1,62 +1,150 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CanvasRevive : UICanvas
 {
-    public GameObject btnHome;
-    public CanvasGroup grandCg;
-    [SerializeField] private TMP_Text title;
-    [SerializeField] private TMP_Text description;
-    [SerializeField] private TMP_Text coinPrice;
-    [SerializeField] private TMP_Text retryLabel;
-    [SerializeField] private TMP_Text feedback;
-    [SerializeField] private GameObject reviveActions;
-    [SerializeField] private Button coinButton;
-    [SerializeField] private Button adButton;
+
+    //---revive
+    public GameObject loseOutSpace;
+    public GameObject loseTimeup;
+
+    [SerializeField] private CanvasGroup grandCg;
+    public RectTransform mainPanelRect;
+    private Tween popTween;
 
     public override void Open()
     {
-        base.Open();
-        feedback.text = "";
+
+
+
+        bool revive = LevelManager.Ins.PendingRevive != SushiReviveReason.None;
+        if (revive && LevelManager.Ins.PendingRevive == SushiReviveReason.RushCustomer)
+        {
+            UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(true, SushiReviveReason.RushCustomer);
+        }
+        else if (revive && LevelManager.Ins.PendingRevive == SushiReviveReason.FullConveyor)
+        {
+            UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(true, SushiReviveReason.FullConveyor);
+        }
+
+        DOVirtual.DelayedCall(1.3f, () =>
+        {
+            base.Open();
+            popTween?.Kill();
+            mainPanelRect.localScale = Vector3.zero;
+            popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
+
+            UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(false, SushiReviveReason.None);
+        });
+
         Refresh();
     }
-    private void Update() => Refresh();
+    //private void Update() => Refresh();
     private void Refresh()
     {
         LevelManager level = LevelManager.Ins;
         if (level == null) return;
-        if (btnHome != null) btnHome.SetActive(GameManager.ins != null && GameManager.ins.CanReturnHome);
+        loseTimeup.SetActive(false);
+        loseOutSpace.SetActive(false);
         bool revive = level.PendingRevive != SushiReviveReason.None;
-        title.text = revive ? "Tiếp tục phục vụ?" : "Chưa hoàn thành";
-        description.text = !revive ? "Thử lại để hoàn thành các order nhé!" :
-            level.PendingRevive == SushiReviveReason.RushCustomer ? "Khách đã hết giờ. Tiếp tục để thêm 30 giây." :
-            level.PendingRevive == SushiReviveReason.FullConveyor ?
-            "Gom nguyên liệu từ 5 đĩa vào 1 túi, mở thêm 4 chỗ trống. Nguyên liệu tự bay từ túi đến đĩa món khi khách cần." :
-            "Các cột đã đóng băng. Tiếp tục để phá băng hàng đầu.";
-        reviveActions.SetActive(revive);
-        coinPrice.text = level.ReviveCost + " xu";
-        coinButton.interactable = level.CanPurchaseRevive;
-        adButton.gameObject.SetActive(revive && level.CanWatchReviveAd);
-        retryLabel.text = revive ? "Không tiếp tục" : "Chơi lại";
+        if(revive && level.PendingRevive == SushiReviveReason.RushCustomer)
+        {
+            loseTimeup.SetActive(true);
+        }else if(revive && level.PendingRevive == SushiReviveReason.FullConveyor)
+        {
+            loseOutSpace.SetActive(true);
+        }
     }
+    //public void BtnRevive()
+    //{
+    //    if (LevelManager.Ins != null)
+    //        LevelManager.Ins.ReVive();
+    //    CloseDirectly();
+    //}
+
+
     public void BtnRevive()
     {
-        if (LevelManager.Ins != null && LevelManager.Ins.TryReviveWithCoins()) CloseDirectly();
-        else feedback.text = "Chưa đủ xu để tiếp tục.";
+        int price = 1000;
+        bool isEnough = false;
+        int gold = 0;
+        if (GameDataFragment.cur.dataPlayer.money >= price)
+        {
+            isEnough = true;
+            GameDataFragment.cur.ChangeMoney(-price, "revive_level");
+            gold = price;
+
+        }
+
+
+        if (isEnough)
+        {
+            SoundManager.PlayEfx(SoundID.sfx_click);
+            LevelManager.Ins.ReVive();
+
+            if (UIManager.Ins.IsOpened<CanvasGamePlay>())
+            {
+                UIManager.Ins.GetUI<CanvasGamePlay>().setTxtGold();
+            }
+            var data = GameDataFragment.cur.dataPlayer;
+            //FirebaseManager.Ins.REVIVE_offer(data.cur_level, data._retryCountThisLevel, "Revive_gold", "normal_lose");
+            Close();
+
+        }
+        else
+        {
+            //UIManager.Ins.OpenUI<CanvasShop>();
+            LevelManager.Ins.ReVive();
+        }
     }
-    public void ReviveWithAd() => LevelManager.Ins?.TryReviveWithAd();
-    public void BtnNext()
+
+    public void ReviveWithAd()
     {
-        LevelManager level = LevelManager.Ins;
-        if (level == null) return;
-        if (level.PendingRevive != SushiReviveReason.None) { level.DeclineRevive(); Refresh(); }
-        else { CloseDirectly(); level.ReplayLevel(); }
+        if (LevelManager.Ins != null)
+            LevelManager.Ins.ReVive();
+        CloseDirectly();
     }
-    public void CheckBtnRetry() => BtnNext();
-    public void OnNextRetryWhenAddLive() { CloseDirectly(); LevelManager.Ins?.ReplayLevel(); }
-    public void BtnHome() { if (GameManager.ins == null || !GameManager.ins.CanReturnHome) return; GameManager.ins.ReturnToMainMenu(); }
     public void OnHandTouchPanel() { if (grandCg != null) grandCg.alpha = 0.2f; }
     public void OnHAndReleasePanel() { if (grandCg != null) grandCg.alpha = 1; }
-    public void Close() => CloseDirectly();
+    public void Close()
+    {
+        UIManager.Ins.OpenUI<CanvasFail>();
+        CloseDirectly();
+    }
+
+
+    public void backBtn()
+    {
+        SoundManager.PlayEfx(SoundID.sfx_click);
+
+        bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
+        if (GameDataFragment.cur.dataPlayer.cur_level > 9)
+        {
+            if (!isUnlimited)
+            {
+                UIManager.Ins.OpenUI<CanvasWarningLive>();
+
+            }
+            else
+            {
+                UIManager.Ins.OpenUI<CanvasFail>();
+                var data = GameDataFragment.cur.dataPlayer;
+                //FirebaseManager.Ins.REVIVE_offer(data.cur_level, data._retryCountThisLevel, "Revive_Exit", "normal_lose");
+                Close();
+
+            }
+        }
+        else
+        {
+            UIManager.Ins.OpenUI<CanvasFail>();
+            var data = GameDataFragment.cur.dataPlayer;
+            //FirebaseManager.Ins.REVIVE_offer(data.cur_level, data._retryCountThisLevel, "Revive_Exit", "normal_lose");
+            Close();
+        }
+
+
+    }
+
 }

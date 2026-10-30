@@ -190,7 +190,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.08, g: 0.045, b: 0.025, a: 0.75}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.84313726}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -272,7 +272,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 200
+  m_text: 800
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d9321ad2d866e46429747b1edfd56fd0, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 0516bb18011d765488a11e15692105ad, type: 2}
@@ -709,12 +709,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CanvasLive
   IsDestroyOnClose: 0
-  txtLive: {fileID: 3724054439977784449}
+  txtCountLives: {fileID: 3724054439977784449}
   timeObject: {fileID: 3458562665989483925}
-  time: {fileID: 8571274777412591556}
+  txtTime: {fileID: 8571274777412591556}
   txtTile: {fileID: 2837483022491858309}
   HeartRed: {fileID: 4487688092505069517}
   HeartBlack: {fileID: 3603743497118066645}
+  priceTxt: {fileID: 3468282582511143769}
+  mainPanelRect: {fileID: 2516722728369767863}
 --- !u!1 &3458562665989483925
 GameObject:
   m_ObjectHideFlags: 0

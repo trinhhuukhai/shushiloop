@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -7,11 +8,15 @@ using UnityEngine.UI;
 public class CanvasFirstOpenProfile : UICanvas
 {
     public InputField inputField;
+    public RectTransform mainPanelRect;
+    private Tween popTween;
 
     public override void Open()
     {
         base.Open();
-
+        popTween?.Kill();
+        mainPanelRect.localScale = Vector3.zero;
+        popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
         inputField.text = ProfileDataFragment.cur.gameData.userName;
     }
 

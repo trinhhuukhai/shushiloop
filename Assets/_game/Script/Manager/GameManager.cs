@@ -1,5 +1,4 @@
 ﻿using DG.Tweening;
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,12 +21,14 @@ public enum GameScene
     Home,
     GamePlay
 }
+
 public enum BoosterType
 {
     Click,
     Shuffle,
     Magnet
 }
+
 public class GameManager : MonoBehaviour
 {
     public static GameManager ins;
@@ -52,6 +53,26 @@ public class GameManager : MonoBehaviour
 
     public bool vuaMuaIAPSeasonpass = false;
     public bool showPopupDailyLogin = false;
+
+    // ===== Loading / level flow =====
+    public const int MainMenuUnlockLevel = 5;
+    private const string GamePlaySceneName = "GamePlay";
+
+    [Header("Loading")]
+    [SerializeField, Min(0.5f)] private float minimumStartupLoadingDuration = 1.65f;
+    private float levelTransitDuration = 1.44f;
+
+    public float MinimumStartupLoadingDuration => minimumStartupLoadingDuration;
+    public bool IsLoadingLevel { get; private set; }
+
+    // Level từ đó trở đi mới có Home (giống levelBackToHome của Sand). Để 0 thì dùng hằng số mặc định.
+    private int HomeUnlockLevel => levelBackToHome > 0 ? levelBackToHome : MainMenuUnlockLevel;
+
+    // Gate Home using the level being played, even after victory advances the saved profile.
+    public bool CanReturnHome => LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null &&
+        LevelManager.Ins.CurrentLevelIndex + 1 >= HomeUnlockLevel;
+    public bool CanOpenMainMenu => SelectedLevelIndex() + 1 >= HomeUnlockLevel;
+
     protected void Awake()
     {
         if (ins != null && ins != this) { Destroy(gameObject); return; }
@@ -63,105 +84,19 @@ public class GameManager : MonoBehaviour
         Application.targetFrameRate = 60;
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
-        // int maxScreenHeight = 1280;
-        // float ratio = (float)Screen.currentResolution.width / (float)Screen.currentResolution.height;
-        // if (Screen.currentResolution.height > maxScreenHeight)
-        // {
-        //     Screen.SetResolution(Mathf.RoundToInt(ratio * (float)maxScreenHeight), maxScreenHeight, true);
-        // }
         vuaMuaIAPSeasonpass = false;
         showPopupDailyLogin = false;
         ChangeState(GameState.MainMenu);
     }
 
-
-    /*private void Update()
+    private void Start()
     {
-        if (!DataManager.Ins.isLoaded) return;
-        if (DataManager.Ins.playerData.spinAdsExpire.IsNullOrEmpty()) return;
+        StartCoroutine(ie_LoadGame());
+    }
 
-        DateTime expireDateTime = DateTime.Parse(DataManager.Ins.playerData.spinAdsExpire);
-        if (WorldTimeAPI.Ins.GetCurrentDateTime() > expireDateTime)
-        {
-            
-        }
+    private void OnDestroy() { if (ins == this) ins = null; }
 
-    }*/
-
-    //public void FetchRemoteConfig()
-    //{
-    //    try
-    //    {
-    //        levelShowInter = (int)FirebaseManager.Ins.GetValue_Long("level_show_inter");
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        levelShowInter = 9;
-    //        Debug.LogError("ex: " + e.ToString());
-    //    }
-    //    try
-    //    {
-    //        AdsManager.Ins.isUsingRemoteLevelShowInter = FirebaseManager.Ins.GetValue_Boolean("using_remote_show_inter");
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        AdsManager.Ins.isUsingRemoteLevelShowInter = true;
-    //        Debug.LogError("ex: " + e.ToString());
-    //    }
-    //    try
-    //    {
-    //        AdsManager.Ins.capping_5_15 = (int)FirebaseManager.Ins.GetValue_Long("capping_5_15");
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        AdsManager.Ins.capping_5_15 = 120;
-    //        Debug.LogError("ex: " + e.ToString());
-    //    }
-
-    //    Debug.Log("fettt remote ne");
-    //}
-
-
-    //public int GetLevelShowInter()
-    //{
-    //    if (AdsManager.Ins == null ||
-    //        !AdsManager.Ins.isUsingRemoteLevelShowInter)
-    //    {
-    //        return 9;
-    //    }
-
-    //    //if (FirebaseManager.Ins != null)
-    //    //{
-    //    //    int remoteValue = (int)Firebase.RemoteConfig
-    //    //        .FirebaseRemoteConfig.DefaultInstance
-    //    //        .GetValue("level_show_inter")
-    //    //        .LongValue;
-
-    //    //    if (remoteValue > 0)
-    //    //    {
-    //    //        return remoteValue;
-    //    //    }
-    //    //}
-    //    return levelShowInter;
-    //}
-
-    //public bool IsDailyRewardUnlock()
-    //{
-    //    return ((GameDataFragment.cur.dataPlayer.cur_level + 1) > levelUnlockDailyReward);
-    //}
-
-
-
-    //public bool IsDailyLoginUnlock()
-    //{
-    //    return ((GameDataFragment.cur.dataPlayer.cur_level + 1) > levelUnlockDailyLogin);
-    //}
-
-    //public bool IsSpinUnlock()
-    //{
-    //    return ((GameDataFragment.cur.dataPlayer.cur_level + 1) > levelUnlockSpin);
-    //}
-
+    // ===== State helpers =====
     public static void ChangeState(GameState state)
     {
         gameState = state;
@@ -182,54 +117,54 @@ public class GameManager : MonoBehaviour
         return gameScene == scence;
     }
 
-    private void Start()
-    {
-        StartCoroutine(ie_LoadGame());
-    }
-
-    public const int MainMenuUnlockLevel = 5;
-    [SerializeField, Min(0.5f)] private float minimumStartupLoadingDuration = 1.65f;
-    public float MinimumStartupLoadingDuration => minimumStartupLoadingDuration;
-    public bool IsLoadingLevel { get; private set; }
-
-    // Gate Home using the level being played, even after victory advances the saved profile.
-    public bool CanReturnHome => LevelManager.Ins != null && LevelManager.Ins.CurrentLevel != null &&
-        LevelManager.Ins.CurrentLevelIndex + 1 >= MainMenuUnlockLevel;
-    public bool CanOpenMainMenu => SelectedLevelIndex() + 1 >= MainMenuUnlockLevel;
-
     private int SelectedLevelIndex()
     {
         LevelManager level = LevelManager.Ins;
-        int index = GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null && !isPlayTestingLevel
-            ? GameDataFragment.cur.dataPlayer.cur_level : level != null ? level.CurrentLevelIndex : 0;
-        return level != null && level.LevelCount > 0 ? Mathf.Clamp(index, 0, level.LevelCount - 1) : Mathf.Max(0, index);
+        if (level != null) return level.ResolveStartLevelIndex();
+        return 0;
     }
 
+    // =====================================================================
+    //  STARTUP: Loading -> Data -> GamePlay scene -> (vào level | Home)
+    //  Cùng thứ tự với game Sand:
+    //  chờ hệ thống -> LoadData -> load scene GamePlay -> quyết định vào level hay Home.
+    // =====================================================================
     private IEnumerator ie_LoadGame()
     {
         IsLoadingLevel = true;
         Time.timeScale = 1;
         float startedAt = Time.realtimeSinceStartup;
-        LoadingScreen loading = LoadingScreen.ins;
+        LoadingScreen loading = null;
         LevelManager coveredLevel = null;
         bool enteredGameplay = false;
         try
         {
+            // 1. Chờ LoadingScreen (tối đa 2s; scene dev có thể không có).
+            float loadingDeadline = Time.realtimeSinceStartup + 2f;
+            while (LoadingScreen.ins == null && Time.realtimeSinceStartup < loadingDeadline)
+                yield return null;
+            loading = LoadingScreen.ins;
             if (loading != null)
             {
                 loading.SetPercent(0.15f, 0.15f);
                 loading.StartCoroutine(loading.ie_txtLoading());
             }
-            yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded && UIManager.Ins != null);
+
+            // 2. Chờ các hệ thống cần thiết rồi load data.
+            yield return new WaitUntil(() => DataManager.ins != null && UIManager.Ins != null);
+            yield return new WaitUntil(() => DataManager.ins != null && DataManager.ins.isLoaded);
+
             if (loading != null)
             {
+                // Giữ loading che màn hình khi scene GamePlay được load.
                 DontDestroyOnLoad(loading.gameObject);
                 loading.SetPercent(0.55f, 0.25f);
             }
-            Scene scene = SceneManager.GetSceneByName("GamePlay");
-            if (!scene.IsValid() || !scene.isLoaded)
-                yield return SceneManager.LoadSceneAsync("GamePlay");
 
+            // 3. Load scene GamePlay (nếu chưa có).
+            yield return LoadGamePlayScene();
+
+            // 4. Vào level ngay (che dưới loading) hoặc về Home.
             LevelManager level = LevelManager.Ins;
             if (level == null)
                 Debug.LogError("GamePlay scene is missing its LevelManager.");
@@ -237,19 +172,9 @@ public class GameManager : MonoBehaviour
             {
                 coveredLevel = level;
                 coveredLevel.SetPopupOpen(true);
-                level.LoadLevel(SelectedLevelIndex(), false);
+                IntoLevelHandle();
+                yield return LoadLevelUnderCover(level, SelectedLevelIndex(), false);
                 enteredGameplay = level.IsPlaying;
-                yield return null;
-                yield return null;
-
-                if (enteredGameplay)
-                {
-                    // Mở HUD khi loading còn che, đợi canvas build + render xong.
-                    level.ShowGameplayHud(true);
-                    yield return null;
-                    Canvas.ForceUpdateCanvases();
-                    yield return new WaitForEndOfFrame();
-                }
             }
 
             if (loading != null) loading.SetPercent(1, 0.25f);
@@ -270,6 +195,48 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Giống Sand: allowSceneActivation = false tới 0.9 rồi mới cho kích hoạt.
+    private IEnumerator LoadGamePlayScene()
+    {
+        Scene scene = SceneManager.GetSceneByName(GamePlaySceneName);
+        if (scene.IsValid() && scene.isLoaded) yield break;
+
+        AsyncOperation op = SceneManager.LoadSceneAsync(GamePlaySceneName);
+        if (op == null)
+        {
+            Debug.LogError("Cannot load scene " + GamePlaySceneName);
+            yield break;
+        }
+        op.allowSceneActivation = false;
+        while (op.progress < 0.9f) yield return null;
+        op.allowSceneActivation = true;
+        while (!op.isDone) yield return null;
+    }
+
+    // Dựng board + mở HUD dưới lớp phủ (loading hoặc transit) để khi lớp phủ đóng thì UI đã sẵn sàng.
+    // openHudUnderCover = false: chỉ dựng board, HUD sẽ được mở đúng lúc lớp phủ biến mất
+    // (dùng cho lúc vào game để HUD và scene GamePlay hiện cùng một frame).
+    private IEnumerator LoadLevelUnderCover(LevelManager level, int index, bool openHudUnderCover)
+    {
+        level.LoadLevel(index, false);
+        if (!level.IsPlaying) yield break;
+
+        // Chờ layout và sprite của board ổn định.
+        yield return null;
+        yield return null;
+
+        if (openHudUnderCover)
+        {
+            level.ShowGameplayHud(true);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+        }
+        yield return new WaitForEndOfFrame();
+    }
+
+    // =====================================================================
+    //  LEVEL FLOW (tương đương ClickPlayGame / OnRetry 
+    // =====================================================================
     public bool StartCurrentLevel()
     {
         if (IsLoadingLevel || !IsScene(GameScene.Home) || DataManager.ins == null ||
@@ -309,34 +276,51 @@ public class GameManager : MonoBehaviour
     private IEnumerator LoadSelectedLevel(int index)
     {
         CanvasTransit transit = null;
+        LevelManager level = LevelManager.Ins;
+        bool held = false;
         try
         {
-            LevelManager level = LevelManager.Ins;
             if (level == null)
             {
                 Debug.LogError("GamePlay scene is missing its LevelManager.");
                 yield break;
             }
+
             index = Mathf.Clamp(index, 0, Mathf.Max(0, level.LevelCount - 1));
+
             transit = UIManager.Ins.OpenUI<CanvasTransit>();
-            // Real frames show the cover before the board and customers are initialized.
-            yield return transit.CoverLevel(index);
-            level.LoadLevel(index, false);
+            if (transit == null) yield break;
+
+            // Transit tự đóng sau levelTransitDuration và gọi callback này.
+            bool transitDone = false;
+            transit.MakeDelayTransit(() => transitDone = true, levelTransitDuration);
+
+            // Chờ vài frame thật để lớp phủ hiện ra trước khi dựng board.
+            yield return null;
+            yield return null;
+
+            // Giữ gameplay đứng yên (rush timer, băng chuyền, input) dưới lớp phủ.
+            level.SetPopupOpen(true);
+            held = true;
+
+            IntoLevelHandle();
+            yield return LoadLevelUnderCover(level, index, true);
             if (!level.IsPlaying) yield break;
-            yield return null;
-            yield return null;
 
-            // Mở HUD dưới lớp transit, rồi mới reveal.
-            level.ShowGameplayHud(true);
-            yield return null;
-            Canvas.ForceUpdateCanvases();
-            yield return new WaitForEndOfFrame();
-
-            yield return transit.RevealLevel(false);
+            // Đợi transit tự đóng (có timeout để không bị treo nếu transit bị huỷ).
+            float deadline = Time.realtimeSinceStartup + levelTransitDuration + 2f;
+            while (!transitDone && transit != null && Time.realtimeSinceStartup < deadline)
+                yield return null;
         }
         finally
         {
-            if (transit != null) transit.CloseDirectly();
+            // MakeDelayTransit đã tự đóng; chỉ đóng thêm nếu còn đang mở (lỗi/yield break giữa chừng).
+            if (transit != null && UIManager.Ins != null && UIManager.Ins.IsOpened<CanvasTransit>())
+                transit.CloseDirectly();
+
+            // Thả giữ sau khi lớp phủ đã biến mất.
+            if (held && level != null) level.SetPopupOpen(false);
+
             IsLoadingLevel = false;
             if (this != null)
             {
@@ -363,84 +347,32 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.MainMenu);
         UIManager.Ins.OpenUI<CanvasMainMenu>();
     }
-    private void OnDestroy() { if (ins == this) ins = null; }
 
-    void OnApplicationPause(bool pauseStatus)
+    // Hook chạy ngay trước khi vào level (Sand: ResolutionFitter, NotificationManager...).
+    public void IntoLevelHandle()
     {
-        if (pauseStatus)
-        {
-            if (DataManager.ins != null) DataManager.ins.SaveData();
-            //GameDataFragment.cur.Save();
-            PlayerPrefs.Save();
-        }
+        //ResolutionFitter.cur.Apply();
+        //NotificationManager.Ins.MarkLevelStarted();
     }
 
-    void OnApplicationFocus(bool hasFocus)
+    // =====================================================================
+    //  APP LIFECYCLE
+    // =====================================================================
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (!pauseStatus) return;
+        if (DataManager.ins != null && DataManager.ins.isLoaded) DataManager.ins.SaveData();
+        PlayerPrefs.Save();
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
     {
         if (DataManager.ins == null || !DataManager.ins.isLoaded) return;
 
         if (!hasFocus)
         {
             DataManager.ins.SaveData();
-
-            //GameDataFragment.cur.Save();
             PlayerPrefs.Save();
         }
     }
-
-
-    public void IntoLevelHandle()
-    {
-        //LivesDataFragment.cur.gameData.TruTymOnKillApp = true;
-        //LavaQuestDataFragment.cur.gameData.ShouldDefeatOnKillApp = true;
-        //OceanOdysseyDataFragment.cur.gameData.ShouldDefeatOnKillApp = true;
-        //OceanOdysseyDataFragment.cur.CheckJoinOceanOdessey();
-
-        //ResolutionFitter.cur.Apply();
-        //NotificationManager.Ins.MarkLevelStarted();
-    }
-
-
-    //review
-    //private ReviewManager _reviewManager;
-    //private PlayReviewInfo _playReviewInfo;
-    //[HideInInspector] public bool isReviewing;
-
-    //public void CallReview()
-    //{
-    //    isReviewing = true;
-    //    StartCoroutine(Review());
-
-    //    IEnumerator Review()
-    //    {
-    //        _reviewManager = new ReviewManager();
-
-    //        var requestFlowOperation = _reviewManager.RequestReviewFlow();
-    //        yield return requestFlowOperation;
-    //        if (requestFlowOperation.Error != ReviewErrorCode.NoError)
-    //        {
-    //            // Log error. For example, using requestFlowOperation.Error.ToString().
-    //            isReviewing = false;
-    //            yield break;
-    //        }
-
-    //        _playReviewInfo = requestFlowOperation.GetResult();
-
-    //        var launchFlowOperation = _reviewManager.LaunchReviewFlow(_playReviewInfo);
-    //        yield return launchFlowOperation;
-    //        _playReviewInfo = null; // Reset the object
-    //        if (launchFlowOperation.Error != ReviewErrorCode.NoError)
-    //        {
-    //            // Log error. For example, using requestFlowOperation.Error.ToString().
-    //            isReviewing = false;
-    //            yield break;
-    //        }
-    //        // The flow has finished. The API does not indicate whether the user
-    //        // reviewed or not, or even whether the review dialog was shown. Thus, no
-    //        // matter the result, we continue our app flow.
-
-    //        isReviewing = false;
-    //        yield return null;
-    //    }
-    //}
 }

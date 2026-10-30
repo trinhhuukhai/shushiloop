@@ -41,6 +41,12 @@ public class CanvasGamePlay : UICanvas
     public SkeletonGraphic animHard;
     public SkeletonGraphic animSHard;
 
+    public GameObject imgStuck;
+    public TMP_Text txtStuck;
+
+    // Có booster đang được dùng (cờ do FoodInputController bật/tắt trong BoosterManager).
+    private static bool IsAnyBoosterInUse => BoosterManager.Ins != null && BoosterManager.Ins.IsUsingAny;
+
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
@@ -48,18 +54,31 @@ public class CanvasGamePlay : UICanvas
             boosterGroupStartPosition = BoosterGroup.anchoredPosition;
         else
             Debug.LogError("CanvasGamePlay requires BoosterGroup to be assigned.", this);
-        //if (occupancy != null) occupancy.gameObject.SetActive(false);
-
     }
 
     public override void Open()
     {
         base.Open();
+        imgStuck.SetActive(false);
         ShowAnim();
         input = FindFirstObjectByType<FoodInputController>();
         Refresh();
     }
 
+    public void setImgStuck(bool check, SushiReviveReason reviveReason)
+    {
+        imgStuck.SetActive(check);
+        if (reviveReason == SushiReviveReason.FullConveyor)
+        {
+            txtStuck.text = "No Space!";
+        }
+        else if (reviveReason == SushiReviveReason.RushCustomer)
+        {
+            txtStuck.text = "Time Out!";
+        }
+    }
+
+    
     public void ShowAnim()
     {
         AnimLevelHardGroup.gameObject.SetActive(false);
@@ -71,19 +90,17 @@ public class CanvasGamePlay : UICanvas
             AnimLevelHardGroup.gameObject.SetActive(true);
             animHard.gameObject.SetActive(true);
             animHard.DOPlay();
-        }else if (LevelManager.Ins.CurrentLevel.TypeLevel == TypeLevel.SuperHard)
+        }
+        else if (LevelManager.Ins.CurrentLevel.TypeLevel == TypeLevel.SuperHard)
         {
             AnimLevelHardGroup.gameObject.SetActive(true);
             animSHard.gameObject.SetActive(true);
             animSHard.DOPlay();
         }
 
-        DOVirtual.DelayedCall(1.8f, () =>
+        DOVirtual.DelayedCall(2.2f, () =>
         {
-
-                AnimLevelHardGroup.gameObject.SetActive(false);
-
-            
+            if (AnimLevelHardGroup != null) AnimLevelHardGroup.gameObject.SetActive(false);
         });
     }
 
@@ -122,8 +139,8 @@ public class CanvasGamePlay : UICanvas
         for (int i = 0; i < boosterButtons.Length; i++)
         {
             int count = FoodInputController.BoosterCount((BoosterType)i);
-            boosterCounts[i].text = count < 0 ? "∞" : count.ToString();
-            boosterButtons[i].interactable = level.CanInteract && count != 0;
+            boosterCounts[i].text = count <= 0 ? "+" : count.ToString();
+            //boosterButtons[i].interactable = level.CanInteract && count != 0;
             selectedBoosters[i].SetActive(i == 0 && mode == FoodPickMode.Chopsticks || i == 2 && mode == FoodPickMode.Magnet);
         }
     }
@@ -166,9 +183,39 @@ public class CanvasGamePlay : UICanvas
     public void ButtonBoosterPick() { input?.SelectChopsticks(); Refresh(); }
     public void ButtonBoosterHoanDoi() { input?.UseSwapRow(); Refresh(); }
     public void ButtonBoosterHut() { input?.SelectMagnet(); Refresh(); }
-    public void BoosterClick() => ButtonBoosterPick();
-    public void BoosterSuffle() => ButtonBoosterHoanDoi();
-    public void BoosterHut() => ButtonBoosterHut();
+
+    // Cờ "đang dùng" do FoodInputController đặt khi vào chế độ booster thật sự,
+    // nên nếu không chọn được (hết lượt, đang khoá input...) cờ không bị kẹt true.
+    public void BoosterClick()
+    {
+        if (IsAnyBoosterInUse) return;
+
+        if (GameDataFragment.cur.dataPlayer.boosterClick > 0)
+            ButtonBoosterPick();
+        else
+            UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Click);
+    }
+
+    public void BoosterSuffle()
+    {
+        if (IsAnyBoosterInUse) return;
+
+        if (GameDataFragment.cur.dataPlayer.boosterSuffle > 0)
+            ButtonBoosterHoanDoi();
+        else
+            UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Shuffle);
+    }
+
+    public void BoosterHut()
+    {
+        if (IsAnyBoosterInUse) return;
+
+        if (GameDataFragment.cur.dataPlayer.boosterHut > 0)
+            ButtonBoosterHut();
+        else
+            UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Magnet);
+    }
+
     public void CancelBooster() { input?.CancelBooster(); Refresh(); }
     public void OnClickChangeSpeed() { if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract || SushiLevelOneTutorial.IsInputLocked) return; LevelManager.Ins.Conveyor.ToggleSpeed(); Refresh(); }
     public void ChangeSpeed(bool value)

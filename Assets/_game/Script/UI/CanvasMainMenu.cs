@@ -117,6 +117,7 @@ public class CanvasMainMenu : UICanvas
             starting = false;
             RefreshLevelMap();
         }
+        CloseDirectly();
     }
 
     public void SelectTab(int index)
@@ -213,6 +214,13 @@ public class CanvasMainMenu : UICanvas
     public void OpenDailyReward() => UIManager.Ins?.OpenUI<CanvasDailyReward>();
     public void OpenDailySpin() => UIManager.Ins?.OpenUI<CanvasSpin>();
     public void OpenProfile() => UIManager.Ins?.OpenUI<CanvasProfile>();
+    public void OpenLive()
+    {
+        bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
+        if (isUnlimited /*&& LivesDataFragment.cur.gameData.lives == 5*/) return;
+        UIManager.Ins?.OpenUI<CanvasLive>();
+
+    }
     public void CloseProfile() { if (profilePanel != null) profilePanel.SetActive(false); }
     public override void BackKey()
     {

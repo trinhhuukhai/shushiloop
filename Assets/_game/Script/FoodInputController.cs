@@ -12,6 +12,9 @@ public class FoodInputController : MonoBehaviour
     [SerializeField] private LayerMask columnMask = ~0;
     public FoodPickMode PickMode { get; private set; }
 
+    // Hoán đổi hàng: cờ shuffle giữ true tới khi board hết chuyển động.
+    private bool shuffleInProgress;
+
     private bool CanInteract => !SushiLevelOneTutorial.IsInputLocked && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
     public void SelectChopsticks() { if (CanInteract && BoosterCount(BoosterType.Click) != 0) SetPickMode(FoodPickMode.Chopsticks); }
     public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) SetPickMode(FoodPickMode.Magnet); }
@@ -19,19 +22,41 @@ public class FoodInputController : MonoBehaviour
 
     private void SetPickMode(FoodPickMode mode)
     {
-        if (PickMode == mode) return;
-        PickMode = mode;
-        if (conveyorManager != null) conveyorManager.SetMagnetPaused(mode == FoodPickMode.Magnet);
-        BoardShishiManager board = BoardShishiManager.Ins;
-        if (board == null) return;
-        foreach (FoodQueue column in board.FoodQueues)
-            if (column != null) column.SetLowerRowsShadeVisible(mode != FoodPickMode.Chopsticks);
+        if (PickMode != mode)
+        {
+            PickMode = mode;
+            if (conveyorManager != null) conveyorManager.SetMagnetPaused(mode == FoodPickMode.Magnet);
+            BoardShishiManager board = BoardShishiManager.Ins;
+            if (board != null)
+                foreach (FoodQueue column in board.FoodQueues)
+                    if (column != null) column.SetLowerRowsShadeVisible(mode != FoodPickMode.Chopsticks);
+        }
+        // Luôn đồng bộ cờ, kể cả khi mode không đổi (tránh cờ bị kẹt true).
+        SyncBoosterFlags();
+    }
+
+    // Đánh dấu booster đang dùng vào BoosterManager; về Tap thì trả lại false.
+    private void SyncBoosterFlags()
+    {
+        BoosterManager manager = BoosterManager.Ins;
+        if (manager == null) return;
+        manager.isUsingBoosterClick = PickMode == FoodPickMode.Chopsticks;
+        manager.isUsingBoosterMagnet = PickMode == FoodPickMode.Magnet;
+        manager.isUsingBoosterShuffle = shuffleInProgress;
     }
 
     public void UseSwapRow()
     {
         if (SushiLevelOneTutorial.IsInputLocked || LevelManager.Ins == null || !LevelManager.Ins.CanInteract || BoosterCount(BoosterType.Shuffle) == 0) return;
-        if (!LevelManager.Ins.Board.SwapRow()) return;
+        shuffleInProgress = true;
+        SyncBoosterFlags();
+        if (!LevelManager.Ins.Board.SwapRow())
+        {
+            // Không hoán đổi được: trả cờ ngay.
+            shuffleInProgress = false;
+            SyncBoosterFlags();
+            return;
+        }
         ConsumeBooster(BoosterType.Shuffle);
         CancelBooster();
     }
@@ -72,7 +97,21 @@ public class FoodInputController : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!CanInteract) CancelBooster();
+        if (!CanInteract)
+        {
+            shuffleInProgress = false;
+            CancelBooster();
+        }
+        else if (shuffleInProgress)
+        {
+            // Hết chuyển động của board thì coi như dùng xong shuffle.
+            LevelManager level = LevelManager.Ins;
+            if (level == null || level.Board == null || !level.Board.HasPendingMovement)
+            {
+                shuffleInProgress = false;
+                SyncBoosterFlags();
+            }
+        }
         if (conveyorManager == null || conveyorManager.Customers == null) return;
         foreach (Customer customer in conveyorManager.Customers.ActiveCustomers)
             if (customer != null) customer.GetComponent<CustomerRecipeView>()?.SetMagnetTargeting(PickMode == FoodPickMode.Magnet);
@@ -80,6 +119,7 @@ public class FoodInputController : MonoBehaviour
 
     private void OnDisable()
     {
+        shuffleInProgress = false;
         CancelBooster();
         if (conveyorManager == null || conveyorManager.Customers == null) return;
         foreach (Customer customer in conveyorManager.Customers.ActiveCustomers)
