@@ -43,9 +43,11 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public bool IsTutorialHeld => tutorialHold;
 
     // Đang dùng booster (Click / Shuffle / Magnet) -> không cho thua.
-    public bool IsUsingBooster => BoosterManager.Ins != null && BoosterManager.Ins.IsUsingAny;
+    public bool IsUsingBooster => BoosterManager.Existing != null && BoosterManager.Existing.IsUsingAny;
 
     public int VictoryReward => victoryReward;
+    public int VictoryReachedLevelBefore { get; private set; }
+    public int VictoryReachedLevelAfter { get; private set; }
     public int ReviveCost => reviveCount == 0 ? 300 : 600;
     public bool CanWatchReviveAd => CanPurchaseRevive && reviveProvider.CanShowRewardedAd;
     public bool CanPurchaseRevive => reviveProvider != null && !awaitingAd && CanApplyRevive;
@@ -191,7 +193,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
             return;
         }
 
-        if (BoosterManager.Ins != null) BoosterManager.Ins.ResetUsing();
+        if (BoosterManager.Existing != null) BoosterManager.Existing.ResetUsing();
 
         // Tạo dữ liệu mới trước khi dọn màn cũ.
         List<FoodQueueData> boardData = levelData.CreateBoardData();
@@ -234,6 +236,8 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     private void ResetRuntimeState()
     {
         rewardClaimed = false;
+        VictoryReachedLevelBefore = 0;
+        VictoryReachedLevelAfter = 0;
         noMovesElapsed = 0;
         totalPlayTime = 0;
         IsPlaying = false;
@@ -425,6 +429,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     {
         // Đánh dấu trước để chỉ xử lý thắng một lần.
         if (HasWon) return;
+        CaptureVictoryProgress();
         IsPlaying = false;
         HasWon = true;
         noMovesElapsed = 0;
@@ -445,6 +450,16 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
         conveyorManager.SetPaused(true);
         Debug.Log("WIN: Tất cả khách đã nhận đủ món.");
+    }
+
+    private void CaptureVictoryProgress()
+    {
+        // Capture before saving: cur_level has already advanced when the Victory canvas opens.
+        // Replaying an older level must not rewind the preview or unlock the same item again.
+        VictoryReachedLevelBefore = Mathf.Max(1, currentLevelIndex + 1);
+        if (CanSaveProgress)
+            VictoryReachedLevelBefore = Mathf.Max(VictoryReachedLevelBefore, GameDataFragment.cur.dataPlayer.cur_level + 1);
+        VictoryReachedLevelAfter = Mathf.Max(VictoryReachedLevelBefore, Mathf.Min(currentLevelIndex + 2, LevelCount));
     }
 
     // Giữ tên cũ cho nút cheat / debug.
@@ -514,7 +529,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         popupCount = 0;
         freezeCount = 0;
         CurrentLevel = null;
-        if (BoosterManager.Ins != null) BoosterManager.Ins.ResetUsing();
+        if (BoosterManager.Existing != null) BoosterManager.Existing.ResetUsing();
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
         // Release deliveries before destroying their customers and ingredient queues.
         if (conveyorManager != null) conveyorManager.Clear();

@@ -107,6 +107,43 @@ public static class SushiIngameArtSetup
             var tick = Picture(mark, "Tick art", "tick", new Vector2(30, 28), Vector2.zero); tick.preserveAspect = true;
         });
     }
+    public static void ConfigureRushProgress(GameObject root)
+    {
+        Transform visual = root.transform.Find("CustomerVisuals");
+        Transform orders = visual.Find("Orders");
+        Transform indicator = orders.Find("Rush visuals") ?? visual.Find("Rush visuals");
+        indicator.SetParent(orders, false);
+        indicator.SetAsLastSibling();
+        var layout = indicator.GetComponent<LayoutElement>();
+        if (layout == null) layout = indicator.gameObject.AddComponent<LayoutElement>();
+        layout.ignoreLayout = true;
+        var rect = (RectTransform)indicator;
+        rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        var track = indicator.Find("Countdown track").GetComponent<Image>();
+        track.sprite = Sprite("fr_time"); track.type = Image.Type.Simple; track.color = Color.white;
+        track.rectTransform.anchorMin = new Vector2(1, 0); track.rectTransform.anchorMax = Vector2.one;
+        track.rectTransform.pivot = Vector2.one * 0.5f;
+        track.rectTransform.anchoredPosition = new Vector2(-14, 0); track.rectTransform.sizeDelta = new Vector2(12, -24);
+        var fill = track.transform.Find("Fill").GetComponent<Image>();
+        fill.sprite = Sprite("time_green"); fill.color = Color.white;
+        fill.type = Image.Type.Filled; fill.fillMethod = Image.FillMethod.Vertical; fill.fillOrigin = (int)Image.OriginVertical.Bottom;
+        fill.rectTransform.anchorMin = Vector2.zero; fill.rectTransform.anchorMax = Vector2.one;
+        fill.rectTransform.anchoredPosition = Vector2.zero; fill.rectTransform.sizeDelta = new Vector2(-2, -4);
+        var badge = indicator.Find("Timer badge").GetComponent<RectTransform>();
+        badge.anchorMin = badge.anchorMax = new Vector2(0.5f, 0);
+        badge.anchoredPosition = new Vector2(0, -18); badge.gameObject.SetActive(false);
+        var rush = new SerializedObject(root.GetComponent<RushCustomerView>());
+        rush.FindProperty("normalColor").colorValue = Color.white;
+        rush.FindProperty("warningColor").colorValue = new Color(1, .7f, .25f);
+        rush.FindProperty("urgentColor").colorValue = new Color(1, .25f, .2f);
+        rush.FindProperty("normalFill").objectReferenceValue = Sprite("time_green");
+        rush.FindProperty("warningFill").objectReferenceValue = Sprite("time_orange");
+        rush.FindProperty("urgentFill").objectReferenceValue = Sprite("time_red");
+        rush.FindProperty("showNumericTimer").boolValue = false;
+        rush.ApplyModifiedPropertiesWithoutUndo();
+    }
+
     private static void EditCustomer()
     {
         Edit(Prefabs + "Customer.prefab", root =>
@@ -145,16 +182,7 @@ public static class SushiIngameArtSetup
             avatar.rectTransform.anchorMin = avatar.rectTransform.anchorMax = new Vector2(.5f, 1);
             avatar.rectTransform.pivot = new Vector2(.5f, 1); avatar.rectTransform.sizeDelta = new Vector2(205, 610);
             avatar.rectTransform.anchoredPosition = new Vector2(0, 0);
-            var track = visual.Find("Rush visuals/Countdown track").GetComponent<Image>(); track.sprite = Sprite("fr_time"); track.type = Image.Type.Simple; track.color = Color.white;
-            var fill = track.transform.Find("Fill").GetComponent<Image>(); fill.sprite = Sprite("time_green"); fill.color = Color.white;
-            var rush = new SerializedObject(root.GetComponent<RushCustomerView>());
-            rush.FindProperty("normalColor").colorValue = Color.white;
-            rush.FindProperty("warningColor").colorValue = new Color(1, .7f, .25f);
-            rush.FindProperty("urgentColor").colorValue = new Color(1, .25f, .2f);
-            rush.FindProperty("normalFill").objectReferenceValue = Sprite("time_green");
-            rush.FindProperty("warningFill").objectReferenceValue = Sprite("time_orange");
-            rush.FindProperty("urgentFill").objectReferenceValue = Sprite("time_red");
-            rush.ApplyModifiedPropertiesWithoutUndo();
+            ConfigureRushProgress(root);
             Transform serving = root.transform.Find("Serving slots"); serving.localPosition = new Vector3(0, -1.85f, 0);
             foreach (Transform slot in serving)
             {

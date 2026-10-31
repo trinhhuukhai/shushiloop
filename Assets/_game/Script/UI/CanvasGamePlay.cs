@@ -45,7 +45,7 @@ public class CanvasGamePlay : UICanvas
     public TMP_Text txtStuck;
 
     // Có booster đang được dùng (cờ do FoodInputController bật/tắt trong BoosterManager).
-    private static bool IsAnyBoosterInUse => BoosterManager.Ins != null && BoosterManager.Ins.IsUsingAny;
+    private static bool IsAnyBoosterInUse => BoosterManager.Existing != null && BoosterManager.Existing.IsUsingAny;
 
     private void Awake()
     {
@@ -126,7 +126,11 @@ public class CanvasGamePlay : UICanvas
             difficulty.gameObject.SetActive(level.CurrentLevel.TypeLevel != TypeLevel.Normal);
             difficulty.text = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? "SUPER HARD" : "HARD";
         }
-        if (occupancy != null) occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
+        if (occupancy != null)
+        {
+            occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
+            occupancy.color = level.Conveyor.OccupancyColor;
+        }
         speedText.text = level.Conveyor.IsDoubleSpeed ? "2X" : "1X";
         setTxtGold();
         FoodPickMode mode = input != null ? input.PickMode : FoodPickMode.Tap;

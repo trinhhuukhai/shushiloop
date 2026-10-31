@@ -20,6 +20,9 @@ public partial class ConveyorManager : MonoBehaviour
     [SerializeField] private float positionZ;
     [SerializeField] private bool playOnStart = true;
     [SerializeField] private TextMeshPro capacityLabel;
+    [SerializeField] private Color capacityNormalColor = Color.white;
+    [SerializeField] private Color capacityWarningColor = new Color(1f, 0.55f, 0.08f);
+    [SerializeField] private Color capacityFullColor = new Color(1f, 0.15f, 0.1f);
 
     private readonly List<Transform> slots = new List<Transform>();
 
@@ -258,6 +261,9 @@ public partial class ConveyorManager : MonoBehaviour
     public int OccupiedSlotCount => slotFoods.Count + slotBags.Count;
     public int FreeSlotCount => slots.Count - OccupiedSlotCount;
     public int Capacity => slots.Count;
+    public Color OccupancyColor => Capacity <= 0 ? capacityNormalColor :
+        OccupiedSlotCount >= Capacity ? capacityFullColor :
+        OccupiedSlotCount >= Mathf.CeilToInt(Capacity * 0.8f) ? capacityWarningColor : capacityNormalColor;
     private readonly object pickupTweenId = new object();
     public event System.Action<int, int> OnOccupancyChanged;
     private void NotifyOccupancy()
@@ -266,6 +272,7 @@ public partial class ConveyorManager : MonoBehaviour
         {
             capacityLabel.gameObject.SetActive(Capacity > 0);
             capacityLabel.text = OccupiedSlotCount + "/" + Capacity;
+            capacityLabel.color = OccupancyColor;
         }
         OnOccupancyChanged?.Invoke(OccupiedSlotCount, Capacity);
     }

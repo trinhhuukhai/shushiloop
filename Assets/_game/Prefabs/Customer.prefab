@@ -271,7 +271,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -2, y: -4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7432525624902737660
 CanvasRenderer:
@@ -320,6 +320,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 611651576136660130}
+  - component: {fileID: 611651576136660131}
   m_Layer: 0
   m_Name: Rush visuals
   m_TagString: Untagged
@@ -341,13 +342,33 @@ RectTransform:
   m_Children:
   - {fileID: 9202163949818334706}
   - {fileID: 908172294374842383}
-  m_Father: {fileID: 2387152355513613264}
+  m_Father: {fileID: 5592822230529881211}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 324, y: 212}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &611651576136660131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092320393685219838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 1
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &2415867241157891099
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,7 +477,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &9202163949818334706
 RectTransform:
   m_ObjectHideFlags: 0
@@ -472,9 +493,9 @@ RectTransform:
   - {fileID: 7857797241214991210}
   m_Father: {fileID: 611651576136660130}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 65, y: -47}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: -18}
   m_SizeDelta: {x: 92, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3828387559984949907
@@ -739,6 +760,7 @@ RectTransform:
   m_Children:
   - {fileID: 2876986823082244279}
   - {fileID: 2158220163109569252}
+  - {fileID: 611651576136660130}
   m_Father: {fileID: 2387152355513613264}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1070,6 +1092,9 @@ MonoBehaviour:
   normalFill: {fileID: 4948777656479786611, guid: 74c99a9a2e7daf942bb4ef3cfdca107d, type: 3}
   warningFill: {fileID: 5862587138593330210, guid: d84c5b1beb233ed4a9a1428d974bde8b, type: 3}
   urgentFill: {fileID: -726473136158743837, guid: 0f4e4ae988ed32842bfb82078b254cca, type: 3}
+  warningThreshold: 0.5
+  urgentThreshold: 0.2
+  showNumericTimer: 0
 --- !u!82 &6336555331284211449
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1198,7 +1223,6 @@ RectTransform:
   m_Children:
   - {fileID: 1363516859689767531}
   - {fileID: 5592822230529881211}
-  - {fileID: 611651576136660130}
   - {fileID: 2984196512262936752}
   m_Father: {fileID: 2048129273328512912}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1388,10 +1412,10 @@ RectTransform:
   - {fileID: 8421363688523495894}
   m_Father: {fileID: 611651576136660130}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 154, y: 64}
-  m_SizeDelta: {x: 9, y: 154}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -14, y: 0}
+  m_SizeDelta: {x: 12, y: -24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7814161867579187498
 CanvasRenderer:

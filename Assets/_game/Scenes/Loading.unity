@@ -2498,6 +2498,10 @@ MonoBehaviour:
   vuaMuaIAPSeasonpass: 0
   showPopupDailyLogin: 0
   minimumStartupLoadingDuration: 2
+  LevelUnlockItemHoiCham: 5
+  LevelUnlockItemBang: 11
+  LevelUnlockItemLinked: 21
+  LevelUnlockItemTray: 31
 --- !u!1 &1227915775
 GameObject:
   m_ObjectHideFlags: 0

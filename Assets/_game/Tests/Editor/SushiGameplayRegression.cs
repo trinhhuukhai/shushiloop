@@ -27,6 +27,7 @@ public static partial class SushiGameplayRegression
     {
         EditorApplication.playModeStateChanged += OnPlayMode;
         EditorApplication.update += RunWhenPlaying;
+        Application.logMessageReceived += RecordShutdownError;
     }
 
     public static void RunBatch()
@@ -41,6 +42,25 @@ public static partial class SushiGameplayRegression
     {
         if (!Application.isBatchMode) throw new InvalidOperationException("Run gameplay checks in a separate batch-mode test project.");
         SessionState.SetBool(PendingKey + ".NoMoves", true);
+        RunBatch();
+    }
+
+    public static void RunWarningVisualsBatch()
+    {
+        SessionState.SetBool(PendingKey + ".WarningVisuals", true);
+        RunBatch();
+    }
+
+    public static void RunVictoryUnlockBatch()
+    {
+        SessionState.SetBool(PendingKey + ".VictoryUnlock", true);
+        RunBatch();
+    }
+
+    public static void RunShutdownBatch()
+    {
+        SessionState.SetBool(PendingKey + ".Shutdown", true);
+        SessionState.SetString(PendingKey + ".ShutdownError", string.Empty);
         RunBatch();
     }
 
@@ -70,15 +90,37 @@ public static partial class SushiGameplayRegression
 
     private static void OnPlayMode(PlayModeStateChange state)
     {
+        if (state == PlayModeStateChange.EnteredEditMode && SessionState.GetBool(PendingKey + ".AwaitingShutdown", false))
+            SessionState.SetBool(PendingKey + ".ShutdownStopped", true);
         if (state != PlayModeStateChange.EnteredPlayMode || !SessionState.GetBool(PendingKey, false)) return;
         // Editor delayCall có thể bị callback package khác ngắt. Chạy bằng update.
     }
 
     private static void RunWhenPlaying()
     {
+        if (SessionState.GetBool(PendingKey + ".ShutdownStopped", false))
+        {
+            FinishShutdownChecks();
+            return;
+        }
         if (!EditorApplication.isPlaying || EditorApplication.isCompiling || !SessionState.GetBool(PendingKey, false)) return;
         SessionState.SetBool(PendingKey, false);
-        if (SessionState.GetBool(PendingKey + ".ReviveBag", false))
+        if (SessionState.GetBool(PendingKey + ".Shutdown", false))
+        {
+            SessionState.SetBool(PendingKey + ".Shutdown", false);
+            RunShutdownChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".VictoryUnlock", false))
+        {
+            SessionState.SetBool(PendingKey + ".VictoryUnlock", false);
+            RunVictoryUnlockChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".WarningVisuals", false))
+        {
+            SessionState.SetBool(PendingKey + ".WarningVisuals", false);
+            RunWarningVisualChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".ReviveBag", false))
         {
             SessionState.SetBool(PendingKey + ".ReviveBag", false);
             RunReviveBagChecks();
@@ -167,6 +209,7 @@ public static partial class SushiGameplayRegression
             Run("board trays are tight and only the outside rails remain visible", BoardOuterRails);
             Run("belt automatically doubles speed after the board is cleared", AutomaticBeltSpeed);
             Run("customer UI binds data without rewriting prefab layout and fits large orders", CustomerPrefabBinding);
+            Run("slot text warns at 80 percent, turns red when full, and resets", ConveyorCapacityColors);
             Run("all 21 ingredient types share one prefab and select their own art", SharedIngredientArt);
             Run("two art lists resolve all dishes, ingredients and element sprites before serving", ArtCatalogImages);
             Run("quantity reserves separate slots and rejects overflow atomically", Quantity);
@@ -543,6 +586,11 @@ public static partial class SushiGameplayRegression
             "completed dish recipe opened again after completion");
         Object.Destroy(partiallyCompletedCustomer.gameObject);
 
+        RushProgressVisuals();
+    }
+
+    private static void RushProgressVisuals()
+    {
         Customer normalCustomer = RecipeCustomer(new DishOrderData { dish = SushiDishId.NigiriShrimp, amount = 1 });
         normalCustomer.SitDown();
         RushCustomerView normalView = normalCustomer.GetComponent<RushCustomerView>();
@@ -561,17 +609,372 @@ public static partial class SushiGameplayRegression
             "rush prefab did not bind its initial state");
         Check(Get<UnityEngine.UI.Image>(rush, "countdown").sprite == Get<Sprite>(rush, "normalFill"),
             "rush timer did not start with the green art");
+        var fill = Get<Image>(rush, "countdown");
+        var indicator = Get<GameObject>(rush, "indicator");
+        var orderPanel = Get<RectTransform>(rushCustomer.GetComponent<CustomerRecipeView>(), "orderRoot");
+        Check(indicator.transform.parent == orderPanel && indicator.GetComponent<LayoutElement>().ignoreLayout &&
+            fill.GetComponentInParent<Canvas>() == orderPanel.GetComponent<Canvas>(),
+            "rush progress is behind the order board or participates in its column layout");
+        Check(fill.type == Image.Type.Filled && fill.fillMethod == Image.FillMethod.Vertical &&
+            fill.fillOrigin == (int)Image.OriginVertical.Bottom && fill.color == Color.white &&
+            !Get<TMPro.TMP_Text>(rush, "timer").transform.parent.gameObject.activeSelf,
+            "rush progress is not a vertical sprite bar or still shows the numeric badge");
+        var track = (RectTransform)fill.transform.parent;
+        float oldHeight = track.rect.height;
+        orderPanel.sizeDelta += new Vector2(40, 60);
+        Canvas.ForceUpdateCanvases();
+        Check(Mathf.Abs(track.rect.height - oldHeight - 60) < 0.01f &&
+            track.anchorMin.x == 1 && track.anchorMax.x == 1,
+            "rush progress did not follow the order board dimensions");
         rushCustomer.TickRush(15); Invoke(rush, "Update");
         Check(Get<UnityEngine.UI.Image>(rush, "countdown").fillAmount == 0.5f &&
+            fill.sprite == Get<Sprite>(rush, "warningFill") &&
             rushCustomer.GetComponentsInChildren<Transform>(true).Length == childCount,
             "rush display created visual objects or failed to bind remaining time");
         rushCustomer.TickRush(0.2f); Invoke(rush, "Update");
         Check(Get<UnityEngine.UI.Image>(rush, "countdown").sprite == Get<Sprite>(rush, "warningFill"),
             "rush timer did not switch to orange below the half-time mark");
-        rushCustomer.TickRush(9); Invoke(rush, "Update");
+        rushCustomer.TickRush(8.8f); Invoke(rush, "Update");
         Check(Get<UnityEngine.UI.Image>(rush, "countdown").sprite == Get<Sprite>(rush, "urgentFill"),
-            "rush timer did not switch to red below the final-time mark");
+            "rush timer did not switch to red at 20 percent remaining");
+        rushCustomer.TickRush(6); Invoke(rush, "Update");
+        Check(rushCustomer.RushExpired && fill.fillAmount == 0, "expired rush progress was not empty");
+        rushCustomer.ReviveRush(); Invoke(rush, "Update");
+        Check(fill.fillAmount == 1 && fill.sprite == Get<Sprite>(rush, "normalFill"),
+            "revive did not restore the rush progress and its green sprite");
+        Serve(rushCustomer, PoolType.SushiRice); Serve(rushCustomer, PoolType.Shrimp); Invoke(rush, "Update");
+        Check(!indicator.activeSelf, "completed customer retained rush progress");
         Object.Destroy(rushCustomer.gameObject);
+    }
+
+    private static void ConveyorCapacityColors()
+    {
+        var label = Node("Capacity test label").gameObject.AddComponent<TMPro.TextMeshPro>();
+        Set(conveyor, "capacityLabel", label);
+        try
+        {
+            foreach (int capacity in new[] { 10, 14, 1 })
+            {
+                var columns = new FoodData[capacity][];
+                for (int i = 0; i < capacity; i++) columns[i] = new[] { Food() };
+                Load(capacity, columns);
+                Check(label.color == Get<Color>(conveyor, "capacityNormalColor"), "empty belt retained a warning color");
+                for (int i = 1; i <= capacity; i++)
+                {
+                    Check(Tap(i - 1), "capacity color test could not reserve a slot");
+                    Color expected = Get<Color>(conveyor, i == capacity ? "capacityFullColor" :
+                        i * 5 >= capacity * 4 ? "capacityWarningColor" : "capacityNormalColor");
+                    Check(label.color == expected && conveyor.OccupancyColor == expected && label.text == i + "/" + capacity,
+                        "wrong capacity text/color at " + i + "/" + capacity);
+                }
+            }
+            Load(10, new[] { Food() });
+            Check(label.color == Get<Color>(conveyor, "capacityNormalColor") && label.text == "0/10",
+                "reloading did not reset the full-belt warning");
+        }
+        finally { Set(conveyor, "capacityLabel", null); Object.Destroy(label.gameObject); }
+    }
+
+    private static void RunWarningVisualChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            CreateFixture();
+            Load(2, new[] { Food(PoolType.SushiRice), Food(PoolType.Shrimp) });
+            Run("rush progress layout, thresholds, expiry, revive and completion", RushProgressVisuals);
+            Run("capacity colors include in-flight slots and reset after reload", ConveyorCapacityColors);
+            System.IO.File.WriteAllText("WarningVisualsResults.txt", "PASS: " + passed + " scenarios\n");
+            Debug.Log("SUSHI_WARNING_VISUALS_OK: " + passed + " scenarios");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            System.IO.File.WriteAllText("WarningVisualsResults.txt", "FAIL\n" + error);
+            EditorApplication.Exit(1);
+        }
+    }
+
+    private static void RunShutdownChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            if (BoosterManager.Existing != null) Object.DestroyImmediate(BoosterManager.Existing.gameObject);
+
+            Run("input cleanup before booster initialization creates no manager", InputCleanupWithoutManager);
+            Run("input cleanup handles both manager destruction orders", InputCleanupDestructionOrder);
+
+            // Exercise actual Stop Play Mode with a selected booster whose manager was destroyed first.
+            var input = Node("Input awaiting Stop Play Mode").gameObject.AddComponent<FoodInputController>();
+            input.SelectMagnet();
+            Object.DestroyImmediate(BoosterManager.Ins.gameObject);
+            SessionState.SetInt(PendingKey + ".ShutdownPassed", passed);
+            SessionState.SetBool(PendingKey + ".AwaitingShutdown", true);
+            EditorApplication.isPlaying = false;
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            System.IO.File.WriteAllText("ShutdownResults.txt", "FAIL\n" + error);
+            EditorApplication.Exit(1);
+        }
+    }
+
+    private static void InputCleanupWithoutManager()
+    {
+        var input = Node("Input without booster manager").gameObject.AddComponent<FoodInputController>();
+        try
+        {
+            input.gameObject.SetActive(false);
+            Check(Object.FindObjectsByType<BoosterManager>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length == 0,
+                "OnDisable created a booster manager before any booster was used");
+        }
+        finally { Object.DestroyImmediate(input.gameObject); }
+    }
+
+    private static void InputCleanupDestructionOrder()
+    {
+        var input = Node("Input destruction order").gameObject.AddComponent<FoodInputController>();
+        try
+        {
+            input.SelectMagnet();
+            BoosterManager manager = BoosterManager.Ins;
+            Check(manager.isUsingBoosterMagnet, "booster did not initialize normally");
+            Set(input, "shuffleInProgress", true);
+            manager.isUsingBoosterShuffle = true;
+            input.gameObject.SetActive(false);
+            Check(input.PickMode == FoodPickMode.Tap && !manager.IsUsingAny,
+                "disabling input did not clear flags on the surviving manager");
+
+            input.gameObject.SetActive(true);
+            input.SelectChopsticks();
+            Object.DestroyImmediate(manager.gameObject);
+            input.gameObject.SetActive(false);
+            Check(input.PickMode == FoodPickMode.Tap &&
+                Object.FindObjectsByType<BoosterManager>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length == 0,
+                "input cleanup recreated the already-destroyed booster manager");
+
+            input.gameObject.SetActive(true);
+            input.SelectMagnet();
+            manager = BoosterManager.Ins;
+            Check(manager != null && manager.isUsingBoosterMagnet, "a new gameplay session could not use boosters");
+            Object.DestroyImmediate(input.gameObject);
+            Check(!manager.IsUsingAny, "destroying input left booster flags set");
+            Object.DestroyImmediate(manager.gameObject);
+        }
+        finally { if (input != null) Object.DestroyImmediate(input.gameObject); }
+    }
+
+    private static void RecordShutdownError(string message, string stackTrace, LogType type)
+    {
+        if (!SessionState.GetBool(PendingKey + ".AwaitingShutdown", false)) return;
+        if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert)
+            SessionState.SetString(PendingKey + ".ShutdownError", message + "\n" + stackTrace);
+    }
+
+    private static void FinishShutdownChecks()
+    {
+        SessionState.SetBool(PendingKey + ".ShutdownStopped", false);
+        SessionState.SetBool(PendingKey + ".AwaitingShutdown", false);
+        try
+        {
+            string error = SessionState.GetString(PendingKey + ".ShutdownError", string.Empty);
+            Check(string.IsNullOrEmpty(error), "error during Stop Play Mode: " + error);
+            Check(Object.FindObjectsByType<BoosterManager>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length == 0,
+                "a booster manager survived Stop Play Mode");
+            int count = SessionState.GetInt(PendingKey + ".ShutdownPassed", 0) + 1;
+            System.IO.File.WriteAllText("ShutdownResults.txt", "PASS: " + count + " scenarios, including Stop Play Mode\n");
+            Debug.Log("SUSHI_SHUTDOWN_OK: " + count + " scenarios, including Stop Play Mode");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            System.IO.File.WriteAllText("ShutdownResults.txt", "FAIL\n" + error);
+            EditorApplication.Exit(1);
+        }
+    }
+
+    private static void RunVictoryUnlockChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            CreateFixture();
+            CreateLevel();
+            Run("Victory uses all configured milestones and the next item", VictoryUnlockMilestones);
+            Run("Victory fill animates unscaled and stops on close/reopen", VictoryUnlockAnimation);
+            Run("Victory captures progress before saving and preserves replay progress", VictoryProgressSnapshot);
+            System.IO.File.WriteAllText("VictoryUnlockResults.txt", "PASS: " + passed + " scenarios\n");
+            Debug.Log("SUSHI_VICTORY_UNLOCK_OK: " + passed + " scenarios");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            System.IO.File.WriteAllText("VictoryUnlockResults.txt", "FAIL\n" + error);
+            EditorApplication.Exit(1);
+        }
+    }
+
+    private static void WithVictory(Action<GameManager, CanvasVictory> test)
+    {
+        GameManager previousManager = GameManager.ins;
+        GameObject managerObject = Node("Unlock config").gameObject;
+        managerObject.SetActive(false); // Do not run application startup or touch saved data.
+        GameManager manager = managerObject.AddComponent<GameManager>();
+        GameManager.ins = manager;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_game/Resources/UI/UICVictory.prefab");
+        var view = Object.Instantiate(prefab, fixture).GetComponent<CanvasVictory>();
+        try
+        {
+            Check(view.unlockRoot != null && view.fillUnlockItem != null && view.txtUnlockProgress != null &&
+                view.txtDesNewItem != null && view.iconHoiCham != null && view.iconBang != null &&
+                view.iconLinked != null && view.iconTray != null, "Victory prefab unlock references are missing");
+            test(manager, view);
+        }
+        finally
+        {
+            Object.DestroyImmediate(view.gameObject);
+            Object.DestroyImmediate(managerObject);
+            GameManager.ins = previousManager;
+        }
+    }
+
+    private static void VictoryUnlockMilestones()
+    {
+        WithVictory((manager, view) =>
+        {
+            int[] targets = { 5, 11, 21, 31 };
+            GameObject[] icons = { view.iconHoiCham, view.iconBang, view.iconLinked, view.iconTray };
+            for (int i = 0; i < targets.Length; i++)
+            {
+                int previous = i == 0 ? 1 : targets[i - 1];
+                int span = targets[i] - previous;
+                view.RefreshUnlockProgress(previous, previous + 1, false);
+                Check(view.unlockRoot.activeSelf && Mathf.Abs(view.fillUnlockItem.fillAmount - 1f / span) < 0.001f &&
+                    view.txtUnlockProgress.text == "1/" + span, "wrong first step toward Lv " + targets[i]);
+                for (int j = 0; j < icons.Length; j++) Check(icons[j].activeSelf == (i == j), "wrong upcoming icon");
+                Check(view.txtDesNewItem.text.Contains("Lv " + targets[i]), "description ignored configured level");
+                view.RefreshUnlockProgress(targets[i] - 1, targets[i], false);
+                Check(view.fillUnlockItem.fillAmount == 1 && view.txtUnlockProgress.text == span + "/" + span &&
+                    view.txtDesNewItem.text.StartsWith("Unlocked:"), "milestone did not finish at 100 percent");
+            }
+            view.RefreshUnlockProgress(31, 32, false);
+            Check(!view.unlockRoot.activeSelf, "unlock section remained visible after the last milestone");
+
+            manager.LevelUnlockItemBang = 3;
+            manager.LevelUnlockItemHoiCham = 8;
+            view.RefreshUnlockProgress(1, 2, false);
+            Check(view.iconBang.activeSelf && !view.iconHoiCham.activeSelf && view.fillUnlockItem.fillAmount == 0.5f,
+                "reordered config did not preview the earliest item");
+            manager.LevelUnlockItemBang = 0;
+            view.RefreshUnlockProgress(1, 2, false);
+            Check(view.iconHoiCham.activeSelf && !view.iconBang.activeSelf && view.txtUnlockProgress.text == "1/7",
+                "disabled item still participated in progress");
+            manager.LevelUnlockItemHoiCham = manager.LevelUnlockItemLinked = manager.LevelUnlockItemTray = 0;
+            view.RefreshUnlockProgress(1, 2, false);
+            Check(!view.unlockRoot.activeSelf, "empty unlock config did not hide the section");
+        });
+    }
+
+    private static void VictoryUnlockAnimation()
+    {
+        float previousTimeScale = Time.timeScale;
+        try
+        {
+            Time.timeScale = 0;
+            WithVictory((manager, view) =>
+            {
+                view.RefreshUnlockProgress(4, 5);
+                Check(view.fillUnlockItem.fillAmount == 0.75f && view.txtUnlockProgress.text == "3/4" &&
+                    view.txtDesNewItem.text.StartsWith("Unlock:"), "animation skipped its initial state");
+                Tween tween = Get<Tween>(view, "unlockTween");
+                Check(tween != null, "Victory fill tween was not created");
+                DOTween.ManualUpdate(0, 0.3f);
+                Check(view.fillUnlockItem.fillAmount > 0.75f && view.fillUnlockItem.fillAmount < 1,
+                    "unscaled tween did not animate between progress values");
+                DOTween.ManualUpdate(0, 0.6f);
+                Check(view.fillUnlockItem.fillAmount == 1 && view.txtUnlockProgress.text == "4/4" &&
+                    view.txtDesNewItem.text.StartsWith("Unlocked:"), "fill completion did not unlock the displayed item");
+
+                view.RefreshUnlockProgress(5, 6);
+                Tween interrupted = Get<Tween>(view, "unlockTween");
+                view.CloseDirectly();
+                Check(!interrupted.IsActive() && Get<Tween>(view, "unlockTween") == null, "closing retained a live tween");
+                view.gameObject.SetActive(true);
+                view.RefreshUnlockProgress(10, 11);
+                Tween replaced = Get<Tween>(view, "unlockTween");
+                view.RefreshUnlockProgress(11, 12, false);
+                DOTween.ManualUpdate(0, 2);
+                Check(!replaced.IsActive() && view.iconLinked.activeSelf && view.txtUnlockProgress.text == "1/10" &&
+                    view.txtDesNewItem.text.Contains("Lv 21"), "old animation changed the reused Victory view");
+            });
+        }
+        finally { Time.timeScale = previousTimeScale; }
+    }
+
+    private static void VictoryProgressSnapshot()
+    {
+        GameDataFragment previousData = GameDataFragment.cur;
+        DataManager previousDataManager = DataManager.ins;
+        var data = ScriptableObject.CreateInstance<GameDataFragment>();
+        data.dataPlayer = new GameDataFragment.DataPlayer();
+        GameObject dataObject = Node("Unlock saved progress").gameObject;
+        dataObject.SetActive(false);
+        var dataManager = dataObject.AddComponent<DataManager>();
+        DataManager.ins = dataManager;
+        try
+        {
+            var allLevels = Get<AllLevelData>(level, "allLevelData");
+            SushiLevelData sample = allLevels.listAllLevel[0];
+            while (allLevels.listAllLevel.Count < 35) allLevels.listAllLevel.Add(sample);
+            WithVictory((manager, view) =>
+            {
+                level.LoadLevel(3);
+                level.OnWIn(); // No save with isLoaded == false; exercise the real win -> Open path.
+                Check(level.VictoryReachedLevelBefore == 4 && level.VictoryReachedLevelAfter == 5, "win snapshot is off by one");
+                data.dataPlayer.cur_level = 4; // Match the profile after the production save.
+                view.Open();
+                Check(level.IsPopupOpen && view.iconHoiCham.activeSelf && view.txtUnlockProgress.text == "3/4",
+                    "Open read the already-advanced profile instead of the win snapshot");
+                DOTween.ManualUpdate(0, 1);
+                Check(view.fillUnlockItem.fillAmount == 1, "Open did not run the fill");
+                view.CloseDirectly();
+                Check(!level.IsPopupOpen, "Victory did not release the popup hold");
+
+                level.LoadLevel(0);
+                Check(level.VictoryReachedLevelBefore == 0 && level.VictoryReachedLevelAfter == 0, "reload retained stale progress");
+                data.dataPlayer.cur_level = 15;
+                dataManager.isLoaded = true;
+                Invoke(level, "CaptureVictoryProgress"); // Capture only; never write the user's save.
+                Check(level.VictoryReachedLevelBefore == 16 && level.VictoryReachedLevelAfter == 16,
+                    "replaying an older level advanced or rewound saved progress");
+                view.RefreshUnlockProgress(level.VictoryReachedLevelBefore, level.VictoryReachedLevelAfter);
+                Check(view.iconLinked.activeSelf && view.txtUnlockProgress.text == "5/10" && Get<Tween>(view, "unlockTween") == null,
+                    "replay showed an old unlock or animated additional progress");
+                manager.isPlayTestingLevel = true;
+                Invoke(level, "CaptureVictoryProgress");
+                Check(level.VictoryReachedLevelBefore == 1 && level.VictoryReachedLevelAfter == 2,
+                    "test-level mode used the player's saved progression");
+                level.LoadLevel(34);
+                Invoke(level, "CaptureVictoryProgress");
+                Check(level.VictoryReachedLevelBefore == 35 && level.VictoryReachedLevelAfter == 35,
+                    "final campaign level advanced beyond the level list");
+            });
+        }
+        finally
+        {
+            Object.DestroyImmediate(dataObject);
+            Object.DestroyImmediate(data);
+            DataManager.ins = previousDataManager;
+            GameDataFragment.cur = previousData;
+        }
     }
 
     private static void SharedIngredientArt()

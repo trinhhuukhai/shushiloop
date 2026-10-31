@@ -174,12 +174,7 @@ public static class SushiServingSetup
             var recipeSettings = new SerializedObject(root.GetComponent<CustomerRecipeView>());
             var template = (SushiDishCardView)recipeSettings.FindProperty("cardTemplate").objectReferenceValue;
             ConfigureDishImage(template.DishImage);
-            Transform indicator = visuals.Find("Rush visuals");
-            var track = indicator.Find("Countdown track").GetComponent<RectTransform>();
-            track.sizeDelta = new Vector2(9, 154); track.anchoredPosition = new Vector2(154, 64);
-            var fill = track.Find("Fill").GetComponent<Image>(); fill.fillMethod = UnityEngine.UI.Image.FillMethod.Vertical; fill.fillOrigin = 0;
-            var badge = indicator.Find("Timer badge").GetComponent<RectTransform>(); badge.anchoredPosition = new Vector2(65, -47); badge.sizeDelta = new Vector2(92, 28);
-            var timer = badge.GetComponentInChildren<TMP_Text>(); timer.fontSize = timer.fontSizeMax = 24;
+            SushiIngameArtSetup.ConfigureRushProgress(root);
             Transform serving = root.transform.Find("Serving slots");
             if (serving != null) Object.DestroyImmediate(serving.gameObject);
             serving = Node(root.transform, "Serving slots", new Vector3(0, -1.55f, 0));

@@ -16,6 +16,9 @@ public class RushCustomerView : MonoBehaviour
     [SerializeField] private Sprite normalFill;
     [SerializeField] private Sprite warningFill;
     [SerializeField] private Sprite urgentFill;
+    [SerializeField, Range(0, 1)] private float warningThreshold = 0.5f;
+    [SerializeField, Range(0, 1)] private float urgentThreshold = 0.2f;
+    [SerializeField] private bool showNumericTimer;
     private Customer customer;
     private float nextTick;
 
@@ -27,19 +30,24 @@ public class RushCustomerView : MonoBehaviour
 
     private void Update()
     {
-        bool visible = customer.IsSeated && customer.IsRush;
+        bool visible = customer.IsSeated && customer.IsRush && !customer.IsCompleted;
         indicator.SetActive(visible);
         if (!visible) return;
-        timer.transform.parent.gameObject.SetActive(customer.IsRush && !customer.IsCompleted);
         float fraction = Mathf.Clamp01(customer.RushRemaining / Mathf.Max(0.01f, customer.RushDuration));
-        Color color = fraction < 0.2f ? urgentColor : fraction < 0.5f ? warningColor : normalColor;
-        timer.color = countdown.color = color;
-        Sprite fillSprite = fraction < 0.2f ? urgentFill : fraction < 0.5f ? warningFill : normalFill;
+        bool urgent = fraction <= urgentThreshold;
+        Color color = urgent ? urgentColor : fraction <= warningThreshold ? warningColor : normalColor;
+        countdown.color = color;
+        Sprite fillSprite = urgent ? urgentFill : fraction <= warningThreshold ? warningFill : normalFill;
         if (fillSprite != null) { countdown.sprite = fillSprite; countdown.color = Color.white; }
         countdown.fillAmount = fraction;
-        int seconds = Mathf.CeilToInt(customer.RushRemaining);
-        timer.text = (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00");
-        bool warning = fraction < 0.2f && !customer.RushExpired &&
+        if (timer != null)
+        {
+            timer.transform.parent.gameObject.SetActive(showNumericTimer);
+            timer.color = color;
+            int seconds = Mathf.CeilToInt(customer.RushRemaining);
+            timer.text = (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00");
+        }
+        bool warning = urgent && !customer.RushExpired &&
             (LevelManager.Ins == null || !LevelManager.Ins.IsPopupOpen);
         if (!warning || Time.unscaledTime < nextTick) return;
         nextTick = Time.unscaledTime + 0.75f;

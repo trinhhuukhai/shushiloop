@@ -38,7 +38,9 @@ public class FoodInputController : MonoBehaviour
     // Đánh dấu booster đang dùng vào BoosterManager; về Tap thì trả lại false.
     private void SyncBoosterFlags()
     {
-        BoosterManager manager = BoosterManager.Ins;
+        // Cancelling also runs during scene teardown, after the manager may already be destroyed.
+        BoosterManager manager = PickMode == FoodPickMode.Tap && !shuffleInProgress
+            ? BoosterManager.Existing : BoosterManager.Ins;
         if (manager == null) return;
         manager.isUsingBoosterClick = PickMode == FoodPickMode.Chopsticks;
         manager.isUsingBoosterMagnet = PickMode == FoodPickMode.Magnet;

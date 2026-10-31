@@ -70,7 +70,7 @@ Nguyên liệu được pick vẫn giữ từng slot riêng trên đĩa trắng.
 
 `PreparedDish.prefab` chứa đĩa màu và ảnh món. Khi đủ nguyên liệu, hệ thống giữ trước một đĩa tròn trống của khách đang ngồi; từng nguyên liệu bay từ băng chuyền tới đĩa đó theo thứ tự. Sau khi đáp đủ, ảnh món hoàn chỉnh hiện trên đĩa rồi nhảy thẳng lên bảng order. **Chỉ lúc đáp xuống bảng order mới cộng số phần và kiểm tra hoàn thành khách.** Popup dừng cả ghép món lẫn chuyến bay; replay dọn món và mọi reservation trước khi reset khách.
 
-`Customer.prefab` có `Serving slots` với bốn vị trí bàn, phần avatar và bảng order đặt cạnh nhau. Các phần cùng công thức được gộp thành một icon trên `DishCard.prefab`, hiển thị `0/2`, `1/2`, rồi dấu tick khi đủ. Đồng hồ thời gian chỉ hiển thị với khách rush, chuyển màu xanh/cam/đỏ theo thời gian còn lại. `ServingCounter.prefab` và text số slot được đặt sẵn trong `GamePlay.unity`; các thành phần header nằm trong `UICGamePlay`/`UICFloating`.
+`Customer.prefab` có `Serving slots` với bốn vị trí bàn, phần avatar và bảng order đặt cạnh nhau. Các phần cùng công thức được gộp thành một icon trên `DishCard.prefab`, hiển thị `0/2`, `1/2`, rồi dấu tick khi đủ. Khách rush dùng thanh thời gian dọc ở mép phải bảng order: `fr_time` làm khung, `time_green` khi còn trên 50%, `time_orange` khi còn ≤50%, `time_red` khi còn ≤20%. Thanh giảm từ trên xuống, co giãn theo bảng order và ẩn khi khách nhận đủ món; hồi thời gian cập nhật lại độ đầy và màu. Hai mốc và tùy chọn hiện số giây chỉnh trên `RushCustomerView`. `ServingCounter.prefab` và text số slot được đặt sẵn trong `GamePlay.unity`; text slot chuyển cam từ 80% chỗ bị chiếm, đỏ khi đầy, rồi trở lại màu phù hợp khi giải phóng chỗ. Slot đã giữ cho nguyên liệu đang bay và túi revive đều được tính. Ba màu text chỉnh trên `ConveyorManager`; các thành phần header nằm trong `UICGamePlay`/`UICFloating`.
 
 Magnet chọn một phần còn thiếu trên icon order đã gộp: hút đủ nguyên liệu tới đĩa tròn của khách, ghép thành món rồi bay vào order. Món đang ghép/đang giao không bị nhân đôi. Thiếu nguyên liệu thì không thay đổi board hoặc trừ booster.
 
@@ -153,6 +153,12 @@ Prefab chung có nhãn ×n và dùng ảnh minh họa cho nắp ?, lớp băng, 
 Timer dùng thời gian unscaled; vẫn chạy khi chọn booster, chỉ dừng khi popup mở. `UICanvas.Open`/`OnDisable` tự đăng ký popup với LevelManager; UI riêng gọi `SetPopupOpen(true/false)` cân bằng. Khách thường và khách vội nhận theo thứ tự khách đến.
 
 Hết giờ: popup +30 giây cho đúng khách đó. Kẹt vì mọi đầu cột bị băng: popup phá băng ở hàng 1. Revive lần đầu 300 xu, sau đó 600. `SushiReviveProvider` là điểm tích hợp ví xu/quảng cáo: implement `TrySpendCoins` và `ShowRewardedAd`, rồi gán vào LevelManager. Chỉ nhận revive khi thanh toán/reward thành công; khi chưa gán provider, các nút thanh toán không hoạt động. Nút từ chối chuyển sang thua/chơi lại.
+
+## Tiến độ item trên Victory
+
+GameManager trong scene `Loading` cấu hình `LevelUnlockItemHoiCham`, `LevelUnlockItemBang`, `LevelUnlockItemLinked`, `LevelUnlockItemTray` (mặc định 5, 11, 21, 31; 0 bỏ mốc). Level tính từ 1: thắng Lv 4 là đạt Lv 5. Victory chọn item có mốc gần nhất chưa đạt trước trận thắng, chạy fill từ tiến độ cũ tới mới trong khoảng giữa hai mốc, rồi hiện `Unlocked` khi đầy. Mốc đầu tính từ Lv 1; ví dụ thắng Lv 1 hiện `1/4` hướng tới Lv 5. Trận tiếp theo chuyển sang item kế tiếp; sau mốc cuối ẩn phần này. Các mốc có thể đổi thứ tự trong Inspector. Nội dung element trên board vẫn lấy từ dữ liệu từng level.
+
+`UICVictory` đã gán `unlockRoot`, `txtUnlockProgress`, bốn icon và ảnh fill. `unlockFillDuration` chỉnh thời gian chạy fill (mặc định 0,8 giây). Tween dùng thời gian unscaled và hủy khi đóng popup. LevelManager chụp tiến độ trước khi lưu kết quả để chơi lại level cũ không cộng tiến độ hoặc báo mở lại item. Kiểm tra riêng bằng `SushiGameplayRegression.RunVictoryUnlockBatch`, kết quả ghi `VictoryUnlockResults.txt` trong project test.
 
 ## Kiểm tra
 

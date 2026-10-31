@@ -1026,6 +1026,9 @@ MonoBehaviour:
   positionZ: 0
   playOnStart: 1
   capacityLabel: {fileID: 1687875805}
+  capacityNormalColor: {r: 1, g: 1, b: 1, a: 1}
+  capacityWarningColor: {r: 1, g: 0.55, b: 0.08, a: 1}
+  capacityFullColor: {r: 1, g: 0.15, b: 0.1, a: 1}
   jumpDuration: 0.42
   jumpHeight: 0.95
   pickupStagger: 0.055

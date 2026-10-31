@@ -73,6 +73,42 @@ public class GameManager : MonoBehaviour
         LevelManager.Ins.CurrentLevelIndex + 1 >= HomeUnlockLevel;
     public bool CanOpenMainMenu => SelectedLevelIndex() + 1 >= HomeUnlockLevel;
 
+    [Header("Item unlock levels (1-based, 0 = disabled)")]
+    [Min(0)] public int LevelUnlockItemHoiCham = 5;
+    [Min(0)] public int LevelUnlockItemBang = 11;
+    [Min(0)] public int LevelUnlockItemLinked = 21;
+    [Min(0)] public int LevelUnlockItemTray = 31;
+
+    // Select by configured level, so changing the order in the Inspector also changes the preview.
+    public bool TryGetNextItemUnlock(int reachedLevel, out FoodState item, out int previousLevel, out int unlockLevel)
+    {
+        reachedLevel = Mathf.Max(1, reachedLevel);
+        FoodState nextItem = FoodState.Normal;
+        int previous = 1;
+        int next = int.MaxValue;
+
+        Consider(FoodState.HoiCham, LevelUnlockItemHoiCham);
+        Consider(FoodState.Ice, LevelUnlockItemBang);
+        Consider(FoodState.Lock, LevelUnlockItemLinked);
+        Consider(FoodState.RigidTray, LevelUnlockItemTray);
+
+        item = nextItem;
+        previousLevel = previous;
+        unlockLevel = nextItem == FoodState.Normal ? 0 : next;
+        return nextItem != FoodState.Normal;
+
+        void Consider(FoodState candidate, int target)
+        {
+            if (target <= 0) return;
+            if (target <= reachedLevel) previous = Mathf.Max(previous, target);
+            else if (target < next)
+            {
+                next = target;
+                nextItem = candidate;
+            }
+        }
+    }
+
     protected void Awake()
     {
         if (ins != null && ins != this) { Destroy(gameObject); return; }

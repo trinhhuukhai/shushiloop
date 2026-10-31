@@ -6,23 +6,21 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
     private static T ins;
 
+    // Read/reset paths, especially OnDisable/OnDestroy, must not create a replacement.
+    public static T Existing
+    {
+        get
+        {
+            if (ins == null) ins = FindFirstObjectByType<T>(FindObjectsInactive.Include);
+            return ins;
+        }
+    }
+
     public static T Ins
     {
         get
         {
-            if (ins == null)
-            {
-                // Find singleton
-                ins = FindObjectOfType<T>();
-
-                // Create new instance if one doesn't already exist.
-                if (ins == null)
-                {
-                    // Need to create a new GameObject to attach the singleton to.
-                    ins = new GameObject(nameof(T)).AddComponent<T>();
-                }
-
-            }
+            if (Existing == null) ins = new GameObject(typeof(T).Name).AddComponent<T>();
             return ins;
         }
     }
