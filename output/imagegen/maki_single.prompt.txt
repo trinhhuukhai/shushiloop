@@ -1,0 +1,11 @@
+Tool: built-in image_gen (transparent_background=true)
+Reference: Assets/_game/Art/asset/monan/maki.png
+Output: Assets/_game/Art/asset/monan/maki_single.png
+
+Use case: precise-object-edit.
+Asset type: isolated 2D food sprite for a Unity game.
+Input image: maki.png is the reference and edit target, showing three matching plain rice maki rolls.
+Primary request: redraw this as exactly ONE complete standalone maki roll. Match the front-left roll from the reference in silhouette, proportions, elevated three-quarter viewing angle, hand-painted game-art shading, fine dark outline, and colors. Reconstruct any hidden edges cleanly. The top is an ellipse packed with plump individual ivory-white rice grains, with NO colored filling or hole in the center. The short cylindrical side is wrapped in mottled very dark olive-green nori with subtle green highlights and a narrow dark purple-black rim. Keep the original cute, softly rendered sprite style, not a photograph.
+Composition: one single centered upright roll, fully visible, comfortably filling a square canvas with a modest clear margin. Preserve the original ratio of ellipse width to height and short roll height.
+Background: actual transparent alpha everywhere outside the roll, clean antialiased edges. No background color, no checkerboard pattern, no floor, no cast shadow outside the silhouette.
+Constraints: exactly one roll, no other food, no plate, no garnish, no text, no watermark. Do not introduce orange fish, green vegetables, or a central filling.

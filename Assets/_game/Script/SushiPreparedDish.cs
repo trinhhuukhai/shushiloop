@@ -11,6 +11,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     [SerializeField] private Transform ingredientRoot;
     private readonly List<FoodShushi> assemblyIngredients = new List<FoodShushi>();
     private readonly Dictionary<PoolType, Transform> ingredientTargets = new Dictionary<PoolType, Transform>();
+    private bool isFlying;
     public IReadOnlyList<FoodShushi> AssemblyIngredients => assemblyIngredients;
     public Transform IngredientRoot => ingredientRoot;
     public Customer Owner { get; private set; }
@@ -20,6 +21,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     public void Bind(Customer customer, SushiDishOrder order)
     {
         Owner = customer; Order = order; IsReady = false;
+        isFlying = false;
         if (ingredientArt == null && SushiArtCatalog.Default != null)
             ingredientArt = SushiArtCatalog.Default.platedIngredientImages;
         if (ingredientRoot == null)
@@ -32,10 +34,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
             PoolType type = order.Ingredients[i].typeFood;
             var target = new GameObject(type.ToString()).transform;
             target.SetParent(ingredientRoot, false);
-            var artwork = ingredientArt != null ? ingredientArt.Find(type, order.Recipe) : null;
-            Vector2 position = ingredientArt != null ? ingredientArt.GetPosition(type, order.Recipe) : Vector2.zero;
-            target.localPosition = new Vector3(position.x, position.y, -0.1f);
-            target.localRotation = Quaternion.Euler(0, 0, artwork != null ? artwork.rotation : 0);
+            UpdateIngredientTarget(type, target);
             ingredientTargets.Add(type, target);
         }
         dishImage.enabled = false;
@@ -49,6 +48,22 @@ public sealed class SushiPreparedDish : MonoBehaviour
     }
 
     public Transform IngredientTarget(PoolType type) => ingredientTargets[type];
+
+    private void UpdateIngredientTarget(PoolType type, Transform target)
+    {
+        var artwork = ingredientArt != null ? ingredientArt.Find(type, Order.Recipe) : null;
+        Vector2 position = ingredientArt != null ? ingredientArt.GetPosition(type, Order.Recipe) : Vector2.zero;
+        target.localPosition = new Vector3(position.x, position.y, -0.1f);
+        target.localRotation = Quaternion.Euler(0, 0, artwork != null ? artwork.rotation : 0);
+    }
+
+    public void RefreshArtwork(SushiPlatedIngredientArtLibrary changedArt)
+    {
+        if (Order == null || ingredientArt != changedArt) return;
+        foreach (var target in ingredientTargets) UpdateIngredientTarget(target.Key, target.Value);
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null) ApplyIngredientArtwork(food, isFlying);
+    }
 
     public void ApplyIngredientArtwork(FoodShushi food, bool flying)
     {
@@ -89,6 +104,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     }
     public void SetFlying()
     {
+        isFlying = true;
         plate.sortingOrder = 30;
         foreach (FoodShushi food in assemblyIngredients) ApplyIngredientArtwork(food, true);
     }

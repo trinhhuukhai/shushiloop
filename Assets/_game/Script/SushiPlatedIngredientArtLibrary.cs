@@ -11,6 +11,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
         public PoolType type;
         public Sprite sprite;
         public Vector2 position;
+        [Tooltip("Exact plated width (X) and height (Y), in local units. Each dimension is applied independently.")]
         public Vector2 size = new Vector2(0.76f, 0.6f);
         public float rotation;
         public int sortingOrder = 2;
@@ -33,6 +34,29 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
     [Tooltip("Ảnh khi lên đĩa, ưu tiên theo kiểu công thức trước ảnh của family.")]
     public List<RecipeEntry> recipeOverrides = new List<RecipeEntry>();
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        // Inspector validation can run off the main thread; refresh scene objects later.
+        UnityEditor.EditorApplication.delayCall -= RefreshEditorArtwork;
+        UnityEditor.EditorApplication.delayCall += RefreshEditorArtwork;
+    }
+
+    private void OnDisable() => UnityEditor.EditorApplication.delayCall -= RefreshEditorArtwork;
+
+    private void RefreshEditorArtwork()
+    {
+        if (this == null || !UnityEditor.EditorApplication.isPlaying) return;
+        foreach (SushiPreparedDish dish in FindObjectsByType<SushiPreparedDish>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            dish.RefreshArtwork(this);
+        if (SushiArtCatalog.Default != null && SushiArtCatalog.Default.platedIngredientImages == this)
+            foreach (CustomerRecipeView view in FindObjectsByType<CustomerRecipeView>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                view.RefreshArtwork();
+        UnityEditor.EditorApplication.QueuePlayerLoopUpdate();
+        UnityEditor.SceneView.RepaintAll();
+    }
+#endif
+
     public Entry Find(PoolType type, SushiRecipe recipe)
     {
         foreach (RecipeEntry entry in recipeOverrides)
@@ -43,8 +67,10 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
     // Shared by serving plates and order previews, so the recipe looks the same in both places.
     public Vector2 GetPosition(PoolType type, SushiRecipe recipe)
     {
+        Entry entry = Find(type, recipe);
+        if (entry != null) return entry.position;
         if (recipe.Kind == SushiRecipeKind.TwoWithRice || recipe.Kind == SushiRecipeKind.Catalog) return Vector2.zero;
-        Vector2 position = Find(type, recipe)?.position ?? Vector2.zero;
+        Vector2 position = Vector2.zero;
         if (recipe.Kind == SushiRecipeKind.TwoWithoutRice)
             return position + new Vector2(recipe.Ingredients[0] == type ? -0.2f : 0.2f, 0);
         if (type == PoolType.SushiRice || type == PoolType.Seaweed) return position;
@@ -60,13 +86,16 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
 
     public int GetSortingOrder(PoolType type, SushiRecipe recipe)
     {
+        // Keep the authored order with the selected recipe/family/ingredient artwork.
+        Entry entry = Find(type, recipe);
+        if (entry != null) return entry.sortingOrder;
         if (recipe.Kind == SushiRecipeKind.ThreeWithRice)
         {
             if (type == PoolType.SushiRice) return 0;
             if (type == PoolType.Seaweed) return -1;
             return recipe.Ingredients[1] == type ? 2 : 3;
         }
-        return Find(type, recipe)?.sortingOrder ?? 2;
+        return 2;
     }
 
     public Entry Find(PoolType type, SushiDishFamily family)

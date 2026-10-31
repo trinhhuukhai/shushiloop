@@ -90,7 +90,7 @@ public class CanvasRevive : UICanvas
             }
             var data = GameDataFragment.cur.dataPlayer;
             //FirebaseManager.Ins.REVIVE_offer(data.cur_level, data._retryCountThisLevel, "Revive_gold", "normal_lose");
-            Close();
+            CloseDirectly();
 
         }
         else

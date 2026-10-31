@@ -165,12 +165,16 @@ public class FoodShushi : GameUnit
         if (sprite == null) return;
         if (foodRenderer.transform == transform) return;
         Bounds bounds = foodRenderer.sprite.bounds;
-        float scale = platedSprite != null
-            ? Mathf.Min(Mathf.Max(0.01f, platedSize.x) / Mathf.Max(0.01f, bounds.size.x),
-                Mathf.Max(0.01f, platedSize.y) / Mathf.Max(0.01f, bounds.size.y))
-            : 1.05f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y));
-        foodRenderer.transform.localScale = Vector3.one * scale;
-        foodRenderer.transform.localPosition = -bounds.center * scale;
+        Vector3 scale;
+        if (platedSprite != null)
+        {
+            float widthScale = Mathf.Max(0.01f, platedSize.x) / Mathf.Max(0.01f, bounds.size.x);
+            float heightScale = Mathf.Max(0.01f, platedSize.y) / Mathf.Max(0.01f, bounds.size.y);
+            scale = new Vector3(widthScale, heightScale, 1);
+        }
+        else scale = Vector3.one * (1.05f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y)));
+        foodRenderer.transform.localScale = scale;
+        foodRenderer.transform.localPosition = -Vector3.Scale(bounds.center, scale);
     }
 
     public void SetPlatedArtwork(Sprite sprite, Vector2 size, int sortingOrder)

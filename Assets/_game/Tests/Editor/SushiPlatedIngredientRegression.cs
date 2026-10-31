@@ -187,11 +187,14 @@ public static class SushiPlatedIngredientRegression
         SushiPreparedDish dish = Dish;
         Advance(); Invoke(belt, "Update"); Advance(); Invoke(belt, "Update"); Advance();
         Check(dish.IsReady && dish.AssemblyIngredients.Count == 3, "custom triple did not finish assembly");
-        Check(dish.IngredientTarget(PoolType.Shrimp).localPosition != dish.IngredientTarget(PoolType.Avocado).localPosition,
-            "two arbitrary toppings obscure each other");
         foreach (FoodShushi food in dish.AssemblyIngredients)
-            Check(Artwork(food) == SushiArtCatalog.Default.platedIngredientImages.Find(food.Type, dish.Order.Recipe).sprite,
+        {
+            var entry = SushiArtCatalog.Default.platedIngredientImages.Find(food.Type, dish.Order.Recipe);
+            Check(Artwork(food) == entry.sprite,
                 "custom plate selected the wrong recipe artwork");
+            Check((Vector2)dish.IngredientTarget(food.Type).localPosition == entry.position,
+                "custom plate ignored the authored ingredient position");
+        }
         for (int i = 0; i < 130; i++) Advance(0.1f);
         Check(customer.Dishes[0].IsComplete && belt.PreparedDishCount == 0, "custom triple failed order delivery");
     }
@@ -216,7 +219,12 @@ public static class SushiPlatedIngredientRegression
         Check(art != null && art.ingredients.Count == 21, "plated art list is not assigned or incomplete");
         foreach (SushiRecipe recipe in SushiRecipeCatalog.All)
             foreach (PoolType type in recipe.Ingredients)
+            {
                 Check(art.Find(type, recipe.Family)?.sprite != null, "missing plated art for " + type);
+                var entry = art.Find(type, recipe);
+                Check(entry != null && art.GetSortingOrder(type, recipe) == entry.sortingOrder,
+                    "authored plated sorting order was ignored for " + recipe.Id + "/" + type);
+            }
         Check(art.Find(PoolType.SushiRice, SushiDishFamily.Nigiri).sprite.name == "nigiri_base_0", "wrong rice art");
         Check(art.Find(PoolType.Octopus, SushiDishFamily.Nigiri).sprite.name == "nigiri_top_octopus_0", "wrong octopus art");
         Check(art.Find(PoolType.Octopus, SushiDishFamily.Sashimi).sprite.name == "octopus_0", "sashimi should use its own slice");
@@ -281,6 +289,49 @@ public static class SushiPlatedIngredientRegression
             "rice rendered above its topping");
         Check(rice.transform.localScale == Vector3.one && octopus.transform.localScale == Vector3.one,
             "landing changed the authored composition scale");
+        CheckPlatedSizeChanges(dish, rice);
+    }
+
+    private static void CheckPlatedSizeChanges(SushiPreparedDish dish, FoodShushi food)
+    {
+        var originalArt = Get<SushiPlatedIngredientArtLibrary>(dish, "ingredientArt");
+        var editedArt = Object.Instantiate(originalArt);
+        var renderer = Get<SpriteRenderer>(food, "foodRenderer");
+        try
+        {
+            Set(dish, "ingredientArt", editedArt);
+            var entry = editedArt.Find(food.Type, dish.Order.Recipe);
+            entry.size = new Vector2(0.7f, 0.3f);
+            entry.position = new Vector2(0.2f, -0.1f);
+            entry.rotation = 17;
+            entry.sortingOrder = 19;
+            dish.RefreshArtwork(editedArt);
+            Vector3 size = Vector3.Scale(renderer.sprite.bounds.size, renderer.transform.localScale);
+            Check(Mathf.Abs(size.x - 0.7f) < 0.001f && Mathf.Abs(size.y - 0.3f) < 0.001f,
+                "landed ingredient did not use the edited width and height");
+            entry.size.x = 1.4f;
+            dish.RefreshArtwork(editedArt);
+            size = Vector3.Scale(renderer.sprite.bounds.size, renderer.transform.localScale);
+            Check(Mathf.Abs(size.x - 1.4f) < 0.001f && Mathf.Abs(size.y - 0.3f) < 0.001f,
+                "editing width changed height or was ignored");
+            entry.size.y = 0.6f;
+            dish.RefreshArtwork(editedArt);
+            size = Vector3.Scale(renderer.sprite.bounds.size, renderer.transform.localScale);
+            Check(Mathf.Abs(size.x - 1.4f) < 0.001f && Mathf.Abs(size.y - 0.6f) < 0.001f,
+                "editing height changed width or was ignored");
+            Transform target = dish.IngredientTarget(food.Type);
+            Check((Vector2)target.localPosition == entry.position &&
+                Mathf.Abs(Mathf.DeltaAngle(target.localEulerAngles.z, entry.rotation)) < 0.001f,
+                "landed ingredient ignored the authored position or rotation");
+            Check(food.transform.localScale == Vector3.one && renderer.sortingOrder == 18 + entry.sortingOrder,
+                "editing size changed the dish scale or sorting order");
+        }
+        finally
+        {
+            Set(dish, "ingredientArt", originalArt);
+            dish.RefreshArtwork(originalArt);
+            Object.DestroyImmediate(editedArt);
+        }
     }
 
     private static void MagnetAssembly(SushiDishId id)

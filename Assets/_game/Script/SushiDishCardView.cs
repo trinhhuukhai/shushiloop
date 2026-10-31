@@ -117,12 +117,12 @@ public sealed class SushiDishCardView : MonoBehaviour
                 layerObject.transform.SetParent(finished.transform, false);
                 var newLayer = layerObject.GetComponent<Image>();
                 newLayer.raycastTarget = false;
-                newLayer.preserveAspect = true;
                 recipeLayers.Add(newLayer);
             }
             Image layer = recipeLayers[i];
             var entry = plated != null ? plated.Find(types[i], recipe) : null;
             layer.sprite = entry != null ? entry.sprite : customer.GetIngredientSprite(types[i]);
+            layer.preserveAspect = entry == null;
             Vector2 position = plated != null ? plated.GetPosition(types[i], recipe) : new Vector2((i - 1) * 0.25f, 0);
             Vector2 size = entry != null ? entry.size : new Vector2(0.45f, 0.45f);
             // Relative anchors keep the composed art responsive to the authored image frame.

@@ -1,0 +1,6 @@
+Generated with the built-in image_gen tool (imagegen skill).
+Reference: Assets/_game/Art/asset/monan/com.png
+Output: Assets/_game/Art/asset/monan/com-single.png
+
+Final prompt:
+Use case: precise-object-edit. Asset type: isolated ingredient sprite for a polished casual sushi mobile game. Input image 1 is the reference/edit target: it currently shows three compact white rice cylinders grouped together. Redraw this as EXACTLY ONE single short, softly rounded cylinder of cooked sushi rice, centered and fully visible, with no other rice portions. Preserve the reference's cute polished 2.5D game illustration style, cream-white glossy plump individually defined rice grains, subtle warm beige shadows, gentle highlights from upper left, and elevated three-quarter view showing the broad oval top and rounded front side. The cylinder should be squat and appetizing, like one of the front rice portions in the reference, enlarged to fill approximately 78% of a square canvas with clean even transparent margins. True transparent alpha background. Remove the brown rectangular framing, all background shapes and the other two rice portions entirely. No plate, no seaweed, no toppings, no loose grains, no text, no border, no watermark, no checkerboard baked into the pixels. Clean soft antialiased silhouette suitable for Unity Sprite.
