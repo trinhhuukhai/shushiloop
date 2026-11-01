@@ -83,10 +83,12 @@ public class CanvasFloating : UICanvas
     public override void Open()
     {
         base.Open();
+        CheckMoneyTemp();
         ShowGold();
         ShowGold_Heart();
         HideHeart();
         showBtnSettingInGame(true);
+
         //ShowGold_Heart();
         //showHeart();
         //StartCoroutine(IE_LivesUnlimited());
@@ -96,6 +98,15 @@ public class CanvasFloating : UICanvas
         //ShowSettingButton(true);
         //StartCoroutine(IE_Lives());
     }
+    public void CheckMoneyTemp()
+    {
+        var data = GameDataFragment.cur;
+        if (data?.dataPlayer == null || data.dataPlayer.moneyTemp <= 0) return;
+        int reward = data.dataPlayer.moneyTemp;
+        data.dataPlayer.moneyTemp = 0;
+        data.ChangeMoney(reward, "home");
+    }
+
 
     public void HideGold_Heart()
     {

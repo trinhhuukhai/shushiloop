@@ -290,7 +290,8 @@ public class GameManager : MonoBehaviour
         level.ClaimVictoryReward();
         if (CanReturnHome)
         {
-            ReturnToMainMenu();
+            IsLoadingLevel = true;
+            StartCoroutine(ReturnHomeAfterVictory());
             return true;
         }
         int nextIndex = level.HasNextLevel ? level.CurrentLevelIndex + 1 : level.CurrentLevelIndex;
@@ -366,6 +367,30 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private IEnumerator ReturnHomeAfterVictory()
+    {
+        CanvasTransit transit = null;
+        try
+        {
+            transit = UIManager.Ins.OpenUI<CanvasTransit>();
+            if (transit == null) yield break;
+            bool transitDone = false;
+            transit.MakeDelayTransit(() => transitDone = true, levelTransitDuration);
+            yield return null;
+            yield return null;
+            OpenMainMenu(transit);
+            float deadline = Time.realtimeSinceStartup + levelTransitDuration + 2f;
+            while (!transitDone && transit != null && Time.realtimeSinceStartup < deadline)
+                yield return null;
+        }
+        finally
+        {
+            if (transit != null && UIManager.Ins != null && UIManager.Ins.IsOpened<CanvasTransit>())
+                transit.CloseDirectly();
+            IsLoadingLevel = false;
+        }
+    }
+
     public void ReturnToMainMenu()
     {
         if (IsLoadingLevel || UIManager.Ins == null) return;
@@ -373,10 +398,10 @@ public class GameManager : MonoBehaviour
         OpenMainMenu();
     }
 
-    private void OpenMainMenu()
+    private void OpenMainMenu(UICanvas transition = null)
     {
         if (UIManager.Ins == null) return;
-        UIManager.Ins.CloseAll();
+        UIManager.Ins.CloseAll(transition);
         LevelManager.Ins?.EnterMainMenu();
         Time.timeScale = 1;
         ChangeScene(GameScene.Home);

@@ -497,11 +497,13 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null &&
         (GameManager.ins == null || !GameManager.ins.isPlayTestingLevel);
 
-    public bool ClaimVictoryReward()
+    public bool ClaimVictoryReward() => ClaimVictoryReward(1);
+
+    public bool ClaimVictoryReward(int multiplier)
     {
         if (!HasWon || rewardClaimed) return false;
         rewardClaimed = true;
-        if (CanSaveProgress) GameDataFragment.cur.ChangeMoney(victoryReward, "win");
+        if (CanSaveProgress) GameDataFragment.cur.ChangeMoney(victoryReward * Mathf.Clamp(multiplier, 1, 2), "win");
         return true;
     }
 

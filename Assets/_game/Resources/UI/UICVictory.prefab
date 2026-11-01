@@ -1560,6 +1560,11 @@ MonoBehaviour:
   btnAdsRW: {fileID: 4470842520508515926}
   btnGoldRW: {fileID: 8013408885041490266}
   txtGold: {fileID: 3996920794785926503}
+  coinAttact: {fileID: 5584829202193092014}
+  efectcoin: {fileID: 6429724747613322805}
+  goldCountDuration: 0.5
+  rewardEndDelay: 0.2
+  coinFlightTimeout: 6
   iconHoiCham: {fileID: 3967618115545620084}
   iconBang: {fileID: 8782124185841582670}
   iconLinked: {fileID: 3907893139291367554}
@@ -1603,7 +1608,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &285649161521931745
@@ -2771,7 +2776,7 @@ MonoBehaviour:
   _bursts:
   - time: 0
     count: 42
-    used: 0
+    used: 1
   _particleTrailRenderer: {fileID: 0}
   _trailModule:
     enabled: 0
@@ -3746,7 +3751,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 4693206049384719267}
         m_TargetAssemblyTypeName: CanvasVictory, Assembly-CSharp
-        m_MethodName: BtnNext
+        m_MethodName: BtnNextAds
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6328,7 +6333,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2373548326963315315, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: _bursts.Array.data[0].used
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3817557494372724381, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: m_Name

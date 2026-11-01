@@ -57,6 +57,12 @@ public static partial class SushiGameplayRegression
         RunBatch();
     }
 
+    public static void RunVictoryGoldBatch()
+    {
+        SessionState.SetBool(PendingKey + ".VictoryGold", true);
+        RunBatch();
+    }
+
     public static void RunShutdownBatch()
     {
         SessionState.SetBool(PendingKey + ".Shutdown", true);
@@ -109,6 +115,11 @@ public static partial class SushiGameplayRegression
         {
             SessionState.SetBool(PendingKey + ".Shutdown", false);
             RunShutdownChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".VictoryGold", false))
+        {
+            SessionState.SetBool(PendingKey + ".VictoryGold", false);
+            RunVictoryGoldChecks();
         }
         else if (SessionState.GetBool(PendingKey + ".VictoryUnlock", false))
         {
@@ -797,6 +808,186 @@ public static partial class SushiGameplayRegression
             System.IO.File.WriteAllText("ShutdownResults.txt", "FAIL\n" + error);
             EditorApplication.Exit(1);
         }
+    }
+
+    private static void RunVictoryGoldChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            CreateFixture();
+            CreateLevel();
+            Run("normal reward waits for coins and counter before advancing", () => VictoryGoldFlow(false));
+            Run("Ads reward grants x2 once, including repeated clicks", () => VictoryGoldFlow(true));
+            Run("closing mid-reward cancels callbacks without losing or duplicating coins", VictoryGoldInterrupted);
+            Run("missing effects and stalled particles still finish the reward", VictoryGoldFallback);
+            Run("Home opens underneath transit after the reward", VictoryGoldHome);
+            System.IO.File.WriteAllText("VictoryGoldResults.txt", "PASS: " + passed + " scenarios\n");
+            Debug.Log("SUSHI_VICTORY_GOLD_OK: " + passed + " scenarios");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            System.IO.File.WriteAllText("VictoryGoldResults.txt", "FAIL\n" + error);
+            EditorApplication.Exit(1);
+        }
+    }
+
+    private static void WithGoldReward(Action<GameManager, CanvasVictory, SushiRegressionGoldProfile> test)
+    {
+        GameDataFragment previousProfile = GameDataFragment.cur;
+        DataManager previousDataManager = DataManager.ins;
+        float previousTimeScale = Time.timeScale;
+        var profile = ScriptableObject.CreateInstance<SushiRegressionGoldProfile>();
+        profile.dataPlayer = new GameDataFragment.DataPlayer { money = 500 };
+        GameDataFragment.cur = profile;
+        GameObject dataObject = Node("Reward profile manager").gameObject;
+        dataObject.SetActive(false);
+        DataManager dataManager = dataObject.AddComponent<DataManager>();
+        DataManager.ins = dataManager;
+        try
+        {
+            var levels = Get<AllLevelData>(level, "allLevelData").listAllLevel;
+            if (levels.Count == 1) levels.Add(levels[0]);
+            level.LoadLevel(0);
+            level.OnWIn(); // Capture the win without persisting campaign progress.
+            dataManager.isLoaded = true;
+            WithVictory((manager, view) =>
+            {
+                Check(view.coinAttact != null && view.efectcoin != null &&
+                    view.coinAttact.attractorTarget == view.efectcoin.transform.parent,
+                    "Victory coin effects/target are not wired to the existing prefab");
+                view.Open();
+                GameManager.ins = null; // Standalone next-level path unless the test installs navigation.
+                Time.timeScale = 0;
+                test(manager, view, profile);
+            });
+        }
+        finally
+        {
+            Time.timeScale = previousTimeScale;
+            Object.DestroyImmediate(dataObject);
+            Object.DestroyImmediate(profile);
+            DataManager.ins = previousDataManager;
+            GameDataFragment.cur = previousProfile;
+        }
+    }
+
+    private static void VictoryGoldFlow(bool ads)
+    {
+        WithGoldReward((manager, view, profile) =>
+        {
+            int expected = 500 + level.VictoryReward * (ads ? 2 : 1);
+            if (ads) view.BtnNextAds(); else view.BtnNext();
+            Check(profile.dataPlayer.money == expected && profile.saves == 1, "reward was not saved exactly once");
+            Check(view.txtGold.text == "500" && view.coinAttact.isPlaying && !view.efectcoin.isPlaying,
+                "gold counter/receive effect started before coins arrived");
+            Check(!view.btnGoldRW.interactable && !view.btnAdsRW.interactable, "one claim button remained enabled");
+            view.BtnNext(); view.BtnNextAds();
+            Check(profile.dataPlayer.money == expected && profile.saves == 1, "repeated clicks duplicated the reward");
+            view.coinAttact.onFirstParticleFinish.Invoke();
+            Check(view.efectcoin.isPlaying, "gold arrival did not play the receiving effect");
+            DOTween.ManualUpdate(0, 0.2f);
+            int intermediate = int.Parse(view.txtGold.text);
+            Check(intermediate > 500 && intermediate < expected && level.CurrentLevelIndex == 0,
+                "counter did not animate unscaled or navigation started early");
+            DOTween.ManualUpdate(0, 0.5f);
+            Check(view.txtGold.text == expected.ToString() && view.gameObject.activeSelf && level.HasWon,
+                "navigation did not wait for the remaining flying coins");
+            view.coinAttact.onStop.Invoke();
+            DOTween.ManualUpdate(0, 0.3f);
+            Check(!view.gameObject.activeSelf && level.CurrentLevelIndex == 1 && !level.HasWon &&
+                profile.dataPlayer.money == expected && profile.saves == 1, "reward did not advance once after both animations");
+        });
+    }
+
+    private static void VictoryGoldInterrupted()
+    {
+        WithGoldReward((manager, view, profile) =>
+        {
+            view.BtnNext();
+            view.coinAttact.onFirstParticleFinish.Invoke();
+            view.CloseDirectly();
+            view.coinAttact.onStop.Invoke();
+            DOTween.ManualUpdate(0, 10);
+            Check(level.CurrentLevelIndex == 0 && level.HasWon && profile.dataPlayer.money == 600 &&
+                !view.coinAttact.isPlaying && !view.efectcoin.isPlaying, "closed popup retained effects or a navigation callback");
+            view.Open();
+            Check(view.txtGold.text == "600" && view.btnGoldRW.interactable && view.btnAdsRW.interactable,
+                "reopening did not restore the saved balance/buttons");
+            view.BtnNextAds();
+            Check(level.CurrentLevelIndex == 1 && profile.dataPlayer.money == 600 && profile.saves == 1,
+                "reopening allowed the same win to be claimed again with a different multiplier");
+        });
+    }
+
+    private static void VictoryGoldFallback()
+    {
+        foreach (bool missing in new[] { true, false })
+            WithGoldReward((manager, view, profile) =>
+            {
+                if (missing) { view.coinAttact = null; view.efectcoin = null; }
+                else Set(view, "coinFlightTimeout", 0.1f);
+                view.BtnNext();
+                DOTween.ManualUpdate(0, 0.2f);
+                DOTween.ManualUpdate(0, 0.6f);
+                DOTween.ManualUpdate(0, 0.3f);
+                Check(level.CurrentLevelIndex == 1 && profile.dataPlayer.money == 600 && profile.saves == 1,
+                    "missing/stalled particles left the reward stuck or changed the amount");
+            });
+    }
+
+    private static void VictoryGoldHome()
+    {
+        WithGoldReward((manager, view, profile) =>
+        {
+            SoundManager previousSound = SoundManager.ins;
+            var soundObject = new GameObject("Reward navigation audio");
+            soundObject.SetActive(false);
+            SoundManager sound = soundObject.AddComponent<SoundManager>();
+            Set(sound, "soundMap", new Dictionary<SoundID, SoundEntry>());
+            SoundManager.ins = sound;
+            var uiObject = new GameObject("Reward navigation UI", typeof(RectTransform));
+            UIManager ui = uiObject.AddComponent<UIManager>();
+            ui.CanvasParentTF = ui.transform;
+            ui.uiResources = new UICanvas[] {
+                Resources.Load<CanvasTransit>("UI/UICTransis"), Resources.Load<CanvasMainMenu>("UI/UICMainMenu")
+            };
+            IEnumerator home = null;
+            try
+            {
+                manager.transform.SetParent(null);
+                manager.enabled = false; // Allow navigation coroutines without application startup.
+                manager.gameObject.SetActive(true);
+                manager.levelBackToHome = 1;
+                view.BtnNext();
+                view.coinAttact.onFirstParticleFinish.Invoke();
+                view.coinAttact.onStop.Invoke();
+                DOTween.ManualUpdate(0, 0.6f);
+                DOTween.ManualUpdate(0, 0.3f);
+                Check(ui.IsOpened<CanvasTransit>() && !ui.IsOpened<CanvasMainMenu>() && manager.IsLoadingLevel &&
+                    !view.gameObject.activeSelf && profile.dataPlayer.money == 600 && profile.saves == 1,
+                    "Home route skipped transit or claimed the reward again");
+                manager.StopAllCoroutines();
+
+                home = (IEnumerator)typeof(GameManager).GetMethod("ReturnHomeAfterVictory", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(manager, null);
+                Check(home.MoveNext() && home.MoveNext() && home.MoveNext(), "Home transition did not yield under cover");
+                Check(ui.IsOpened<CanvasTransit>() && ui.IsOpened<CanvasMainMenu>() && level.CurrentLevel == null &&
+                    GameManager.IsScene(GameScene.Home), "Home was not prepared beneath the transition");
+            }
+            finally
+            {
+                (home as IDisposable)?.Dispose();
+                manager.StopAllCoroutines();
+                Timer.KillAllTimer();
+                Object.DestroyImmediate(uiObject);
+                Object.DestroyImmediate(soundObject);
+                SoundManager.ins = previousSound;
+            }
+        });
     }
 
     private static void RunVictoryUnlockChecks()
@@ -1943,6 +2134,12 @@ public static partial class SushiGameplayRegression
         Check(conveyor.OccupiedSlotCount == 0 && conveyor.DeliveringCount == 0 && Column(0).GetTopFood().Amount == 2, "reload retained food/slots");
         Advance(); Check(conveyor.OccupiedSlotCount == 0 && Column(0).GetTopFood().Location == FoodLocation.Board, "stale tween changed reloaded food");
     }
+}
+
+public class SushiRegressionGoldProfile : GameDataFragment
+{
+    public int saves;
+    public override void Save() { saves++; }
 }
 
 public class SushiRegressionPayment : SushiReviveProvider
