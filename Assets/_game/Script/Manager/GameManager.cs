@@ -79,6 +79,30 @@ public class GameManager : MonoBehaviour
     [Min(0)] public int LevelUnlockItemLinked = 21;
     [Min(0)] public int LevelUnlockItemTray = 31;
 
+    public int GetItemUnlockLevel(FoodState item)
+    {
+        switch (item)
+        {
+            case FoodState.HoiCham: return LevelUnlockItemHoiCham;
+            case FoodState.Ice: return LevelUnlockItemBang;
+            case FoodState.Lock: return LevelUnlockItemLinked;
+            case FoodState.RigidTray: return LevelUnlockItemTray;
+            default: return 0;
+        }
+    }
+
+    public static string GetItemUnlockId(FoodState item)
+    {
+        switch (item)
+        {
+            case FoodState.HoiCham: return "hidden_tile";
+            case FoodState.Ice: return "frozen_tile";
+            case FoodState.Lock: return "linked_tile";
+            case FoodState.RigidTray: return "rigid_tray";
+            default: return string.Empty;
+        }
+    }
+
     // Select by configured level, so changing the order in the Inspector also changes the preview.
     public bool TryGetNextItemUnlock(int reachedLevel, out FoodState item, out int previousLevel, out int unlockLevel)
     {

@@ -60,6 +60,7 @@ public class CanvasGamePlay : UICanvas
     {
         base.Open();
         imgStuck.SetActive(false);
+        OpenUINewItem();
         ShowAnim();
         input = FindFirstObjectByType<FoodInputController>();
         Refresh();
@@ -102,6 +103,14 @@ public class CanvasGamePlay : UICanvas
         {
             if (AnimLevelHardGroup != null) AnimLevelHardGroup.gameObject.SetActive(false);
         });
+    }
+
+    public void OpenUINewItem()
+    {
+        if(GameDataFragment.cur.dataPlayer.cur_level == 5)
+        {
+            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp();
+        }
     }
 
     private void Update() => Refresh();

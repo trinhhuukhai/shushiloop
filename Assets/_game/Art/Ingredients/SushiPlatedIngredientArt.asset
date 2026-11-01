@@ -135,7 +135,7 @@ MonoBehaviour:
     sortingOrder: 0
   - type: 21
     sprite: {fileID: 1248284065, guid: 8d7f4a39fafa48941a8ae1e5a7886091, type: 3}
-    position: {x: 0, y: 0.12}
+    position: {x: 0, y: 0.28}
     size: {x: 0.3, y: 0.3}
     rotation: 0
     sortingOrder: 2
