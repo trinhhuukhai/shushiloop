@@ -16,10 +16,12 @@ public class CanvasLive : UICanvas
     public RectTransform mainPanelRect;
 
     private const int ReviveLivesPrice = 800;
+    public TMP_Text txtGold;
 
     private bool isopen;
     private Tween popTween;
     private Coroutine coLives;
+    private static readonly WaitForSecondsRealtime OneSecondRealtime = new WaitForSecondsRealtime(1f);
 
     public override void Open()
     {
@@ -35,6 +37,13 @@ public class CanvasLive : UICanvas
 
         if (coLives != null) StopCoroutine(coLives);
         coLives = StartCoroutine(IE_Lives());
+
+        setGold();
+    }
+
+    public void setGold()
+    {
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
     }
 
     public void Close()
@@ -45,15 +54,13 @@ public class CanvasLive : UICanvas
 
     public override void BackKey() => Close();
 
-    // UIManager.CloseAll / CloseDirectly không đi qua Close(), nên reset trạng thái ở đây
-    // để lần Open sau luôn chạy lại đầy đủ (animation + coroutine).
 
     private IEnumerator IE_Lives()
     {
         while (true)
         {
             ShowLives();
-            yield return Yielders.Get(1f);
+            yield return OneSecondRealtime;
         }
     }
 
@@ -94,33 +101,88 @@ public class CanvasLive : UICanvas
 
     private void RefreshFloatingAndClose(bool refreshHeartOnly = false)
     {
-        if (!UIManager.Ins.IsOpened<CanvasFail>())
-        {
-            var floating = UIManager.Ins.GetUI<CanvasFloating>();
-            if (floating != null)
-            {
-                if (refreshHeartOnly) floating.showHeart();
-                else floating.ShowLives();
-                floating.ShowGold();
-            }
-        }
+        //if (!UIManager.Ins.IsOpened<CanvasFail>())
+        //{
+        //    var floating = UIManager.Ins.GetUI<CanvasFloating>();
+        //    if (floating != null)
+        //    {
+        //        if (refreshHeartOnly) floating.showHeart();
+        //        else floating.ShowLives();
+        //        floating.ShowGold();
+        //    }
+        //}
         Close();
     }
 
     public void ButtonUseGold()
     {
-        if (GameDataFragment.cur.dataPlayer.money >= ReviveLivesPrice)
+        int price = 800;
+        bool isEnough = false;
+        int gold = 0;
+        if (GameDataFragment.cur.dataPlayer.money >= price)
         {
-            GameDataFragment.cur.ChangeMoney(-ReviveLivesPrice, "get_more_lives");
+            isEnough = true;
+            GameDataFragment.cur.ChangeMoney(-price, "get_more_lives");
+            gold = price;
+
+        }
+
+
+        if (isEnough)
+        {
             SoundManager.PlayEfx(SoundID.sfx_click);
+
             LivesDataFragment.cur.AddLife(5);
-            RefreshFloatingAndClose();
+
+            if (GameManager.IsState(GameState.GamePlay))
+            {
+                Debug.LogError("gameplayyyyyyy----------");
+
+                Time.timeScale = 1f;
+                if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel())
+                {
+                    CloseDirectly();
+                    LivesDataFragment.cur.ConsumeLife();
+                    UIManager.Ins.CloseUI<CanvasSetting>();
+                }
+            }
+            else if (GameManager.IsState(GameState.Fail))
+            {
+                Debug.LogError("fallllllllllllll----------");
+                if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel())
+                {
+                    CloseDirectly();
+                    LivesDataFragment.cur.ConsumeLife();
+                    UIManager.Ins.CloseUI<CanvasFail>();
+                }
+            }
+            else if (GameManager.IsState(GameState.MainMenu))
+            {
+                Debug.LogError("mainmenuuu----------");
+                UIManager.Ins.GetUI<CanvasMainMenu>().Play();
+            }
+
+
+
+            //if (UIManager.Ins.IsOpened<CanvasFail>())
+            //{
+            //    Close();
+            //}
+            //else
+            //{
+            //    UIManager.Ins.GetUI<CanvasFloating>().ShowLives();
+            //    UIManager.Ins.GetUI<CanvasFloating>().ShowGold();
+            //    Close();
+            //}
+            Close();
+
+
         }
         else
         {
-            // Không đủ vàng: đóng popup (mở shop tại đây nếu cần).
+           
             //UIManager.Ins.OpenUI<CanvasShop>();
-            Close();
+
         }
     }
 
@@ -137,7 +199,37 @@ public class CanvasLive : UICanvas
     private void OnRewarded()
     {
         LivesDataFragment.cur.AddLife(1);
+        
         RefreshFloatingAndClose();
+        if (GameManager.IsState(GameState.GamePlay))
+        {
+            Debug.LogError("gameplayyyyyyy----------");
+
+            Time.timeScale = 1f;
+            if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel())
+            {
+                CloseDirectly();
+                LivesDataFragment.cur.ConsumeLife();
+                UIManager.Ins.CloseUI<CanvasSetting>();
+            }
+        }
+        else if (GameManager.IsState(GameState.Fail))
+        {
+            Debug.LogError("fallllllllllllll----------");
+            if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel())
+            {
+                CloseDirectly();
+                LivesDataFragment.cur.ConsumeLife();
+                UIManager.Ins.CloseUI<CanvasFail>();
+            }
+        }
+        else if (GameManager.IsState(GameState.MainMenu))
+        {
+            Debug.LogError("mainmenuuu----------");
+            UIManager.Ins.GetUI<CanvasMainMenu>().Play();
+
+        }
+
     }
 
     public void btnClaimFreeInDay()

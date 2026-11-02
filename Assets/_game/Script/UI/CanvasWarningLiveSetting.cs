@@ -40,6 +40,7 @@ public class CanvasWarningLiveSetting : UICanvas
     {
         if (GameManager.ins == null || !GameManager.ins.CanReturnHome || GameManager.ins.IsLoadingLevel) return;
         Time.timeScale = 1f;
+        LivesDataFragment.cur.ConsumeLife();
         GameManager.ins.ReturnToMainMenu();
     }
 
@@ -52,6 +53,7 @@ public class CanvasWarningLiveSetting : UICanvas
     {
         Time.timeScale = 1f;
         if (GameManager.ins != null && GameManager.ins.ReplayCurrentLevel()) CloseDirectly();
+        LivesDataFragment.cur.ConsumeLife();
         UIManager.Ins.CloseUI<CanvasSetting>();
     }
 

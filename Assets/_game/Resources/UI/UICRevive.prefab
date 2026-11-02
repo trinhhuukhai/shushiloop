@@ -2463,7 +2463,7 @@ MonoBehaviour:
   _bursts:
   - time: 0
     count: 42
-    used: 0
+    used: 1
   _particleTrailRenderer: {fileID: 0}
   _trailModule:
     enabled: 0
@@ -3044,6 +3044,9 @@ MonoBehaviour:
   IsDestroyOnClose: 0
   loseOutSpace: {fileID: 2261943432678977944}
   loseTimeup: {fileID: 4143427401840787761}
+  txtGold: {fileID: 2543342394886587757}
+  priceTxtNoSpace: {fileID: 45098076254403956}
+  priceTxtTimeup: {fileID: 6417028214061294294}
   grandCg: {fileID: 3159550663659719336}
   mainPanelRect: {fileID: 4317287740701787010}
 --- !u!1 &3427381561903720087

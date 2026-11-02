@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,9 +34,12 @@ public class CanvasMainMenu : UICanvas
     public bool IsTabAnimating => tabTween != null && tabTween.IsActive() && tabTween.IsPlaying();
     protected override bool BlocksGameplay => false;
 
+    public TMP_Text txtLive;
+
     public override void Open()
     {
         base.Open();
+        GameManager.ChangeState(GameState.MainMenu);
         ApplyMenuCanvasScale();
         //HideCheatOverlay();
         starting = false;
@@ -47,6 +51,10 @@ public class CanvasMainMenu : UICanvas
         PositionTabs(false);
         RefreshLevelMap();
         CheckMoneyTemp();
+
+        StartCoroutine(IE_LivesUnlimited());
+        StartCoroutine(IE_Lives());
+
     }
 
     private void ApplyMenuCanvasScale()
@@ -110,6 +118,14 @@ public class CanvasMainMenu : UICanvas
     public void Play()
     {
         if (starting || GameManager.ins == null || playButton != null && !playButton.interactable) return;
+
+        bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
+        if (!isUnlimited && LivesDataFragment.cur.gameData.lives <= 0)
+        {
+            UIManager.Ins?.OpenUI<CanvasLive>();
+            return;
+        }
+
         starting = true;
         RefreshLevelMap();
         if (!GameManager.ins.StartCurrentLevel())
@@ -217,7 +233,7 @@ public class CanvasMainMenu : UICanvas
     public void OpenLive()
     {
         bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
-        if (isUnlimited /*&& LivesDataFragment.cur.gameData.lives == 5*/) return;
+        if (isUnlimited && LivesDataFragment.cur.gameData.lives == 5) return;
         UIManager.Ins?.OpenUI<CanvasLive>();
 
     }
@@ -244,7 +260,14 @@ public class CanvasMainMenu : UICanvas
         RestoreCanvasScale();
         //RestoreCheatOverlay();
         base.OnDisable();
-    }
+
+        if (coLives != null)
+            StopCoroutine(coLives);
+        if (coLivesUnlimited != null)
+            StopCoroutine(coLivesUnlimited);
+    
+
+}
     public void CheckMoneyTemp()
     {
         var data = GameDataFragment.cur;
@@ -258,4 +281,96 @@ public class CanvasMainMenu : UICanvas
     public void openGalary() => OpenDecoration();
     public void OnWinLevel() => RefreshLevelMap();
     public void RecenterToCurrentLevel() => RefreshLevelMap();
+
+    [Header("Lives")]
+    public TMP_Text txtLives;
+    public TMP_Text txtLivesTime;
+    //public ParticleImage effLives;
+
+    public GameObject btnPlus;
+    public Button addPlus;
+    public GameObject FrmHeartUnlimited;
+    public GameObject FrmHeartNormal;
+    public TMP_Text txtLivesTimeUnlimited;
+
+
+    private Coroutine coLives;
+    private Coroutine coLivesUnlimited;
+
+    IEnumerator IE_Lives()
+    {
+        while (true)
+        {
+            ShowLives();
+
+            yield return Yielders.Get(1f);
+        }
+    }
+
+    IEnumerator IE_LivesUnlimited()
+    {
+        while (true)
+        {
+            ShowLivesUnlimited();
+            yield return Yielders.Get(1f);
+        }
+    }
+
+    public void ShowLives()
+    {
+        var data = LivesDataFragment.cur;
+
+        data.RefreshLives();
+
+        txtLives.text = data.gameData.lives.ToString();
+
+        if (data.gameData.lives >= LivesDataFragment.MAX_LIVES)
+        {
+            txtLivesTime.text = "FULL";
+            btnPlus.SetActive(false);
+            addPlus.interactable = false;
+        }
+        else
+        {
+            btnPlus.SetActive(true);
+            txtLivesTime.gameObject.SetActive(true);
+            addPlus.interactable = true;
+
+            txtLivesTime.text =
+                data.GetRemainTime().ToTimeFormat_H_M_S();
+        }
+    }
+
+    public void ShowLivesUnlimited()
+    {
+        var data = LivesDataFragment.cur;
+
+        if (data == null)
+            return;
+
+        bool isUnlimited = data.IsUnlimitedLives();
+
+        if (isUnlimited)
+        {
+            FrmHeartUnlimited.SetActive(true);
+            FrmHeartNormal.SetActive(false);
+
+            txtLivesTimeUnlimited.gameObject.SetActive(true);
+
+            // Không dùng ToTimeFormat_H_M_S()
+            // vì extension đó có thể reset Hours sau 24h.
+            txtLivesTimeUnlimited.text =
+                data.GetUnlimitedRemainTimeText();
+        }
+        else
+        {
+            FrmHeartUnlimited.SetActive(false);
+            FrmHeartNormal.SetActive(true);
+
+            txtLivesTimeUnlimited.gameObject.SetActive(false);
+        }
+    }
+
+
+
 }

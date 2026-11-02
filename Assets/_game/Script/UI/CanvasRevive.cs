@@ -2,6 +2,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.Audio.GeneratorInstance;
 
 public class CanvasRevive : UICanvas
 {
@@ -9,6 +10,9 @@ public class CanvasRevive : UICanvas
     //---revive
     public GameObject loseOutSpace;
     public GameObject loseTimeup;
+    public TMP_Text txtGold;
+    public TMP_Text priceTxtNoSpace;
+    public TMP_Text priceTxtTimeup;
 
     [SerializeField] private CanvasGroup grandCg;
     public RectTransform mainPanelRect;
@@ -38,7 +42,7 @@ public class CanvasRevive : UICanvas
 
             UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(false, SushiReviveReason.None);
         });
-
+        setUp();
         Refresh();
     }
     //private void Update() => Refresh();
@@ -56,6 +60,8 @@ public class CanvasRevive : UICanvas
         {
             loseOutSpace.SetActive(true);
         }
+
+        SetGold();
     }
     //public void BtnRevive()
     //{
@@ -63,6 +69,28 @@ public class CanvasRevive : UICanvas
     //        LevelManager.Ins.ReVive();
     //    CloseDirectly();
     //}
+
+    public void SetGold()
+    {
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString();
+    }
+    public void setUp()
+    {
+        int price = 1000;
+        priceTxtNoSpace.text = price.ToString();
+        priceTxtTimeup.text = price.ToString();
+        if (GameDataFragment.cur.dataPlayer.money < price)
+        {
+            priceTxtNoSpace.color = Color.red;
+            priceTxtTimeup.color = Color.red;
+
+        }
+        else
+        {
+            priceTxtNoSpace.color = Color.white;
+            priceTxtTimeup.color = Color.white;
+        }
+    }
 
 
     public void BtnRevive()
@@ -88,6 +116,7 @@ public class CanvasRevive : UICanvas
             {
                 UIManager.Ins.GetUI<CanvasGamePlay>().setTxtGold();
             }
+            SetGold();
             var data = GameDataFragment.cur.dataPlayer;
             //FirebaseManager.Ins.REVIVE_offer(data.cur_level, data._retryCountThisLevel, "Revive_gold", "normal_lose");
             CloseDirectly();
@@ -96,7 +125,7 @@ public class CanvasRevive : UICanvas
         else
         {
             //UIManager.Ins.OpenUI<CanvasShop>();
-            LevelManager.Ins.ReVive();
+            //LevelManager.Ins.ReVive();
         }
     }
 

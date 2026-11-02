@@ -587,7 +587,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4410743051687811425}
   - {fileID: 5918605104390204356}
   m_Father: {fileID: 7268719161181316362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -638,7 +637,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7427498574752916205}
+  m_Father: {fileID: 7268719161181316362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1885,7 +1884,7 @@ MonoBehaviour:
   _bursts:
   - time: 0
     count: 42
-    used: 1
+    used: 0
   _particleTrailRenderer: {fileID: 0}
   _trailModule:
     enabled: 0
@@ -2233,7 +2232,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &9206739965275457231
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2427,6 +2426,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4410743051687811425}
   - {fileID: 7427498574752916205}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2512,6 +2512,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CanvasFail
   IsDestroyOnClose: 0
   txtGold: {fileID: 2713275233705609552}
+  mainPanelRect: {fileID: 7427498574752916205}
 --- !u!1 &3431053375501316577
 GameObject:
   m_ObjectHideFlags: 0

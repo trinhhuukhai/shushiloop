@@ -1,7 +1,6 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CanvasNewItem : UICanvas
 {
@@ -20,11 +19,23 @@ public class CanvasNewItem : UICanvas
     public override void Open()
     {
         base.Open();
+        PlayPop();
+    }
+
+    private void PlayPop()
+    {
         popTween?.Kill();
         mainPanelRect.localScale = Vector3.zero;
         popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
-
     }
+
+    // Gọi ngay sau OpenUI<CanvasNewItem>() để chọn item cần hiển thị.
+    public void Setupp(FoodState item)
+    {
+        ShowItem(item);
+        PlayPop();
+    }
+
     private void ShowItem(FoodState item)
     {
         currentItem = item;
@@ -32,6 +43,7 @@ public class CanvasNewItem : UICanvas
         if (imgItemHoiBang != null) imgItemHoiBang.SetActive(item == FoodState.Ice);
         if (imgItemLink != null) imgItemLink.SetActive(item == FoodState.Lock);
         if (imgItemKhay != null) imgItemKhay.SetActive(item == FoodState.RigidTray);
+
         switch (item)
         {
             case FoodState.HoiCham:
@@ -53,12 +65,7 @@ public class CanvasNewItem : UICanvas
         }
     }
 
-
-    public void Setupp()
-    {
-
-    }
-   
+    private void OnDestroy() => popTween?.Kill();
 
     public void Close() => CloseDirectly();
     public override void BackKey() => CloseDirectly();

@@ -448,7 +448,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2528598855279216013}
   - {fileID: 4006025323352471031}
   m_Father: {fileID: 7268719161181316362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -505,6 +504,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3451600465105182038}
+  - {fileID: 2528598855279216013}
   - {fileID: 2516722728369767863}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -591,6 +591,7 @@ MonoBehaviour:
   IsDestroyOnClose: 0
   txtLive: {fileID: 8751891589739121170}
   ObjLive: {fileID: 6178047071885825447}
+  mainPanelRect: {fileID: 2516722728369767863}
 --- !u!1 &3848708796444137058
 GameObject:
   m_ObjectHideFlags: 0
@@ -1866,7 +1867,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8897122250047760173}
-  m_Father: {fileID: 2516722728369767863}
+  m_Father: {fileID: 7268719161181316362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}

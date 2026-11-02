@@ -434,6 +434,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         HasWon = true;
         noMovesElapsed = 0;
         isPlay = false;
+        //GameDataFragment.cur.dataPlayer.cur_level++;
         GameManager.ChangeState(GameState.Victory);
         if (CanSaveProgress)
         {

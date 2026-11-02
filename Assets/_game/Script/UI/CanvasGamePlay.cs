@@ -59,6 +59,7 @@ public class CanvasGamePlay : UICanvas
     public override void Open()
     {
         base.Open();
+        GameManager.ChangeState(GameState.GamePlay);
         imgStuck.SetActive(false);
         OpenUINewItem();
         ShowAnim();
@@ -107,10 +108,28 @@ public class CanvasGamePlay : UICanvas
 
     public void OpenUINewItem()
     {
-        if(GameDataFragment.cur.dataPlayer.cur_level == 5)
+        int level = GameDataFragment.cur.dataPlayer.cur_level + 1;
+        if(!GameDataFragment.cur.dataPlayer.isShowTrapHoiCham && level == GameManager.ins.GetItemUnlockLevel(FoodState.HoiCham))
         {
-            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp();
+            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.HoiCham);
+            GameDataFragment.cur.dataPlayer.isShowTrapHoiCham = true;
         }
+        if (!GameDataFragment.cur.dataPlayer.isShowTrapIce && level == GameManager.ins.GetItemUnlockLevel(FoodState.Ice))
+        {
+            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.Ice);
+            GameDataFragment.cur.dataPlayer.isShowTrapIce = true;
+        }
+        if (!GameDataFragment.cur.dataPlayer.isShowTrapLinked && level == GameManager.ins.GetItemUnlockLevel(FoodState.Lock))
+        {
+            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.Lock);
+            GameDataFragment.cur.dataPlayer.isShowTrapLinked = true;
+        }
+        if (!GameDataFragment.cur.dataPlayer.isShowTrapTray && level == GameManager.ins.GetItemUnlockLevel(FoodState.RigidTray))
+        {
+            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.RigidTray);
+            GameDataFragment.cur.dataPlayer.isShowTrapTray = true;
+        }
+        GameDataFragment.cur.Save();
     }
 
     private void Update() => Refresh();

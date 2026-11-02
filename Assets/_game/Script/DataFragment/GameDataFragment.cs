@@ -160,6 +160,7 @@ public class GameDataFragment : DataFragment
         public bool isOfferingRemoveAdsBundle = false;
         public bool isOfferingStarterPack = false;
         public bool isFirstSpin = true;
+
         public bool showTutorialBooster1 = false;
         public bool showTutorialBooster2 = false;
         public bool showTutorialBooster3 = false;
@@ -180,17 +181,10 @@ public class GameDataFragment : DataFragment
         public bool isShowTrapHoiCham = false;
         public bool isShowTrapLock = false;
         public bool isShowTrapIce = false;
-        public bool isShowTrapTunel = false;
+        public bool isShowTrapTray = false;
         public bool isShowTrapLinked = false;
 
-        //phan click xo chau tut item
-        public bool isClickChauTutHoiCham = false;
-        public bool isClickChauTutHam = false;
-        public bool isClickChauTutLock = false;
-        public bool isClickChauTutIce = false;
-        public bool isClickChauDayNoi = false;
 
-        public bool isShowTutBattlePass = false;
 
 
         public DataPlayer()
@@ -209,30 +203,23 @@ public class GameDataFragment : DataFragment
             isOfferingStarterPack = false;
             isFirstSpin = true;
             isShowInter = false;
+
             fisrtUseBoosterClear = false;
             fisrtUseBoosterSuffle = false;
             fisrtUseBoosterMagnet = false;
+
             showTutorialBooster1 = false;
             showTutorialBooster2 = false;
             showTutorialBooster3 = false;
-            showTutorialLevel1 = false;
-            showTutorialLevel2 = false;
-            isClickBucketTutorialClear = false;
-            isClickBucketTutorialMagnet = false;
             isFirstRevive = false;
-            isShowTrapLock = false;
+
             isShowTrapHoiCham = false;
             isShowTrapIce = false;
-            isShowTrapTunel = false;
             isShowTrapLinked = false;
-            //
-            isClickChauTutHoiCham = false;
-            isClickChauTutHam = false;
-            isClickChauTutLock = false;
-            isClickChauTutIce = false;
-            isClickChauDayNoi = false;
+            isShowTrapTray = false;
 
-            isShowTutBattlePass = false;
+
+
     }
 
     }

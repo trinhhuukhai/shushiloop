@@ -18,7 +18,6 @@ public class CanvasSetting : UICanvas
     public override void Open()
     {
         base.Open();
-
         popTween?.Kill();
         mainPanelRect.localScale = Vector3.zero;
         popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
@@ -56,7 +55,16 @@ public class CanvasSetting : UICanvas
         }
         else
         {
-            UIManager.Ins.OpenUI<CanvasWarningLiveSetting>().Setupp(false);
+            if(LivesDataFragment.cur.gameData.lives <= 0)
+            {
+                UIManager.Ins.OpenUI<CanvasLive>();
+
+            }
+            else
+            {
+                UIManager.Ins.OpenUI<CanvasWarningLiveSetting>().Setupp(false);
+
+            }
         }
 
     }

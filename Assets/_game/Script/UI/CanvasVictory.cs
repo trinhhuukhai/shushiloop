@@ -47,6 +47,7 @@ public class CanvasVictory : UICanvas
     public override void Open()
     {
         base.Open();
+        GameManager.ChangeState(GameState.Victory);
         StopRewardEffects();
         advancing = false;
         SetRewardButtons(true);
