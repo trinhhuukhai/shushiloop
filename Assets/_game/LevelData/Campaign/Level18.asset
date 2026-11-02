@@ -83,7 +83,7 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 10
+    - dish: 5
       amount: 1
     - dish: 18
       amount: 1
@@ -92,7 +92,7 @@ MonoBehaviour:
     dishes:
     - dish: 27
       amount: 1
-    - dish: 11
+    - dish: 1
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
@@ -159,7 +159,7 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 16
+    - typeFood: 10
       amount: 1
       foodState: 3
       hidden: 0
@@ -362,7 +362,7 @@ MonoBehaviour:
       linkId: 3
       trayId: 0
       lockId: 0
-    - typeFood: 9
+    - typeFood: 2
       amount: 1
       foodState: 2
       hidden: 0

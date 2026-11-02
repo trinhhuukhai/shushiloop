@@ -70,6 +70,24 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    internal bool CanTransferPreparedFoundation(SushiDishOrder source, SushiDishOrder target) =>
+        CanAssembleDish(source) && CanAssembleDish(target) && tableReservations.ContainsKey(source) &&
+        tableReservations.ContainsKey(target) == target.IsPrepared && source.CanTransferFoundationTo(target);
+
+    internal bool TryTransferPreparedFoundation(SushiDishOrder source, SushiDishOrder target)
+    {
+        if (!CanTransferPreparedFoundation(source, target)) return false;
+        bool swap = tableReservations.TryGetValue(target, out int targetSlot);
+        if (!source.TryTransferFoundationTo(target)) return false;
+        int slotIndex = tableReservations[source];
+        tableReservations.Remove(source);
+        tableReservations[target] = slotIndex;
+        if (swap) tableReservations.Add(source, targetSlot);
+        // Swap both received and incoming shared layers. Aggregate ingredient totals remain unchanged.
+        OnOrderChanged?.Invoke(this);
+        return true;
+    }
+
     public bool CancelPreparedIngredientReservation(SushiDishOrder dish, PoolType type)
     {
         if (dish == null || !dish.IsPrepared) return false;

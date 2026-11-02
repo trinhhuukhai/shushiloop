@@ -1,0 +1,1807 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13d15152b00bf8346a5a306d9c9e3341, type: 3}
+  m_Name: SushiAllDishesDemo
+  m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
+  TypeLevel: 0
+  number: 51
+  levelName: All 64 dishes
+  hint: Đủ 64 món trong catalog, mỗi món một phần. Nguyên liệu xếp theo thứ tự khách, không có khách vội hoặc chướng ngại.
+  beltSlots: 14
+  loopsPerSecond: 0.08
+  numberColumns: 5
+  boardSeed: 20261102
+  shuffleFoods: 0
+  maxIngredientsPerTile: 1
+  customers:
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 1
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 2
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 3
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 4
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 5
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 6
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 7
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 8
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 13
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 14
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 15
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 16
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 17
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 18
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 19
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 20
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 21
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 22
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 23
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 24
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 25
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 26
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 27
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 28
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 29
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 30
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 31
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 32
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 33
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 34
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 35
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 36
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 37
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 38
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 39
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 40
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 41
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 42
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 43
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 44
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 45
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 46
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 47
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 48
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 49
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 50
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 51
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 52
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 53
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 54
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 55
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 56
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 57
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 58
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 59
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 60
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 61
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 62
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 63
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 64
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 65
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 66
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 67
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 68
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  boardColumns:
+  - foods:
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 3
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 9
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 20
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 16
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 20
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 14
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 17
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 21
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 14
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 3
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 19
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+  - foods:
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 14
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 3
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 19
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 13
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 8
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0

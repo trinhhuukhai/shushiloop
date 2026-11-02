@@ -27,7 +27,7 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 10
+    - dish: 5
       amount: 1
     - dish: 22
       amount: 1
@@ -36,7 +36,7 @@ MonoBehaviour:
     dishes:
     - dish: 29
       amount: 1
-    - dish: 11
+    - dish: 1
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
@@ -50,7 +50,7 @@ MonoBehaviour:
     dishes:
     - dish: 18
       amount: 1
-    - dish: 12
+    - dish: 8
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
@@ -64,7 +64,7 @@ MonoBehaviour:
     dishes:
     - dish: 14
       amount: 1
-    - dish: 9
+    - dish: 7
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
@@ -114,7 +114,7 @@ MonoBehaviour:
       amount: 1
   boardColumns:
   - foods:
-    - typeFood: 9
+    - typeFood: 2
       amount: 1
       foodState: 0
       hidden: 0
@@ -300,7 +300,7 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 16
+    - typeFood: 10
       amount: 1
       foodState: 0
       hidden: 0
@@ -308,7 +308,7 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 17
+    - typeFood: 3
       amount: 1
       foodState: 0
       hidden: 0
@@ -421,7 +421,7 @@ MonoBehaviour:
       linkId: 2
       trayId: 0
       lockId: 0
-    - typeFood: 15
+    - typeFood: 14
       amount: 1
       foodState: 1
       hidden: 1

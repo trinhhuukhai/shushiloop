@@ -103,7 +103,8 @@ public partial class ConveyorManager : MonoBehaviour
                     if (preparedDishPrefab != null && customer.Dishes.Count > 0)
                     {
                         foreach (SushiDishOrder dish in customer.Dishes)
-                            if (customer.CanReceivePreparedIngredient(dish, food.Type)) return true;
+                            if (customer.CanReceivePreparedIngredient(dish, food.Type) ||
+                                FindReusableFoundation(customer, dish, food.Type) != null) return true;
                     }
                     else if (customer.CanReceive(food.Type)) return true;
                 }

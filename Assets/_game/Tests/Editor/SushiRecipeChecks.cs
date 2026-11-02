@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 public static class SushiRecipeChecks
 {
@@ -93,6 +94,8 @@ public static class SushiRecipeChecks
         Check(empty.ValidateOrders() != null && empty.CreateFoodList().Count == 0, "Null dish list accepted");
         CustomRecipes();
         CustomTriples();
+        UnorderedServing();
+        SharedWrappedBases();
 #if UNITY_EDITOR
         SourceArtwork();
         UnityEngine.Debug.Log("SUSHI_RECIPES_OK: 64 presets and custom combinations, " + assertions + " assertions passed");
@@ -296,5 +299,134 @@ public static class SushiRecipeChecks
         for (int i = 0; i < expected.Length; i++) Check(actual[i] == expected[i], "Ingredient mismatch for " + id);
     }
     private static int Count(List<FoodOrderData> list, PoolType type) => list.Find(item => item.typeFood == type)?.amount ?? 0;
+
+    private static void UnorderedServing()
+    {
+        MethodInfo select = typeof(SushiDishOrder).Assembly.GetType("SushiDishSelection")
+            .GetMethod("Select", BindingFlags.Static | BindingFlags.NonPublic);
+        SushiDishOrder Select(IReadOnlyList<SushiDishOrder> options, PoolType type,
+            Predicate<SushiDishOrder> canReceive, Func<PoolType, int> available, int start) =>
+            (SushiDishOrder)select.Invoke(null, new object[] { options, type, canReceive, available, start, null });
+        bool CanTransfer(SushiDishOrder sourceDish, SushiDishOrder targetDish) => (bool)typeof(SushiDishOrder)
+            .GetMethod("CanTransferFoundationTo", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(sourceDish, new object[] { targetDish });
+        bool Transfer(SushiDishOrder sourceDish, SushiDishOrder targetDish) => (bool)typeof(SushiDishOrder)
+            .GetMethod("TryTransferFoundationTo", BindingFlags.Instance | BindingFlags.NonPublic)
+            .Invoke(sourceDish, new object[] { targetDish });
+        void State(SushiDishOrder dish, string property, bool value) => typeof(SushiDishOrder).GetProperty(property).SetValue(dish, value);
+        var dishes = new[] {
+            new SushiDishOrder(0, SushiRecipeCatalog.Get(SushiDishId.NigiriTuna)),
+            new SushiDishOrder(1, SushiRecipeCatalog.Get(SushiDishId.NigiriSalmon)),
+            new SushiDishOrder(2, SushiRecipeCatalog.Get(SushiDishId.NigiriFlounder)),
+            new SushiDishOrder(3, SushiRecipeCatalog.Get(SushiDishId.NigiriMackerel)) };
+        var belt = new Dictionary<PoolType, int> { [PoolType.SushiRice] = 1, [PoolType.Salmon] = 1 };
+        int Available(PoolType type) => belt.TryGetValue(type, out int count) ? count : 0;
+        bool CanStart(SushiDishOrder dish) => dish.CanStartIngredient(PoolType.SushiRice) &&
+            dish.FindAvailableIngredient(PoolType.SushiRice) != null;
+        for (int start = 0; start < dishes.Length; start++)
+        {
+            Check(Select(dishes, PoolType.SushiRice, CanStart, Available, start) == dishes[1],
+                "Rice followed card order instead of the salmon available on the conveyor");
+            Check(Select(dishes.Reverse().ToArray(), PoolType.SushiRice, CanStart, Available, start) == dishes[1],
+                "Rearranging cards changed ingredient-based recipe selection");
+        }
+        belt.Remove(PoolType.Salmon);
+        belt[PoolType.Mackerel] = 1;
+        Check(Select(dishes, PoolType.SushiRice, CanStart, Available, 0) == dishes[3],
+            "The fourth card had to wait for the earlier cards");
+        Check(Select(dishes, PoolType.SushiRice, _ => false, Available, 0) == null,
+            "An unavailable plate was selected");
+
+        var source = dishes[0];
+        var target = dishes[1];
+        State(source, "IsPrepared", true);
+        OrderItem sourceRice = source.Ingredients.First(item => item.typeFood == PoolType.SushiRice);
+        sourceRice.incomingAmount = 1;
+        Check(!CanTransfer(source, target), "A foundation changed recipe during its flight");
+        sourceRice.incomingAmount = 0;
+        sourceRice.receivedAmount = 1;
+        Check(CanTransfer(source, target), "Landed rice could not serve a later matching recipe");
+        source.Ingredients.First(item => item.typeFood == PoolType.Tuna).incomingAmount = 1;
+        Check(!CanTransfer(source, target), "A reserved topping lost its recipe");
+        source.Ingredients.First(item => item.typeFood == PoolType.Tuna).incomingAmount = 0;
+        source.Ingredients.First(item => item.typeFood == PoolType.Tuna).receivedAmount = 1;
+        Check(!CanTransfer(source, target), "A plated topping lost its recipe");
+        source.Ingredients.First(item => item.typeFood == PoolType.Tuna).receivedAmount = 0;
+        State(target, "IsPrepared", true);
+        Check(!CanTransfer(source, target), "A reserved recipe was overwritten");
+        State(target, "IsPrepared", false);
+        State(source, "IsOnTable", true);
+        Check(!CanTransfer(source, target), "A finished serving dish changed recipes");
+        State(source, "IsOnTable", false);
+        Check(!CanTransfer(source, new SushiDishOrder(4, SushiRecipeCatalog.Get(SushiDishId.GreenTea))),
+            "Rice was reused as a tea cup");
+        Check(Transfer(source, target) && !source.IsPrepared && target.IsPrepared &&
+            sourceRice.receivedAmount == 0 && target.CanStartIngredient(PoolType.Salmon) &&
+            source.Ingredients.Sum(item => item.receivedAmount) + target.Ingredients.Sum(item => item.receivedAmount) == 1,
+            "Moving a rice-only plate duplicated or lost its ingredient progress");
+        Check(!Transfer(source, dishes[2]), "The same landed rice was reused twice");
+
+        var portions = new[] {
+            new SushiDishOrder(0, SushiRecipeCatalog.Get(SushiDishId.NigiriSalmon)),
+            new SushiDishOrder(1, SushiRecipeCatalog.Get(SushiDishId.NigiriSalmon)) };
+        Check(Select(portions, PoolType.SushiRice, CanStart, Available, 1) == portions[0],
+            "Identical portions were filled inconsistently inside their shared card");
+    }
+
+    private static void SharedWrappedBases()
+    {
+        MethodInfo canTransfer = typeof(SushiDishOrder).GetMethod("CanTransferFoundationTo", BindingFlags.Instance | BindingFlags.NonPublic);
+        MethodInfo transfer = typeof(SushiDishOrder).GetMethod("TryTransferFoundationTo", BindingFlags.Instance | BindingFlags.NonPublic);
+        MethodInfo select = typeof(SushiDishOrder).Assembly.GetType("SushiDishSelection")
+            .GetMethod("Select", BindingFlags.Static | BindingFlags.NonPublic);
+        var wrapped = SushiRecipeCatalog.All.Where(recipe => recipe.Family == SushiDishFamily.Maki ||
+            recipe.Family == SushiDishFamily.Gunkan).ToArray();
+        foreach (SushiRecipe recipe in wrapped)
+            foreach (SushiRecipe other in wrapped)
+                for (int state = 0; state < 4; state++)
+                {
+                    var source = new SushiDishOrder(0, recipe);
+                    var target = new SushiDishOrder(1, other);
+                    typeof(SushiDishOrder).GetProperty("IsPrepared").SetValue(source, true);
+                    source.Ingredients.First(item => item.typeFood == PoolType.SushiRice).receivedAmount = 1;
+                    OrderItem nori = source.Ingredients.First(item => item.typeFood == PoolType.Seaweed);
+                    if (state % 2 == 0) nori.receivedAmount = 1;
+                    else nori.incomingAmount = 1;
+                    if (state >= 2)
+                    {
+                        typeof(SushiDishOrder).GetProperty("IsPrepared").SetValue(target, true);
+                        target.Ingredients.First(item => item.typeFood == PoolType.SushiRice).receivedAmount = 1;
+                    }
+                    PoolType topping = other.Ingredients.First(type => type != PoolType.SushiRice && type != PoolType.Seaweed);
+                    Check((bool)canTransfer.Invoke(source, new object[] { target }), "Rice and nori could not serve " + other.Name);
+                    var riceTotals = source.Ingredients.Concat(target.Ingredients).Where(item => item.typeFood == PoolType.SushiRice)
+                        .Sum(item => item.receivedAmount + item.incomingAmount);
+                    int noriReceived = nori.receivedAmount, noriIncoming = nori.incomingAmount;
+                    Check((bool)transfer.Invoke(source, new object[] { target }) && target.IsPrepared &&
+                        target.CanStartIngredient(topping), "Shared base did not unlock its matching topping");
+                    OrderItem targetNori = target.Ingredients.First(item => item.typeFood == PoolType.Seaweed);
+                    Check(targetNori.receivedAmount == noriReceived && targetNori.incomingAmount == noriIncoming &&
+                        nori.receivedAmount == 0 && nori.incomingAmount == 0 && source.IsPrepared == (state >= 2) &&
+                        source.Ingredients.Concat(target.Ingredients).Where(item => item.typeFood == PoolType.SushiRice)
+                            .Sum(item => item.receivedAmount + item.incomingAmount) == riceTotals,
+                        "Sharing the base lost or duplicated rice/nori or an incoming reservation");
+                    target.FindAvailableIngredient(topping).incomingAmount = 1;
+                    Check(!(bool)canTransfer.Invoke(target, new object[] { source }), "A reserved topping changed its dish");
+                }
+
+        var readyBase = new SushiDishOrder(0, SushiRecipeCatalog.Get(SushiDishId.MakiTuna));
+        var matching = new SushiDishOrder(1, SushiRecipeCatalog.Get(SushiDishId.MakiSalmon));
+        var partial = new SushiDishOrder(2, SushiRecipeCatalog.Get(SushiDishId.GunkanSalmon));
+        readyBase.Ingredients.First(item => item.typeFood == PoolType.SushiRice).receivedAmount = 1;
+        readyBase.Ingredients.First(item => item.typeFood == PoolType.Seaweed).receivedAmount = 1;
+        partial.Ingredients.First(item => item.typeFood == PoolType.SushiRice).receivedAmount = 1;
+        var choices = new[] { partial, matching };
+        Func<SushiDishOrder, SushiDishOrder> project = dish => dish == matching ? readyBase : null;
+        Predicate<SushiDishOrder> eligible = _ => true;
+        Func<PoolType, int> belt = type => type == PoolType.Salmon ? 1 : 0;
+        for (int start = 0; start < choices.Length; start++)
+            Check((SushiDishOrder)select.Invoke(null, new object[] { choices, PoolType.Salmon, eligible, belt, start, project }) == matching,
+                "A rice-only dish took the topping while another plate had a complete shared base");
+    }
 }
 #endif

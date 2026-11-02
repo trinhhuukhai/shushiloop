@@ -52,6 +52,29 @@ public sealed class SushiPreparedDish : MonoBehaviour
         dishImage.enabled = false;
     }
 
+    internal void ReassignOrder(SushiDishOrder order)
+    {
+        Order = order;
+        var obsolete = new List<PoolType>(ingredientTargets.Keys);
+        foreach (OrderItem ingredient in order.Ingredients)
+        {
+            PoolType type = ingredient.typeFood;
+            obsolete.Remove(type);
+            if (!ingredientTargets.ContainsKey(type))
+            {
+                var target = new GameObject(type.ToString()).transform;
+                target.SetParent(ingredientRoot, false);
+                ingredientTargets.Add(type, target);
+            }
+        }
+        foreach (PoolType type in obsolete)
+        {
+            Destroy(ingredientTargets[type].gameObject);
+            ingredientTargets.Remove(type);
+        }
+        RefreshArtwork(ingredientArt);
+    }
+
     public Transform IngredientTarget(PoolType type) => ingredientTargets[type];
 
     private void UpdateIngredientTarget(PoolType type, Transform target)

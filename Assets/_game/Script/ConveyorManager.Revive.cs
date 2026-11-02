@@ -133,14 +133,12 @@ public partial class ConveyorManager
                     bool reserved = false;
                     if (preparedDishPrefab != null && customer.Dishes.Count > 0)
                     {
-                        foreach (SushiDishOrder order in customer.Dishes)
+                        if (TryReserveAvailablePreparedIngredient(customer, food.Type, out SushiDishOrder order, out Transform preparedTarget))
                         {
-                            if (!customer.TryReservePreparedIngredient(order, food.Type, out Transform preparedTarget)) continue;
                             RemoveBeltIngredient(slot, food);
                             SushiPreparedDish dish = GetOrCreatePreparedDish(customer, order, preparedTarget);
                             StartPreparedIngredientFlight(dish, food, preparedTarget);
                             reserved = true;
-                            break;
                         }
                     }
                     else if (customer.TryReserveFood(food, out Transform target))

@@ -28,7 +28,7 @@ MonoBehaviour:
   - rushCustomer: 1
     rushSeconds: 80
     dishes:
-    - dish: 9
+    - dish: 7
       amount: 1
     - dish: 31
       amount: 1
@@ -147,7 +147,7 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 15
+    - typeFood: 14
       amount: 1
       foodState: 2
       hidden: 0

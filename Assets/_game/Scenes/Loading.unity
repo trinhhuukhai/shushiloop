@@ -2580,7 +2580,7 @@ MonoBehaviour:
     lastTimeShow_StarterPack: 0
     adsInterCount: 0
     adsRewardCount: 0
-  allLevelData: {fileID: 11400000, guid: 18fd4f2eecb94679a6e7fb2266886d6f, type: 2}
+  allLevelData: {fileID: 11400000, guid: 2711d67d16c2a3f4dbeb36b11b7e0713, type: 2}
   isLoaded: 0
 --- !u!1 &1232856181
 GameObject:

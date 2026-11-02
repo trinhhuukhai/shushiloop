@@ -54,7 +54,7 @@ MonoBehaviour:
     dishes:
     - dish: 37
       amount: 1
-    - dish: 12
+    - dish: 8
       amount: 1
   boardColumns:
   - foods:
@@ -157,7 +157,7 @@ MonoBehaviour:
       linkId: 0
       trayId: 2
       lockId: 0
-    - typeFood: 17
+    - typeFood: 3
       amount: 1
       foodState: 0
       hidden: 0

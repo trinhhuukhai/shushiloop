@@ -49,24 +49,81 @@ public partial class ConveyorManager
         {
             if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food == null ||
                 food.Location != FoodLocation.Conveyor) continue;
-            bool reserved = false;
             foreach (Customer customer in customerManager.FulfillmentPriority())
             {
                 if (customer == null || !customer.IsSeated) continue;
                 if (!IsAtCustomerDeliveryPoint(customer, slot, previousProgress)) continue;
-                foreach (SushiDishOrder order in customer.Dishes)
-                {
-                    if (!customer.TryReservePreparedIngredient(order, food.Type, out Transform destination)) continue;
-                    SushiPreparedDish plated = GetOrCreatePreparedDish(customer, order, destination);
-                    slotFoods.Remove(slot);
-                    StartPreparedIngredientFlight(plated, food, destination);
-                    NotifyOccupancy();
-                    reserved = true;
-                    break;
-                }
-                if (reserved) break;
+                if (!TryReserveAvailablePreparedIngredient(customer, food.Type, out SushiDishOrder order, out Transform destination)) continue;
+                SushiPreparedDish plated = GetOrCreatePreparedDish(customer, order, destination);
+                slotFoods.Remove(slot);
+                StartPreparedIngredientFlight(plated, food, destination);
+                NotifyOccupancy();
+                break;
             }
         }
+    }
+
+    private SushiPreparedDish FindReusableFoundation(Customer customer, SushiDishOrder target, PoolType type)
+    {
+        if (type == target.FoundationType || target.FindAvailableIngredient(type) == null) return null;
+        SushiPreparedDish best = null;
+        int bestProgress = -1, bestLanded = -1;
+        foreach (SushiPreparedDish plated in slotDishes.Values)
+        {
+            if (plated.Owner != customer || !customer.CanTransferPreparedFoundation(plated.Order, target)) continue;
+            OrderItem projected = target.ProjectedIngredient(type, plated.Order);
+            if (!projected.CanReceive) continue;
+            int landed = plated.Order.Ingredients.Sum(item => item.receivedAmount);
+            int progress = landed + plated.Order.Ingredients.Sum(item => item.incomingAmount);
+            if (progress < bestProgress || (progress == bestProgress && landed <= bestLanded)) continue;
+            best = plated;
+            bestProgress = progress;
+            bestLanded = landed;
+        }
+        return best;
+    }
+
+    private bool TryReserveAvailablePreparedIngredient(Customer customer, PoolType type,
+        out SushiDishOrder order, out Transform destination)
+    {
+        destination = null;
+        var available = new Dictionary<PoolType, int>();
+        foreach (FoodShushi food in BeltIngredients())
+        {
+            if (food == null || (food.Location != FoodLocation.Conveyor && food.Location != FoodLocation.MovingToConveyor)) continue;
+            available.TryGetValue(food.Type, out int count);
+            available[food.Type] = count + 1;
+        }
+        int Count(PoolType ingredient) => available.TryGetValue(ingredient, out int count) ? count : 0;
+        var reusable = new Dictionary<SushiDishOrder, SushiPreparedDish>();
+        foreach (SushiDishOrder dish in customer.Dishes)
+        {
+            SushiPreparedDish plated = FindReusableFoundation(customer, dish, type);
+            if (plated != null) reusable.Add(dish, plated);
+        }
+        SushiDishOrder Foundation(SushiDishOrder dish) => reusable.TryGetValue(dish, out var plated) ? plated.Order : null;
+        int start = Random.Range(0, customer.Dishes.Count);
+        order = SushiDishSelection.Select(customer.Dishes, type,
+            dish => reusable.ContainsKey(dish) || customer.CanReceivePreparedIngredient(dish, type), Count, start, Foundation);
+        if (order == null) return false;
+        if (reusable.TryGetValue(order, out SushiPreparedDish sourcePlate))
+        {
+            SushiDishOrder sourceOrder = sourcePlate.Order;
+            SushiPreparedDish targetPlate = null;
+            foreach (SushiPreparedDish plated in slotDishes.Values)
+                if (plated.Owner == customer && plated.Order == order) { targetPlate = plated; break; }
+            if (!customer.TryTransferPreparedFoundation(sourceOrder, order)) return false;
+            if (targetPlate != null) ReassignPreparedPlate(targetPlate, sourceOrder);
+            ReassignPreparedPlate(sourcePlate, order);
+        }
+        return customer.TryReservePreparedIngredient(order, type, out destination);
+    }
+
+    private void ReassignPreparedPlate(SushiPreparedDish plated, SushiDishOrder order)
+    {
+        plated.ReassignOrder(order);
+        if (assemblyFoods.TryGetValue(plated, out var flights))
+            foreach (FoodShushi food in flights) plated.ApplyIngredientArtwork(food, true);
     }
 
     private bool IsAtCustomerDeliveryPoint(Customer customer, Transform slot, float previousProgress)

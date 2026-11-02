@@ -69,6 +69,11 @@ public static class SushiPlatedIngredientRegression
             Run("serialized plated art resolves every ingredient and the new nigiri sprites", ArtBindings);
             Run("all 48 recipes require landed rice or cup before their toppings", FoundationRules);
             Run("normal delivery changes sprites and retains layers under the dish parent", NormalAssembly);
+            Run("landed rice serves a later matching order without waiting for earlier cards", UnorderedAssembly);
+            Run("maki rice and nori serve the topping that arrives", () => SharedWrappedAssembly(SushiDishId.MakiTuna, SushiDishId.MakiSalmon, false));
+            Run("gunkan rice and nori serve the topping that arrives", () => SharedWrappedAssembly(SushiDishId.GunkanTuna, SushiDishId.GunkanSalmon, false));
+            Run("a ready maki base replaces a rice-only gunkan plate", () => SharedWrappedAssembly(SushiDishId.MakiTuna, SushiDishId.GunkanSalmon, true));
+            Run("a ready gunkan base replaces a rice-only maki plate", () => SharedWrappedAssembly(SushiDishId.GunkanTuna, SushiDishId.MakiSalmon, true));
             Run("custom recipe cards group by ingredients and use distinct plated art", CustomRecipeCards);
             Run("custom rice triples assemble both toppings after rice", CustomTripleAssembly);
             Run("rice-free custom pairs accept either ingredient first", CustomRiceFreeAssembly);
@@ -131,20 +136,112 @@ public static class SushiPlatedIngredientRegression
         => Prepare(new DishOrderData { dish = id }, capacity, columns);
 
     private static Customer Prepare(DishOrderData order, int capacity, params FoodData[][] columns)
+        => Prepare(new[] { order }, capacity, columns);
+
+    private static Customer Prepare(DishOrderData[] orders, int capacity, params FoodData[][] columns)
     {
         level.LoadLevel(0);
         Set(belt, "preparedDishPrefab", Prefab<SushiPreparedDish>("PreparedDish"));
         Set(belt, "tableHoldDuration", 10f);
         Set(belt, "deliveryRange", 100f);
         customers.Init(new List<CustomerOrderData> {
-            new CustomerOrderData { dishes = new List<DishOrderData> { order } }
+            new CustomerOrderData { dishes = new List<DishOrderData>(orders) }
         });
         Fixture("Load", capacity, columns);
         return customers.ActiveCustomers[0];
     }
 
+    private static void UnorderedAssembly()
+    {
+        Customer customer = Prepare(new[] {
+            new DishOrderData { dish = SushiDishId.NigiriTuna },
+            new DishOrderData { dish = SushiDishId.NigiriSalmon },
+            new DishOrderData { dish = SushiDishId.NigiriFlounder },
+            new DishOrderData { dish = SushiDishId.NigiriMackerel } }, 4,
+            new[] { Food(PoolType.SushiRice) }, new[] { Food(PoolType.Salmon) });
+        Check(Tap(0), "rice pickup failed");
+        Advance();
+        var foods = Get<Dictionary<Transform, FoodShushi>>(belt, "slotFoods");
+        var pickup = foods.Single();
+        SushiDishOrder original = customer.Dishes[0], matching = customer.Dishes[1];
+        Check(customer.TryReservePreparedIngredient(original, PoolType.SushiRice, out Transform target), "initial rice reservation failed");
+        var plated = (SushiPreparedDish)typeof(ConveyorManager).GetMethod("GetOrCreatePreparedDish", PrivateInstance)
+            .Invoke(belt, new object[] { customer, original, target });
+        foods.Remove(pickup.Key);
+        Invoke(belt, "StartPreparedIngredientFlight", plated, pickup.Value, target);
+        Advance();
+        Check(plated.AssemblyIngredients.Single() == pickup.Value && !original.IsComplete, "rice did not remain on its serving plate");
+
+        Check(Tap(1), "later order's salmon pickup failed");
+        Advance();
+        Check(belt.CanMakeProgress, "reusable plated rice was treated as a deadlock");
+        Invoke(belt, "Update");
+        Advance();
+        Check(Dish == plated && plated.Order == matching && plated.IsReady && plated.AssemblyIngredients.Count == 2,
+            "salmon waited for the tuna card instead of using the existing rice plate");
+        Check(!original.IsPrepared && original.Ingredients.All(item => item.receivedAmount == 0 && item.incomingAmount == 0),
+            "the first card retained the transferred rice");
+        Check(plated.AssemblyIngredients.Single(food => food.Type == PoolType.SushiRice) == pickup.Value &&
+            plated.AssemblyIngredients.All(food => food.transform.IsChildOf(plated.IngredientRoot)),
+            "reassigning the recipe lost or duplicated its ingredient objects");
+        Check(customer.Orders.Single(item => item.typeFood == PoolType.SushiRice).receivedAmount == 1,
+            "aggregate rice progress was counted twice");
+        for (int i = 0; i < 130; i++) Advance(0.1f);
+        Check(matching.IsComplete && !original.IsComplete && belt.PreparedDishCount == 0 && belt.DeliveringCount == 0,
+            "the completed dish flew to an earlier card or leaked its serving plate");
+    }
+
     private static DishOrderData Custom(SushiRecipeKind kind, PoolType first, PoolType second) =>
         new DishOrderData { recipeKind = kind, firstIngredient = first, secondIngredient = second };
+
+    private static void SharedWrappedAssembly(SushiDishId sourceId, SushiDishId targetId, bool hasTargetPlate)
+    {
+        Customer customer = Prepare(new[] {
+            new DishOrderData { dish = sourceId }, new DishOrderData { dish = targetId } }, 5,
+            new[] { Food(PoolType.SushiRice) }, new[] { Food(PoolType.Seaweed) },
+            new[] { Food(PoolType.Salmon) }, new[] { Food(PoolType.SushiRice) });
+        SushiDishOrder original = customer.Dishes[0], matching = customer.Dishes[1];
+        SushiPreparedDish Add(SushiDishOrder order, int column)
+        {
+            Check(Tap(column), "shared-base pickup failed");
+            Advance();
+            var foods = Get<Dictionary<Transform, FoodShushi>>(belt, "slotFoods");
+            var pickup = foods.Single();
+            Check(customer.TryReservePreparedIngredient(order, pickup.Value.Type, out Transform target), "shared layer reservation failed");
+            var plate = (SushiPreparedDish)typeof(ConveyorManager).GetMethod("GetOrCreatePreparedDish", PrivateInstance)
+                .Invoke(belt, new object[] { customer, order, target });
+            foods.Remove(pickup.Key);
+            Invoke(belt, "StartPreparedIngredientFlight", plate, pickup.Value, target);
+            Advance();
+            return plate;
+        }
+        SushiPreparedDish completeBase = Add(original, 0);
+        Add(original, 1);
+        var sharedFoods = completeBase.AssemblyIngredients.ToArray();
+        SushiPreparedDish partialBase = hasTargetPlate ? Add(matching, 3) : null;
+        Check(Tap(2), "matching wrapped topping pickup failed");
+        Advance();
+        Check(belt.CanMakeProgress, "shared rice/nori base was treated as blocked");
+        Invoke(belt, "Update");
+        Advance();
+        Check(completeBase.Order == matching && completeBase.IsReady && completeBase.AssemblyIngredients.Count == 3,
+            "the matching topping waited despite a complete rice/nori base");
+        Check(sharedFoods.All(food => completeBase.AssemblyIngredients.Contains(food)), "shared rice/nori objects were duplicated or lost");
+        Check(completeBase.AssemblyIngredients.All(food => Artwork(food) ==
+            SushiArtCatalog.Default.platedIngredientImages.Find(food.Type, matching.Recipe).sprite),
+            "reassigning between maki/gunkan kept the wrong layered artwork");
+        Check(original.IsPrepared == hasTargetPlate && original.Ingredients.Single(item => item.typeFood == PoolType.Seaweed).receivedAmount == 0,
+            "the earlier order retained the shared nori");
+        if (partialBase != null)
+            Check(partialBase.Order == original && partialBase.AssemblyIngredients.Count == 1,
+                "the existing rice-only plate lost its replacement order");
+        Check(customer.Orders.Single(item => item.typeFood == PoolType.Seaweed).receivedAmount == 1 &&
+            customer.Orders.Single(item => item.typeFood == PoolType.SushiRice).receivedAmount == (hasTargetPlate ? 2 : 1),
+            "shared-base reassignment changed aggregate ingredient totals");
+        for (int i = 0; i < 130; i++) Advance(0.1f);
+        Check(matching.IsComplete && !original.IsComplete && belt.PreparedDishCount == (hasTargetPlate ? 1 : 0),
+            "the wrapped dish completed the wrong order or retained its serving slot");
+    }
 
     private static void CustomRecipeCards()
     {
