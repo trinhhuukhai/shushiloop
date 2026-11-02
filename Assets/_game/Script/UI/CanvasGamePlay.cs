@@ -78,6 +78,10 @@ public class CanvasGamePlay : UICanvas
         {
             txtStuck.text = "Time Out!";
         }
+        else if (reviveReason == SushiReviveReason.FrozenHeads)
+        {
+            txtStuck.text = "Stuck!";
+        }
     }
 
     

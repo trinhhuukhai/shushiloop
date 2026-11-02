@@ -353,7 +353,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         {
             if (!conveyorManager.TryReviveFullConveyor()) return;
         }
-        else boardManager.BreakHeadIce();
+        else if (PendingRevive == SushiReviveReason.FrozenHeads) boardManager.BreakAllIce();
         reviveCount++;
         noMovesElapsed = 0;
         if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.CloseUI<CanvasRevive>();

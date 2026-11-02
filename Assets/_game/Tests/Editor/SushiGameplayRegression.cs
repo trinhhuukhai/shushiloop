@@ -77,6 +77,12 @@ public static partial class SushiGameplayRegression
         RunBatch();
     }
 
+    public static void RunBoosterTraysBatch()
+    {
+        SessionState.SetBool(PendingKey + ".BoosterTrays", true);
+        RunBatch();
+    }
+
     // Lightweight checks for level schema changes; no scene loading or campaign playthrough.
     [MenuItem("SushiKhai/Tests/Check Level Data")]
     public static void CheckLevelData()
@@ -141,12 +147,52 @@ public static partial class SushiGameplayRegression
             SessionState.SetBool(PendingKey + ".Swap", false);
             RunSwapChecks();
         }
+        else if (SessionState.GetBool(PendingKey + ".BoosterTrays", false))
+        {
+            SessionState.SetBool(PendingKey + ".BoosterTrays", false);
+            RunBoosterTrayChecks();
+        }
+        else if (SessionState.GetBool(PendingKey + ".FrozenRevive", false))
+        {
+            SessionState.SetBool(PendingKey + ".FrozenRevive", false);
+            RunFrozenReviveChecks();
+        }
         else if (SessionState.GetBool(PendingKey + ".NoMoves", false))
         {
             SessionState.SetBool(PendingKey + ".NoMoves", false);
             RunNoMovesChecks();
         }
         else RunAll();
+    }
+
+    private static void RunBoosterTrayChecks()
+    {
+        try
+        {
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+            DOTween.defaultUpdateType = UpdateType.Manual;
+            CreateFixture();
+            Run("chopsticks release the final tray compartment", Chopsticks);
+            Run("chopsticks release a whole empty tray and advance only the rows below it", ChopsticksTrayDeparture);
+            Run("magnet clears the final empty tray even with a full belt", EmptyTray);
+            Run("magnet retains partial quantities and clears a tray across the visible boundary", () => MagnetTrayDeparture(false));
+            Run("prepared-dish magnet also releases depleted trays", () => MagnetTrayDeparture(true));
+            Run("missing magnet ingredients leave the board unchanged", MagnetReservations);
+            Run("tap still collects trays atomically and damages adjacent ice", RigidTray);
+            Run("tray frames fade together with their compartments", TrayDeparture);
+            Run("normal and partial booster pickups retain their existing movement", BoosterBaseDeparture);
+            Run("reload cancels departing trays", TrayCancellation);
+            Run("swap preserves whole trays", SwapTrays);
+            Debug.Log("SUSHI_BOOSTER_TRAYS_REGRESSION_OK: " + passed + " scenarios passed");
+            System.IO.File.WriteAllText("SushiBoosterTraysResults.txt", "PASS: " + passed + " scenarios\n");
+            EditorApplication.Exit(0);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            System.IO.File.WriteAllText("SushiBoosterTraysResults.txt", "FAIL after " + passed + " scenarios\n" + exception);
+            EditorApplication.Exit(1);
+        }
     }
 
     private static void RunSwapChecks()
@@ -233,7 +279,10 @@ public static partial class SushiGameplayRegression
             Run("chopsticks select visible non-frozen cells, reveal hidden food and release links", Chopsticks);
             Run("magnet completes the selected dish from a full belt and deep board ingredients", Magnet);
             Run("magnet accounts for incoming food and rejects missing ingredients atomically", MagnetReservations);
-            Run("magnet leaves empty tray compartments until whole tray is picked", EmptyTray);
+            Run("magnet clears the final empty tray even with a full belt", EmptyTray);
+            Run("chopsticks release a whole empty tray and advance only the rows below it", ChopsticksTrayDeparture);
+            Run("magnet retains partial quantities and clears a tray across the visible boundary", () => MagnetTrayDeparture(false));
+            Run("prepared-dish magnet also releases depleted trays", () => MagnetTrayDeparture(true));
             Run("rigid tray takes mixed quantities as one action", RigidTray);
             Run("empty tray slides upward and fades without scaling while remaining rows advance", TrayDeparture);
             Run("empty base moves and fades together before hiding while the column keeps advancing", NormalBaseDeparture);
@@ -252,7 +301,7 @@ public static partial class SushiGameplayRegression
             Run("iced tea requires all three ingredients and rejects unrelated food", IcedTea);
             Run("customer icons, waiting layout and deliveries follow the correct seat and moving target", CustomerDeliveryLayout);
             Run("rush timer starts at seat, continues during targeting and pauses in popup", RushAndPopup);
-            Run("revive restores only expired customer, prices 300/600, or clears head ice", Revive);
+            Run("revive restores only expired customer, prices 300/600, or clears all board ice", Revive);
             Run("deadlock waits five seconds and resets for pause, valid moves and reload", NoMovesDelay);
             Run("automatic deliveries and customer transitions prevent premature failure", NoMovesProgress);
             Run("an incomplete serving plate cannot hide a full-belt deadlock", PartialDishDeadlock);
@@ -1340,8 +1389,8 @@ public static partial class SushiGameplayRegression
         Check(!conveyor.TryTakeChopsticks(frozen) && conveyor.TryTakeChopsticks(linked) &&
             Column(2).GetTopFood().LinkId == 0, "chopsticks failed to reject ice or release a linked cell");
         Advance();
-        Check(conveyor.TryTakeChopsticks(tray) && tray.Amount == 0 && Column(0).IndexOf(tray) >= 0,
-            "chopsticks did not leave an empty tray compartment");
+        Check(conveyor.TryTakeChopsticks(tray) && Column(0).IndexOf(tray) < 0 && Column(0).IsPickupPending,
+            "chopsticks did not release the final empty tray compartment");
     }
     private static void Magnet()
     {
@@ -1394,13 +1443,80 @@ public static partial class SushiGameplayRegression
     {
         Load(2, new[] { Food(tray: 1), Food(tray: 1) }, new[] { Food(PoolType.Egg, 2) }, new[] { Food(PoolType.Avocado, 2) });
         Customer customer = SetRecipeOrders(new DishOrderData { dish = SushiDishId.NigiriEgg, amount = 2 });
-        Check(conveyor.TryTakeMagnet(board, customer, customer.Dishes[0]) &&
-            conveyor.TryTakeMagnet(board, customer, customer.Dishes[1]) && Tap(2), "tray magnet failed");
-        Check(Column(0).Count == 2 && Column(0).Foods[0].Amount == 0 && Column(0).Foods[1].Amount == 0, "tray compartments removed");
-        Check(Tap(0) && Column(0).IsPickupPending && conveyor.OccupiedSlotCount == 2, "empty tray cannot clear full belt");
+        Check(Tap(2) && conveyor.FreeSlotCount == 0, "full-belt tray setup failed");
+        Check(conveyor.TryTakeMagnet(board, customer, customer.Dishes[0]) && Column(0).Count == 2 &&
+            Column(0).Foods[0].Amount == 0 && Column(0).Foods[1].Amount == 1 && !Column(0).IsPickupPending,
+            "magnet removed a tray that still contains ingredients");
+        Check(conveyor.TryTakeMagnet(board, customer, customer.Dishes[1]) && Column(0).Count == 0 &&
+            Column(0).IsPickupPending && conveyor.OccupiedSlotCount == 2 && !board.IsEmpty(),
+            "magnet did not automatically clear the empty tray with a full belt");
         Advance();
-        Check(board.IsEmpty(), "empty tray did not finish clearing");
+        Check(board.IsEmpty() && !Column(0).GetComponent<BoxCollider2D>().enabled, "empty tray did not finish clearing without a tap");
     }
+
+    private static void ChopsticksTrayDeparture()
+    {
+        Load(8, new[] { Food(PoolType.Egg), Food(amount: 2, tray: 1), Food(PoolType.Salmon, tray: 1),
+            Food(PoolType.Shrimp), Food(PoolType.Avocado, tray: 2), Food(PoolType.Seaweed, tray: 2) },
+            new[] { Food(ice: 2) });
+        FoodQueue column = Column(0);
+        FoodShushi head = column.Foods[0], first = column.Foods[1], last = column.Foods[2], behind = column.Foods[3];
+        Vector3 origin = behind.transform.localPosition;
+        Check(conveyor.TryTakeChopsticks(first) && first.Amount == 0 && column.Count == 6 && !column.IsPickupPending &&
+            behind.transform.localPosition == origin, "chopsticks collapsed a partially occupied tray");
+        Invoke(board, "LateUpdate");
+        GameObject frame = Get<Dictionary<string, SpriteRenderer>>(board, "groupArt")["tray:1"].gameObject;
+        Check(conveyor.TryTakeChopsticks(last) && column.Count == 4 && column.IsPickupPending &&
+            first.Owner == null && last.Owner == null && !frame.activeSelf,
+            "chopsticks did not release all empty compartments and their frame");
+        GameObject departing = Get<GameObject>(column, "departingTray");
+        Check(departing != null && departing.transform.childCount == 3 &&
+            !conveyor.TryTakeChopsticks(behind), "departing tray lost its frame or allowed another pickup during movement");
+        Advance(0.2f);
+        Check(column.IsPickupPending && behind.transform.localPosition.y > origin.y && head.transform.localPosition == Vector3.zero,
+            "chopsticks did not advance only the ingredients below the empty tray");
+        Advance();
+        Check(!column.IsPickupPending && !departing.activeSelf && column.Foods[1] == behind &&
+            Mathf.Abs(behind.transform.localPosition.y + Get<float>(column, "rowSpace")) < 0.001f &&
+            column.Foods[2].TrayId == 2 && column.Foods[3].TrayId == 2 && Column(1).GetTopFood().IceLayers == 2,
+            "tray departure left a gap, removed another tray or damaged adjacent ice");
+    }
+
+    private static void MagnetTrayDeparture(bool prepared)
+    {
+        Load(8, new[] { Food(PoolType.Shrimp), Food(PoolType.Avocado), Food(PoolType.Salmon),
+            Food(amount: 2, tray: 1), Food(PoolType.Egg, 2, tray: 1), Food(PoolType.Seaweed),
+            Food(PoolType.Tuna, tray: 2), Food(PoolType.Octopus, tray: 2) }, new[] { Food(ice: 2) });
+        Set(conveyor, "preparedDishPrefab", prepared ? Prefab<SushiPreparedDish>("PreparedDish") : null);
+        try
+        {
+            Customer customer = SetRecipeOrders(new DishOrderData { dish = SushiDishId.NigiriEgg, amount = 2 });
+            FoodQueue column = Column(0);
+            FoodShushi rice = column.Foods[3], egg = column.Foods[4], behind = column.Foods[5];
+            Vector3 origin = behind.transform.localPosition;
+            Check(conveyor.TryTakeMagnet(board, customer, customer.Dishes[0]) && rice.Amount == 1 && egg.Amount == 1 &&
+                column.Count == 8 && !column.IsPickupPending && behind.transform.localPosition == origin,
+                "partial magnet collapsed a tray or consumed too many ingredients");
+            Invoke(board, "LateUpdate");
+            GameObject frame = Get<Dictionary<string, SpriteRenderer>>(board, "groupArt")["tray:1"].gameObject;
+            Check(conveyor.TryTakeMagnet(board, customer, customer.Dishes[1]) && column.Count == 6 && column.IsPickupPending &&
+                rice.Owner == null && egg.Owner == null && !frame.activeSelf && column.Foods[3] == behind,
+                "magnet did not clear the whole tray spanning visible and hidden rows");
+            Invoke(board, "LateUpdate");
+            Check(!frame.activeSelf && Column(1).GetTopFood().IceLayers == 2, "magnet restored the empty frame or damaged adjacent ice");
+            Advance();
+            Check(!column.IsPickupPending && Mathf.Abs(behind.transform.localPosition.y + 3 * Get<float>(column, "rowSpace")) < 0.001f &&
+                Get<SpriteRenderer>(behind, "foodRenderer").enabled && column.Foods[0].transform.localPosition == Vector3.zero &&
+                column.Foods[4].TrayId == 2 && column.Foods[5].TrayId == 2,
+                "magnet left a gap, failed to reveal the next row or removed an occupied tray");
+        }
+        finally
+        {
+            conveyor.Clear();
+            Set(conveyor, "preparedDishPrefab", null);
+        }
+    }
+
     private static void RigidTray()
     {
         Load(6, new[] { Food(amount: 2, tray: 1), Food(PoolType.Egg, 3, tray: 1) }, new[] { Food(ice: 2) });
@@ -1960,8 +2076,8 @@ public static partial class SushiGameplayRegression
         Check(level.PendingRevive == SushiReviveReason.None, "frozen deadlock skipped the grace period");
         CheckLevelState(1);
         Check(level.PendingRevive == SushiReviveReason.FrozenHeads, "frozen deadlock undetected");
-        //level.TryReviveWithAd();
-        Check(Column(0).Foods[0].IceLayers == 0 && Column(1).Foods[0].IceLayers == 0 && Column(0).Foods[1].IceLayers == 4, "revive cleared non-head ice");
+        level.ReVive();
+        Check(Column(0).Foods[0].IceLayers == 0 && Column(1).Foods[0].IceLayers == 0 && Column(0).Foods[1].IceLayers == 0, "revive left ice on the board");
     }
     private static void CheckLevelState(float seconds) => typeof(LevelManager)
         .GetMethod("CheckLevelState", BindingFlags.Instance | BindingFlags.NonPublic)

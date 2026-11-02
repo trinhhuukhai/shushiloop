@@ -206,7 +206,7 @@ public class FoodShushi : GameUnit
     {
         if (damage <= 0 || iceLayers == 0) return;
         iceLayers = Mathf.Max(0, iceLayers - damage);
-        if (iceLayers == 0) SushiWorldVisual.BurstIce(Owner != null ? Owner.Board?.transform : null, transform.position);
+        if (iceLayers == 0 && boardVisible) SushiWorldVisual.BurstIce(Owner != null ? Owner.Board?.transform : null, transform.position);
         RefreshVisual();
     }
 

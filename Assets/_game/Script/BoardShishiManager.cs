@@ -144,7 +144,6 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             requiredSlots = top.Amount;
             plan?.Add(new FoodPickup(top, top.Amount));
         }
-        // Empty tray compartments left by a booster can still be cleared with zero slots.
         return true;
     }
 
@@ -197,20 +196,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
     {
         var removedRows = new Dictionary<FoodQueue, int>();
         if (mode == FoodPickMode.Tap && plan[0].food.TrayId > 0)
-        {
-            string key = "tray:" + plan[0].food.TrayId;
-            FoodQueue column = plan[0].food.Owner;
-            if (groupArt.TryGetValue(key, out var artwork))
-            {
-                column.CopyTrayFrame(artwork.gameObject);
-                artwork.gameObject.SetActive(false);
-            }
-            if (groupViews.TryGetValue(key, out var line))
-            {
-                column.CopyTrayFrame(line.gameObject);
-                line.gameObject.SetActive(false);
-            }
-        }
+            CopyDepartingTrayFrame(plan[0].food.Owner, plan[0].food.TrayId);
         var changedColumns = new HashSet<FoodQueue>();
         foreach (FoodPickup pickup in plan)
         {
@@ -250,11 +236,54 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             }
             food.Owner.Consume(food, pickup.amount, mode != FoodPickMode.Tap);
         }
+        // Check after the entire booster plan: a tray stays intact until all compartments are empty.
+        if (mode != FoodPickMode.Tap)
+            foreach (FoodQueue column in changedColumns)
+            {
+                int clearedRows = ClearEmptyTrays(column);
+                if (clearedRows == 0) continue;
+                removedRows.TryGetValue(column, out int count);
+                removedRows[column] = count + clearedRows;
+            }
         foreach (var entry in iceDamage) entry.Key.BreakIce(entry.Value);
         foreach (FoodQueue column in changedColumns)
             if (removedRows.TryGetValue(column, out int count))
                 column.AdvanceAfterPickup(count, takeoffDelay + trayHoldDuration);
             else column.RefreshRows();
+    }
+
+    private int ClearEmptyTrays(FoodQueue column)
+    {
+        var occupiedTrays = new HashSet<int>();
+        foreach (FoodShushi food in column.Foods)
+            if (food.TrayId > 0 && food.Amount > 0) occupiedTrays.Add(food.TrayId);
+
+        var clearedTrays = new HashSet<int>();
+        int removedRows = 0;
+        for (int i = column.Count - 1; i >= 0; i--)
+        {
+            FoodShushi food = column.Foods[i];
+            if (food.TrayId == 0 || occupiedTrays.Contains(food.TrayId)) continue;
+            if (clearedTrays.Add(food.TrayId)) CopyDepartingTrayFrame(column, food.TrayId);
+            column.Consume(food, 0, false);
+            removedRows++;
+        }
+        return removedRows;
+    }
+
+    private void CopyDepartingTrayFrame(FoodQueue column, int trayId)
+    {
+        string key = "tray:" + trayId;
+        if (groupArt.TryGetValue(key, out var artwork))
+        {
+            column.CopyTrayFrame(artwork.gameObject);
+            artwork.gameObject.SetActive(false);
+        }
+        if (groupViews.TryGetValue(key, out var line))
+        {
+            column.CopyTrayFrame(line.gameObject);
+            line.gameObject.SetActive(false);
+        }
     }
 
     public void ShakePickup(IReadOnlyList<FoodPickup> plan)
@@ -319,9 +348,11 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return true;
     }
 
-    public void BreakHeadIce()
+    public void BreakAllIce()
     {
-        foreach (FoodQueue column in foodQueues) column.GetTopFood()?.BreakIce(5);
+        foreach (FoodQueue column in foodQueues)
+            foreach (FoodShushi food in column.Foods)
+                food.BreakIce(food.IceLayers);
     }
 
     private void LateUpdate()

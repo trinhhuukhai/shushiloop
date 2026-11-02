@@ -10,9 +10,12 @@ public class CanvasRevive : UICanvas
     //---revive
     public GameObject loseOutSpace;
     public GameObject loseTimeup;
+    public GameObject loseStuckIce;
     public TMP_Text txtGold;
     public TMP_Text priceTxtNoSpace;
     public TMP_Text priceTxtTimeup;
+    public TMP_Text priceTxtStuckIce;
+    private const int RevivePrice = 1000;
 
     [SerializeField] private CanvasGroup grandCg;
     public RectTransform mainPanelRect;
@@ -24,13 +27,9 @@ public class CanvasRevive : UICanvas
 
 
         bool revive = LevelManager.Ins.PendingRevive != SushiReviveReason.None;
-        if (revive && LevelManager.Ins.PendingRevive == SushiReviveReason.RushCustomer)
+        if (revive)
         {
-            UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(true, SushiReviveReason.RushCustomer);
-        }
-        else if (revive && LevelManager.Ins.PendingRevive == SushiReviveReason.FullConveyor)
-        {
-            UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(true, SushiReviveReason.FullConveyor);
+            UIManager.Ins.GetUI<CanvasGamePlay>().setImgStuck(true, LevelManager.Ins.PendingRevive);
         }
 
         DOVirtual.DelayedCall(1.3f, () =>
@@ -52,6 +51,7 @@ public class CanvasRevive : UICanvas
         if (level == null) return;
         loseTimeup.SetActive(false);
         loseOutSpace.SetActive(false);
+        loseStuckIce.SetActive(false);
         bool revive = level.PendingRevive != SushiReviveReason.None;
         if(revive && level.PendingRevive == SushiReviveReason.RushCustomer)
         {
@@ -59,6 +59,9 @@ public class CanvasRevive : UICanvas
         }else if(revive && level.PendingRevive == SushiReviveReason.FullConveyor)
         {
             loseOutSpace.SetActive(true);
+        }else if(revive && level.PendingRevive == SushiReviveReason.FrozenHeads)
+        {
+            loseStuckIce.SetActive(true);
         }
 
         SetGold();
@@ -76,26 +79,31 @@ public class CanvasRevive : UICanvas
     }
     public void setUp()
     {
-        int price = 1000;
+        int price = RevivePrice;
         priceTxtNoSpace.text = price.ToString();
         priceTxtTimeup.text = price.ToString();
+        priceTxtStuckIce.text = price.ToString();
         if (GameDataFragment.cur.dataPlayer.money < price)
         {
             priceTxtNoSpace.color = Color.red;
             priceTxtTimeup.color = Color.red;
+            priceTxtStuckIce.color = Color.red;
 
         }
         else
         {
             priceTxtNoSpace.color = Color.white;
             priceTxtTimeup.color = Color.white;
+            priceTxtStuckIce.color = Color.white;
         }
     }
 
 
     public void BtnRevive()
     {
-        int price = 1000;
+        if (LevelManager.Ins == null || !LevelManager.Ins.IsPlaying ||
+            LevelManager.Ins.PendingRevive == SushiReviveReason.None) return;
+        int price = RevivePrice;
         bool isEnough = false;
         int gold = 0;
         if (GameDataFragment.cur.dataPlayer.money >= price)
