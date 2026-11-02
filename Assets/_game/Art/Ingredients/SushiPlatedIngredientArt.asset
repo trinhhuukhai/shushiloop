@@ -1151,7 +1151,7 @@ MonoBehaviour:
     sortingOrder: 1
     dish: 46
   - type: 19
-    sprite: {fileID: 932458426622118592, guid: 704f62926e2805c4eaaa1c0a16877e04, type: 3}
+    sprite: {fileID: 8511471238598083865, guid: 4f3bd482960885244a6ad21b1b51725f, type: 3}
     position: {x: 0, y: 0.05}
     size: {x: 0.57, y: 0.5}
     rotation: 0
@@ -1179,9 +1179,9 @@ MonoBehaviour:
     sortingOrder: 0
     dish: 48
   - type: 21
-    sprite: {fileID: 5794824851505924124, guid: b906057fae8712f4c937effdd239d671, type: 3}
-    position: {x: -0.00168, y: -0.021875}
-    size: {x: 0.789453, y: 0.563281}
+    sprite: {fileID: -7724111565751542085, guid: 7b8e24cc64b4188429b613f67936000c, type: 3}
+    position: {x: 0, y: 0.05}
+    size: {x: 0.57, y: 0.5}
     rotation: 0
     sortingOrder: 2
     dish: 48

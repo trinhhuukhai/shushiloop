@@ -2489,7 +2489,7 @@ MonoBehaviour:
   isEnableCheatTime: 0
   isEnableDebug: 0
   isEnableFirebaseDebug: 0
-  isPlayTestingLevel: 1
+  isPlayTestingLevel: 0
   levelBackToHome: 0
   levelUnlockSpin: 0
   levelUnlockDailyReward: 0
