@@ -19,6 +19,7 @@ public class SushiDishArtLibrary : ScriptableObject
         public SushiRecipeKind recipeKind = SushiRecipeKind.ThreeWithRice;
         public PoolType firstIngredient = PoolType.Shrimp;
         public PoolType secondIngredient = PoolType.Avocado;
+        public PoolType thirdIngredient = PoolType.Tuna;
         public Sprite sprite;
     }
 
@@ -29,7 +30,7 @@ public class SushiDishArtLibrary : ScriptableObject
     {
         foreach (CustomEntry entry in customRecipes)
             if (entry != null && entry.sprite != null &&
-                SushiRecipeCatalog.TryCreate(entry.recipeKind, entry.firstIngredient, entry.secondIngredient, out var custom, out _) &&
+                SushiRecipeCatalog.TryCreate(entry.recipeKind, entry.firstIngredient, entry.secondIngredient, entry.thirdIngredient, out var custom, out _) &&
                 custom.Key == recipe.Key) return entry.sprite;
         if (!recipe.IsCustom) return GetSprite(recipe.Id);
         foreach (SushiRecipe preset in SushiRecipeCatalog.All)

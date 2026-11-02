@@ -19,12 +19,13 @@ public class DishOrderData
     public SushiDishId dish = SushiDishId.NigiriShrimp;
     public PoolType firstIngredient = PoolType.Shrimp;
     public PoolType secondIngredient = PoolType.Avocado;
+    public PoolType thirdIngredient = PoolType.Tuna;
     [Min(1)] public int amount = 1;
 
     public bool TryGetRecipe(out SushiRecipe recipe, out string error)
     {
         if (recipeKind != SushiRecipeKind.Catalog)
-            return SushiRecipeCatalog.TryCreate(recipeKind, firstIngredient, secondIngredient, out recipe, out error);
+            return SushiRecipeCatalog.TryCreate(recipeKind, firstIngredient, secondIngredient, thirdIngredient, out recipe, out error);
         bool valid = SushiRecipeCatalog.TryGet(dish, out recipe);
         error = valid ? null : "Mã món trong catalog không hợp lệ.";
         return valid;

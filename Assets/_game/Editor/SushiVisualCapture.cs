@@ -103,8 +103,6 @@ public static class SushiVisualCapture
         foreach (SushiRecipe recipe in SushiRecipeCatalog.All) Refreshed(art.GetDish(recipe.Id), recipe.Id.ToString());
         Refreshed(art.boardTile, "BoardTile");
         Refreshed(art.plate, "Plate");
-        Refreshed(art.orderCard, "OrderCard");
-        Refreshed(art.conveyor, "Conveyor");
         Check(art.customerAvatars != null && art.customerAvatars.Length == 3, "Expected three refreshed customer avatars.");
         foreach (Sprite avatar in art.customerAvatars) Refreshed(avatar, avatar != null ? avatar.name : "Missing avatar");
         Debug.Log("SUSHI_ART_BINDINGS_OK: all ingredients, all 48 dishes, world decor and three customers use Refresh assets.");

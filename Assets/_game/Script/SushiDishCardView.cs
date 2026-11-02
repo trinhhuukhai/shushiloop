@@ -37,6 +37,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     private bool hasCachedRecipeLayout;
     private bool recipeExpanded;
     private readonly List<Image> recipeLayers = new List<Image>();
+    private Image recipePlate;
 
     public RectTransform Rect => (RectTransform)transform;
     public Image DishImage => finished;
@@ -104,8 +105,28 @@ public sealed class SushiDishCardView : MonoBehaviour
     private void RefreshRecipeLayers(Customer customer, SushiRecipe recipe)
     {
         foreach (Image layer in recipeLayers) layer.gameObject.SetActive(false);
+        if (recipePlate != null) recipePlate.gameObject.SetActive(false);
+        // Catalog sashimi images already include their decorated plate.
         if (finished.sprite != null) return;
         SushiPlatedIngredientArtLibrary plated = SushiArtCatalog.Default?.platedIngredientImages;
+        var plateArtwork = plated != null ? plated.GetPlate(recipe) : null;
+        if (plateArtwork != null)
+        {
+            if (recipePlate == null)
+            {
+                var plateObject = new GameObject("Sashimi plate", typeof(RectTransform), typeof(Image));
+                plateObject.layer = finished.gameObject.layer;
+                plateObject.transform.SetParent(finished.transform, false);
+                plateObject.transform.SetAsFirstSibling();
+                recipePlate = plateObject.GetComponent<Image>();
+                recipePlate.raycastTarget = false;
+            }
+            recipePlate.sprite = plateArtwork.sprite;
+            recipePlate.rectTransform.anchorMin = Vector2.one * 0.5f + plateArtwork.position - plateArtwork.size * 0.5f;
+            recipePlate.rectTransform.anchorMax = Vector2.one * 0.5f + plateArtwork.position + plateArtwork.size * 0.5f;
+            recipePlate.rectTransform.offsetMin = recipePlate.rectTransform.offsetMax = Vector2.zero;
+            recipePlate.gameObject.SetActive(true);
+        }
         var types = new List<PoolType>(recipe.Ingredients);
         if (plated != null) types.Sort((a, b) => plated.GetSortingOrder(a, recipe).CompareTo(plated.GetSortingOrder(b, recipe)));
         for (int i = 0; i < types.Count; i++)

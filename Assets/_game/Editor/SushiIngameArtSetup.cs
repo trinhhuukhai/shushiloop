@@ -59,7 +59,6 @@ public static class SushiIngameArtSetup
         if (Application.isPlaying) throw new InvalidOperationException("Exit Play Mode before authoring the scene.");
         var catalog = SushiArtCatalog.Default;
         catalog.boardTile = Sprite("tray"); catalog.plate = Sprite("plate");
-        catalog.orderCard = Sprite("order_board"); catalog.conveyor = Sprite("conveyor");
         catalog.customerAvatars = new[] { Sprite("char2"), Sprite("char1"), Sprite("char3") };
         EditorUtility.SetDirty(catalog);
         EditFood(); EditCustomer(); EditHUD();

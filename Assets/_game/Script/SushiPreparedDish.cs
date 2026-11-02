@@ -12,6 +12,10 @@ public sealed class SushiPreparedDish : MonoBehaviour
     private readonly List<FoodShushi> assemblyIngredients = new List<FoodShushi>();
     private readonly Dictionary<PoolType, Transform> ingredientTargets = new Dictionary<PoolType, Transform>();
     private bool isFlying;
+    private bool hasCachedPlate;
+    private Sprite defaultPlateSprite;
+    private Vector3 defaultPlatePosition;
+    private Vector3 defaultPlateScale;
     public IReadOnlyList<FoodShushi> AssemblyIngredients => assemblyIngredients;
     public Transform IngredientRoot => ingredientRoot;
     public Customer Owner { get; private set; }
@@ -24,6 +28,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         isFlying = false;
         if (ingredientArt == null && SushiArtCatalog.Default != null)
             ingredientArt = SushiArtCatalog.Default.platedIngredientImages;
+        RefreshPlateArtwork();
         if (ingredientRoot == null)
         {
             ingredientRoot = new GameObject("Ingredients").transform;
@@ -60,9 +65,33 @@ public sealed class SushiPreparedDish : MonoBehaviour
     public void RefreshArtwork(SushiPlatedIngredientArtLibrary changedArt)
     {
         if (Order == null || ingredientArt != changedArt) return;
+        RefreshPlateArtwork();
         foreach (var target in ingredientTargets) UpdateIngredientTarget(target.Key, target.Value);
         foreach (FoodShushi food in assemblyIngredients)
             if (food != null) ApplyIngredientArtwork(food, isFlying);
+    }
+
+    private void RefreshPlateArtwork()
+    {
+        if (!hasCachedPlate)
+        {
+            defaultPlateSprite = plate.sprite;
+            defaultPlatePosition = plate.transform.localPosition;
+            defaultPlateScale = plate.transform.localScale;
+            hasCachedPlate = true;
+        }
+        var artwork = ingredientArt != null ? ingredientArt.GetPlate(Order.Recipe) : null;
+        if (artwork == null)
+        {
+            plate.sprite = defaultPlateSprite;
+            plate.transform.localPosition = defaultPlatePosition;
+            plate.transform.localScale = defaultPlateScale;
+            return;
+        }
+        plate.sprite = artwork.sprite;
+        plate.transform.localPosition = new Vector3(artwork.position.x, artwork.position.y, defaultPlatePosition.z);
+        plate.transform.localScale = new Vector3(artwork.size.x / Mathf.Max(0.01f, artwork.sprite.bounds.size.x),
+            artwork.size.y / Mathf.Max(0.01f, artwork.sprite.bounds.size.y), defaultPlateScale.z);
     }
 
     public void ApplyIngredientArtwork(FoodShushi food, bool flying)
@@ -108,6 +137,10 @@ public sealed class SushiPreparedDish : MonoBehaviour
         plate.sortingOrder = 30;
         foreach (FoodShushi food in assemblyIngredients) ApplyIngredientArtwork(food, true);
     }
-    public void LeaveTable() { plate.enabled = false; }
+    public void LeaveTable()
+    {
+        // The decorated sashimi plate is part of the dish delivered to its order.
+        plate.enabled = ingredientArt != null && ingredientArt.GetPlate(Order.Recipe) != null;
+    }
     private void OnDestroy() => ClearAssemblyIngredients();
 }

@@ -11,6 +11,8 @@ public sealed class SushiArtSetup : AssetPostprocessor
 {
     private const string ArtRoot = "Assets/_game/Art/";
     private const string CatalogPath = "Assets/_game/Resources/SushiArtCatalog.asset";
+    internal const string SourceArtRoot = ArtRoot + "nguyenLieu_monAn/asset-20261102T044738Z-1-001/asset/";
+    private static readonly string[] SourceToppings = { "ca_ngu", "ca_hoi", "ca_bon", "ca_thu", "tom", "bach_tuoc", "bo", "trung" };
     private static bool queued;
     private static bool repairing;
 
@@ -34,7 +36,59 @@ public sealed class SushiArtSetup : AssetPostprocessor
     }
 
     private static bool IsArtwork(string path) => path.StartsWith(ArtRoot + "Ingredients/", StringComparison.Ordinal) ||
-        path.StartsWith(ArtRoot + "Dishes/", StringComparison.Ordinal) || path.StartsWith(ArtRoot + "Elements/", StringComparison.Ordinal);
+        path.StartsWith(ArtRoot + "Dishes/", StringComparison.Ordinal) || path.StartsWith(ArtRoot + "Elements/", StringComparison.Ordinal) ||
+        path.StartsWith(SourceArtRoot, StringComparison.Ordinal);
+
+    internal static bool HasSourceArtwork(string path) => path.StartsWith(SourceArtRoot, StringComparison.Ordinal) && File.Exists(path);
+
+    internal static string IngredientPath(PoolType type)
+    {
+        string source;
+        switch (type)
+        {
+            case PoolType.SushiRice: source = "nguyen_lieu/rice"; break;
+            case PoolType.Tuna: source = "nguyen_lieu/tuna"; break;
+            case PoolType.Salmon: source = "nguyen_lieu/salmon"; break;
+            case PoolType.Flounder: source = "nguyen_lieu/hirame"; break;
+            case PoolType.Mackerel: source = "nguyen_lieu/mackerel"; break;
+            case PoolType.Shrimp: source = "nguyen_lieu/shrimp"; break;
+            case PoolType.Octopus: source = "nguyen_lieu/octopus"; break;
+            case PoolType.Avocado: source = "nguyen_lieu/avocado"; break;
+            case PoolType.Egg: source = "nguyen_lieu/eggroll"; break;
+            case PoolType.Mayonnaise: source = "nguyen_lieu/mayo"; break;
+            case PoolType.FishRoe: source = "nguyen_lieu/roe_orange"; break;
+            case PoolType.BlackFishRoe: source = "nguyen_lieu/roe_black"; break;
+            case PoolType.GreenFishRoe: source = "nguyen_lieu/roe_green"; break;
+            case PoolType.Seaweed: source = "nguyen_lieu/nori"; break;
+            case PoolType.TeaPot: source = "tea_pot/am_tra"; break;
+            case PoolType.EmptyCup: source = "tea_pot/tach_tra"; break;
+            case PoolType.IceCube: source = "tea_pot/da"; break;
+            default: return ArtRoot + "Ingredients/" + type + ".png";
+        }
+        return SourceArtRoot + source + ".png";
+    }
+
+    internal static string DishPath(SushiDishId dish)
+    {
+        int id = (int)dish;
+        string source;
+        if (id >= 1 && id <= 8)
+            source = "nigiri/nigiri_img/nigiri_" + (id == 6 ? "muc" : SourceToppings[id - 1]);
+        else if (id >= 13 && id <= 20)
+            source = "maki/" + (id == 19 ? "miaki_" : "maiki_") + SourceToppings[id - 13];
+        else if (id >= 21 && id <= 28)
+            source = "gunkan/gunkan_" + SourceToppings[id - 21];
+        else if (id >= 29 && id <= 31)
+            source = "gunkan/gunkan_roe_" + new[] { "vang", "den", "xanh" }[id - 29];
+        else if (id >= 32 && id <= 46)
+            source = "sashimi_x2/sashimi_x2_img/" + id;
+        else if (id == 47 || id == 48)
+            source = "tea_pot/" + (id == 47 ? "tra_nong" : "tra_da");
+        else if (id >= 49 && id <= 68)
+            source = "sashimi_x3/sashimi_x3_img/" + id;
+        else return ArtRoot + "Dishes/" + dish + ".png";
+        return SourceArtRoot + source + ".png";
+    }
 
     private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved, string[] previous)
     {
@@ -60,8 +114,9 @@ public sealed class SushiArtSetup : AssetPostprocessor
         {
             var ingredients = LoadArtAsset<SushiIngredientArtLibrary>(ArtRoot + "Ingredients/SushiIngredientArt.asset");
             var dishes = LoadArtAsset<SushiDishArtLibrary>(ArtRoot + "Dishes/SushiDishArt.asset");
+            var plated = LoadArtAsset<SushiPlatedIngredientArtLibrary>(ArtRoot + "Ingredients/SushiPlatedIngredientArt.asset");
             var catalog = LoadArtAsset<SushiArtCatalog>(CatalogPath);
-            if (ingredients == null || dishes == null || catalog == null)
+            if (ingredients == null || dishes == null || plated == null || catalog == null)
             {
                 Debug.LogError("Sushi art: cannot load art data. Check the script import errors above; no ingredient data was deleted.");
                 return;
@@ -74,7 +129,7 @@ public sealed class SushiArtSetup : AssetPostprocessor
             foreach (PoolType type in Enum.GetValues(typeof(PoolType)))
             {
                 if (type == PoolType.None) continue;
-                BindMissing(ingredientList, "type", (int)type, ArtRoot + "Ingredients/" + type + ".png", missing);
+                BindPreferredOrMissing(ingredientList, "type", (int)type, IngredientPath(type), missing);
             }
             changed |= ingredientData.ApplyModifiedPropertiesWithoutUndo();
             var dishData = new SerializedObject(dishes);
@@ -82,10 +137,15 @@ public sealed class SushiArtSetup : AssetPostprocessor
             for (int i = 0; i < SushiRecipeCatalog.All.Count; i++)
             {
                 SushiDishId type = SushiRecipeCatalog.All[i].Id;
-                BindMissing(dishList, "dish", (int)type, ArtRoot + "Dishes/" + type + ".png", missing);
+                BindPreferredOrMissing(dishList, "dish", (int)type, DishPath(type), missing);
             }
             changed |= dishData.ApplyModifiedPropertiesWithoutUndo();
+            var platedData = new SerializedObject(plated);
+            BindSashimiPlate(platedData.FindProperty("sashimiTwoIngredientPlate"), "sashimi_x2", missing);
+            BindSashimiPlate(platedData.FindProperty("sashimiThreeIngredientPlate"), "sashimi_x3", missing);
+            changed |= platedData.ApplyModifiedPropertiesWithoutUndo();
             changed |= AssignMissing(catalog, "ingredientImages", ingredients);
+            changed |= AssignMissing(catalog, "platedIngredientImages", plated);
             changed |= AssignMissing(catalog, "dishImages", dishes);
             changed |= BindElement(catalog, "hiddenTile", "HiddenTile", missing);
             changed |= BindElement(catalog, "frozenTile", "FrozenTile", missing);
@@ -100,7 +160,8 @@ public sealed class SushiArtSetup : AssetPostprocessor
             Directory.CreateDirectory(reportDirectory);
             File.WriteAllText(Path.Combine(reportDirectory, "SushiArtBindingReport.txt"), "Ingredients: " + ingredientCount + "\nDishes: " + dishList.arraySize +
                 "\nElements: 4\nMissing: " + missing.Count + "\n" + string.Join("\n", missing));
-            if (changed && missing.Count == 0) Debug.Log("Sushi art: bound 21 ingredient sprites, 48 dish sprites and 4 element sprites.");
+            if (changed && missing.Count == 0) Debug.Log("Sushi art: bound " + ingredientCount + " ingredient sprites, " +
+                dishList.arraySize + " dish sprites and 4 element sprites.");
         }
         finally { repairing = false; }
     }
@@ -152,8 +213,8 @@ public sealed class SushiArtSetup : AssetPostprocessor
         return asset;
     }
 
-    // Giữ ảnh do người dùng gán trong Inspector; chỉ bổ sung type hoặc reference đang thiếu.
-    private static void BindMissing(SerializedProperty list, string key, int id, string path, List<string> missing)
+    // Ưu tiên bộ ảnh mới thay atlas cũ; giữ các chỉnh sửa trong bộ nguồn và ảnh ngoài khi nguồn không có.
+    private static void BindPreferredOrMissing(SerializedProperty list, string key, int id, string path, List<string> missing)
     {
         SerializedProperty entry = null;
         for (int i = 0; i < list.arraySize; i++)
@@ -167,13 +228,35 @@ public sealed class SushiArtSetup : AssetPostprocessor
             entry.FindPropertyRelative("sprite").objectReferenceValue = null;
         }
         var sprite = entry.FindPropertyRelative("sprite");
-        if (sprite.objectReferenceValue == null) sprite.objectReferenceValue = LoadSprite(path, missing);
+        bool replaceLegacy = HasSourceArtwork(path) && sprite.objectReferenceValue != null &&
+            !AssetDatabase.GetAssetPath(sprite.objectReferenceValue).StartsWith(SourceArtRoot, StringComparison.Ordinal);
+        if (sprite.objectReferenceValue == null || replaceLegacy)
+        {
+            Sprite preferred = LoadSprite(path, missing);
+            if (preferred != null) sprite.objectReferenceValue = preferred;
+        }
     }
 
     private static bool BindElement(SushiArtCatalog catalog, string field, string name, List<string> missing)
     {
         if (new SerializedObject(catalog).FindProperty(field).objectReferenceValue != null) return false;
         return Assign(catalog, field, LoadSprite(ArtRoot + "Elements/" + name + ".png", missing));
+    }
+
+    private static void BindSashimiPlate(SerializedProperty entry, string folder, List<string> missing)
+    {
+        var image = entry.FindPropertyRelative("sprite");
+        if (image.objectReferenceValue != null) return;
+        Sprite sprite = LoadSprite(SourceArtRoot + folder + "/dia_setup.png", missing);
+        if (sprite == null) return;
+        image.objectReferenceValue = sprite;
+        // Match the source canvas used by the ingredient layers, including the sprite crop.
+        Vector2 canvasSize = new Vector2(sprite.texture.width, sprite.texture.height);
+        Rect rect = sprite.rect;
+        entry.FindPropertyRelative("position").vector2Value = new Vector2(
+            (rect.center.x / canvasSize.x - 0.5f) * 0.86f, (rect.center.y / canvasSize.y - 0.5f) * 0.7f);
+        entry.FindPropertyRelative("size").vector2Value = new Vector2(
+            rect.width / canvasSize.x * 0.86f, rect.height / canvasSize.y * 0.7f);
     }
 
     private static Sprite LoadSprite(string path, List<string> missing)

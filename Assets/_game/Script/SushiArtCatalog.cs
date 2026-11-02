@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Hai danh sách tra ảnh theo type và bộ ảnh element dùng chung cho toàn bộ game.
+// Shared ingredient, plated-layer, dish and element artwork.
 [CreateAssetMenu(menuName = "SushiKhai/Art Catalog", fileName = "SushiArtCatalog")]
 public sealed class SushiArtCatalog : ScriptableObject
 {
@@ -15,8 +15,6 @@ public sealed class SushiArtCatalog : ScriptableObject
     [Header("World sprites — separate from Canvas UI")]
     public Sprite boardTile;
     public Sprite plate;
-    public Sprite orderCard;
-    public Sprite conveyor;
     public Sprite[] customerAvatars = new Sprite[0];
 
     private static SushiArtCatalog instance;

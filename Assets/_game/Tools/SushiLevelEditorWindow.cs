@@ -48,9 +48,13 @@ public class SushiLevelEditorWindow : EditorWindow
     private string diffReport = "";
     private MessageType diffReportType = MessageType.None;
     private readonly DishOrderData newOrder = new DishOrderData { recipeKind = SushiRecipeKind.TwoWithRice };
-    private static readonly string[] RecipeKindLabels = { "Món có sẵn", "2 nguyên liệu — có cơm", "2 nguyên liệu — không cơm", "3 nguyên liệu — cơm đầu tiên" };
+    private static readonly string[] RecipeKindLabels = { "Món có sẵn", "2 nguyên liệu — có cơm", "2 nguyên liệu — không cơm", "3 nguyên liệu — cơm đầu tiên", "3 nguyên liệu — không cơm" };
+    private static readonly string[] DishNames = SushiRecipeCatalog.All.Select(recipe => SushiRecipeCatalog.AssetName(recipe.Id)).ToArray();
+    private static readonly SushiDishId[] DishIds = SushiRecipeCatalog.All.Select(recipe => recipe.Id).ToArray();
     private static readonly PoolType[] ToppingTypes = Enum.GetValues(typeof(PoolType)).Cast<PoolType>().Where(SushiRecipeCatalog.IsFoodTopping).ToArray();
-    private static readonly string[] ToppingNames = ToppingTypes.Select(SushiRecipeCatalog.IngredientName).ToArray();
+    private static readonly string[] ToppingNames = ToppingTypes.Select(type => SushiRecipeCatalog.AssetName(type)).ToArray();
+    private static readonly PoolType[] NigiriTypes = ToppingTypes.Where(SushiRecipeCatalog.IsNigiriTopping).ToArray();
+    private static readonly string[] NigiriNames = NigiriTypes.Select(type => SushiRecipeCatalog.AssetName(type)).ToArray();
 
     private bool showIcons = true;
     private string dishFolder = "";
@@ -208,11 +212,7 @@ public class SushiLevelEditorWindow : EditorWindow
     {
         if (artCatalogLoaded) return artCatalog;
         artCatalogLoaded = true;
-        foreach (string guid in AssetDatabase.FindAssets("t:SushiArtCatalog"))
-        {
-            artCatalog = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guid));
-            if (artCatalog != null) break;
-        }
+        artCatalog = SushiArtCatalog.Default;
         return artCatalog;
     }
 
@@ -674,23 +674,32 @@ public class SushiLevelEditorWindow : EditorWindow
     {
         order.recipeKind = (SushiRecipeKind)EditorGUILayout.Popup("Công thức", (int)order.recipeKind, RecipeKindLabels);
         if (order.recipeKind == SushiRecipeKind.Catalog)
-            order.dish = (SushiDishId)EditorGUILayout.EnumPopup("Món", order.dish);
+        {
+            int index = Array.IndexOf(DishIds, order.dish);
+            int selected = EditorGUILayout.Popup("Món", index >= 0 && index < DishNames.Length ? index : -1, DishNames);
+            if (selected >= 0) order.dish = SushiRecipeCatalog.All[selected].Id;
+        }
         else
         {
-            if (order.recipeKind != SushiRecipeKind.TwoWithoutRice)
+            bool withoutRice = order.recipeKind == SushiRecipeKind.TwoWithoutRice || order.recipeKind == SushiRecipeKind.ThreeWithoutRice;
+            if (!withoutRice)
                 EditorGUILayout.LabelField("Nguyên liệu 1", "Cơm (nền)");
-            order.firstIngredient = ToppingPopup(order.recipeKind == SushiRecipeKind.TwoWithoutRice ? "Nguyên liệu 1" : "Nguyên liệu 2", order.firstIngredient);
+            order.firstIngredient = ToppingPopup(withoutRice ? "Nguyên liệu 1" : "Nguyên liệu 2", order.firstIngredient,
+                order.recipeKind == SushiRecipeKind.TwoWithRice);
             if (order.recipeKind != SushiRecipeKind.TwoWithRice)
-                order.secondIngredient = ToppingPopup(order.recipeKind == SushiRecipeKind.TwoWithoutRice ? "Nguyên liệu 2" : "Nguyên liệu 3", order.secondIngredient);
+                order.secondIngredient = ToppingPopup(withoutRice ? "Nguyên liệu 2" : "Nguyên liệu 3", order.secondIngredient);
+            if (order.recipeKind == SushiRecipeKind.ThreeWithoutRice)
+                order.thirdIngredient = ToppingPopup("Nguyên liệu 3", order.thirdIngredient);
         }
         if (!order.TryGetRecipe(out _, out string error)) EditorGUILayout.HelpBox(error, MessageType.Warning);
     }
 
-    private static PoolType ToppingPopup(string label, PoolType value)
+    private static PoolType ToppingPopup(string label, PoolType value, bool nigiriOnly = false)
     {
-        int index = Array.IndexOf(ToppingTypes, value);
-        int selected = EditorGUILayout.Popup(label, index, ToppingNames);
-        return selected >= 0 && selected < ToppingTypes.Length ? ToppingTypes[selected] : value;
+        var types = nigiriOnly ? NigiriTypes : ToppingTypes;
+        int index = Array.IndexOf(types, value);
+        int selected = EditorGUILayout.Popup(label, index, nigiriOnly ? NigiriNames : ToppingNames);
+        return selected >= 0 && selected < types.Length ? types[selected] : value;
     }
 
     private void DrawDishIcon(DishOrderData order)

@@ -34,8 +34,7 @@ public static class SushiCampaignSetup
     private static readonly SushiDishId[] Nigiri = {
         SushiDishId.NigiriShrimp, SushiDishId.NigiriSalmon, SushiDishId.NigiriEgg,
         SushiDishId.NigiriAvocado, SushiDishId.NigiriTuna, SushiDishId.NigiriOctopus,
-        SushiDishId.NigiriFlounder, SushiDishId.NigiriMackerel, SushiDishId.NigiriOrangeRoe,
-        SushiDishId.NigiriBlackRoe, SushiDishId.NigiriGreenRoe, SushiDishId.NigiriMayonnaise
+        SushiDishId.NigiriFlounder, SushiDishId.NigiriMackerel
     };
     private static readonly SushiDishId[] Rolls = {
         SushiDishId.MakiShrimp, SushiDishId.MakiSalmon, SushiDishId.MakiAvocado, SushiDishId.MakiEgg,

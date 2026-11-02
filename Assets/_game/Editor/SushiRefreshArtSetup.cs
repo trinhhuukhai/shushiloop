@@ -80,13 +80,13 @@ public static class SushiRefreshArtSetup
         if (catalog == null) return;
         if (!updated && !force && catalog.boardTile != null && catalog.customerAvatars.Length > 0) return;
         foreach (var entry in catalog.ingredientImages.ingredients)
-            if (sprites.TryGetValue(entry.type.ToString(), out Sprite sprite)) entry.sprite = sprite;
+            if (!SushiArtSetup.HasSourceArtwork(SushiArtSetup.IngredientPath(entry.type)) &&
+                sprites.TryGetValue(entry.type.ToString(), out Sprite sprite)) entry.sprite = sprite;
         foreach (var entry in catalog.dishImages.dishes)
-            if (sprites.TryGetValue(entry.dish.ToString(), out Sprite sprite)) entry.sprite = sprite;
+            if (!SushiArtSetup.HasSourceArtwork(SushiArtSetup.DishPath(entry.dish)) &&
+                sprites.TryGetValue(entry.dish.ToString(), out Sprite sprite)) entry.sprite = sprite;
         if (sprites.TryGetValue("BoardTile", out Sprite tile)) catalog.boardTile = tile;
         if (sprites.TryGetValue("Plate", out Sprite plate)) catalog.plate = plate;
-        if (sprites.TryGetValue("OrderCard", out Sprite card)) catalog.orderCard = card;
-        if (sprites.TryGetValue("Conveyor", out Sprite belt)) catalog.conveyor = belt;
         catalog.customerAvatars = sprites.Where(pair => pair.Key.StartsWith("Customer", StringComparison.Ordinal))
             .OrderBy(pair => pair.Key).Select(pair => pair.Value).ToArray();
         EditorUtility.SetDirty(catalog);
