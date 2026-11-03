@@ -35,7 +35,8 @@ MonoBehaviour:
       amount: 1
   boardColumns:
   - foods:
-    - typeFood: 1
+    - tutFood: 1
+      typeFood: 1
       amount: 1
       foodState: 0
       hidden: 0
@@ -44,7 +45,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 2
+    - tutFood: 0
+      typeFood: 2
       amount: 1
       foodState: 0
       hidden: 0

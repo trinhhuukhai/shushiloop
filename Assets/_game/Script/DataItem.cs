@@ -11,6 +11,12 @@ public class FoodOrderData
     public int amount = 1;
 }
 
+public enum TypeTutFood
+{
+    Normal,
+    ClickTut
+}
+
 [Serializable]
 public class DishOrderData
 {
@@ -98,10 +104,10 @@ public class CustomerOrderData
         return null;
     }
 }
-
 [Serializable]
 public class FoodData
 {
+    public TypeTutFood tutFood;
     public PoolType typeFood;
     [Range(1, 3)] public int amount = 1;
     public FoodState foodState = FoodState.Normal;

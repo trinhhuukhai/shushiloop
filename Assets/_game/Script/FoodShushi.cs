@@ -118,6 +118,7 @@ public class FoodShushi : GameUnit
 
     public FoodQueue Owner { get; internal set; }
     public PoolType Type => poolType;
+    public TypeTutFood TutorialType { get; private set; }
     public FoodState State => foodState;
     public FoodLocation Location => foodLocation;
     public int Amount => amount;
@@ -138,6 +139,7 @@ public class FoodShushi : GameUnit
         platedSprite = null;
         Owner = null;
         poolType = data.typeFood;
+        TutorialType = data.tutFood;
         amount = Mathf.Max(0, data.amount);
         hidden = data.hidden || data.foodState == FoodState.HoiCham;
         iceLayers = data.foodState == FoodState.Ice ? Mathf.Max(1, data.iceLayers) : Mathf.Max(0, data.iceLayers);

@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 1
   m_MinWidth: -1
@@ -2089,10 +2089,22 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -15
       objectReference: {fileID: 0}
+    - target: {fileID: 5973162356449526289, guid: 3199b8931acae894e8fd85b51fd8dcce, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7023654178953296903, guid: 3199b8931acae894e8fd85b51fd8dcce, type: 3}
+      propertyPath: m_fontSize
+      value: 21.25
+      objectReference: {fileID: 0}
     - target: {fileID: 7023654178953296903, guid: 3199b8931acae894e8fd85b51fd8dcce, type: 3}
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 2100000, guid: a95b42525a1fadb4fbd70f9716361238, type: 2}
+    - target: {fileID: 7023654178953296903, guid: 3199b8931acae894e8fd85b51fd8dcce, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 7222253755667045103, guid: 3199b8931acae894e8fd85b51fd8dcce, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

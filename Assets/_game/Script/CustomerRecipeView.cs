@@ -123,6 +123,15 @@ public class CustomerRecipeView : MonoBehaviour
         return false;
     }
 
+    public bool ShowRecipeDetails(SushiDishCardView target)
+    {
+        if (customer == null || !customer.IsSeated || target == null || target.IsOrderComplete || !cards.Contains(target))
+            return false;
+        foreach (SushiDishCardView card in cards) card.SetRecipeExpanded(card == target);
+        RefreshOrderLayout();
+        return true;
+    }
+
     public void SetMagnetTargeting(bool active)
     {
         if (magnetTargeting == active) return;

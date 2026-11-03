@@ -17,6 +17,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     [SerializeField] private Color targetingColor;
     [SerializeField] private TMP_Text portionCount;
     [SerializeField] private Transform dishDeliverySlot;
+    [SerializeField] private RectTransform incompleteNotification;
     private IReadOnlyList<SushiDishOrder> portions;
     private GameObject ingredientDetails;
     private GameObject completedTick;
@@ -47,6 +48,21 @@ public sealed class SushiDishCardView : MonoBehaviour
     public Transform DeliverySlot(int index) => ingredients[index].DeliverySlot;
     public bool IsRecipeExpanded => recipeExpanded;
     public bool IsOrderComplete => orderComplete;
+
+    private void LateUpdate()
+    {
+        if (incompleteNotification == null || !incompleteNotification.gameObject.activeSelf) return;
+        float phase = Time.unscaledTime * 5f;
+        incompleteNotification.localScale = Vector3.one * (1f + 0.1f * Mathf.Sin(phase));
+        incompleteNotification.localRotation = Quaternion.Euler(0, 0, 7f * Mathf.Sin(phase * 1.4f));
+    }
+
+    private void RefreshNotification()
+    {
+        if (incompleteNotification == null) return;
+        // Details replace the dish artwork, so keep the badge beside the collapsed dish only.
+        incompleteNotification.gameObject.SetActive(!orderComplete && !recipeExpanded);
+    }
 
     public void Bind(Customer customer, SushiDishOrder dish, SushiDishArtLibrary art)
     {
@@ -162,6 +178,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         else if (dish.IsComplete) received = 1;
         bool complete = received == total;
         orderComplete = complete;
+        RefreshNotification();
         if (complete && recipeExpanded) SetRecipeExpanded(false);
         background.color = complete ? completedColor : targeting ? targetingColor : pendingColor;
         completedMark.SetActive(complete);
@@ -178,6 +195,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     {
         if (expanded && orderComplete) return;
         recipeExpanded = expanded;
+        RefreshNotification();
         dishName.gameObject.SetActive(!expanded && originalDishNameActive);
         finished.gameObject.SetActive(!expanded);
         finished.enabled = !expanded && finished.sprite != null;
