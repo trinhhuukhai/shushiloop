@@ -22,10 +22,7 @@ public class CanvasUnlockBooster : UICanvas
         base.Open();
         popTween?.Kill();
         mainPanelRect.localScale = Vector3.zero;
-        popTween = DOVirtual.DelayedCall(1f, () =>
-        {
-            popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
-        }).SetUpdate(true);
+        popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
     }
 
     protected override void OnDisable()

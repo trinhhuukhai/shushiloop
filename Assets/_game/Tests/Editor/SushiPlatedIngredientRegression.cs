@@ -439,6 +439,7 @@ public static class SushiPlatedIngredientRegression
         SushiDishOrder order = customer.Dishes[0];
         int foundationColumn = recipe.Ingredients.ToList().IndexOf(order.FoundationType);
         Check(Tap(foundationColumn), "foundation pickup failed");
+        Check(belt.CanTargetMagnet(board, customer, order), "Magnet preview missed the available foundation in flight");
         Check(belt.TryTakeMagnet(board, customer, order), "magnet could not intercept the foundation");
         SushiPreparedDish dish = Dish;
         var pending = Get<Dictionary<SushiPreparedDish, List<FoodShushi>>>(belt, "assemblyFoods")[dish];
@@ -468,6 +469,7 @@ public static class SushiPlatedIngredientRegression
     {
         Customer customer = Prepare(SushiDishId.IcedGreenTea, 3,
             new[] { Food(PoolType.TeaPot) }, new[] { Food(PoolType.IceCube) });
+        Check(!belt.CanTargetMagnet(board, customer, customer.Dishes[0]), "Magnet preview accepted a recipe without its cup");
         Check(!belt.TryTakeMagnet(board, customer, customer.Dishes[0]), "magnet accepted a recipe without its cup");
         Check(board.FoodQueues.All(column => column.Count == 1) && belt.OccupiedSlotCount == 0 &&
             customer.Dishes[0].Ingredients.All(item => item.incomingAmount == 0), "rejected magnet changed board or reservations");

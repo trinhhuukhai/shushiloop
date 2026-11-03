@@ -296,24 +296,38 @@ public partial class ConveyorManager : MonoBehaviour
             TryTakePlan(board, plan, FoodPickMode.Chopsticks);
     }
 
-    public bool TryTakeMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
+    private bool IsValidMagnetTarget(BoardShishiManager board, Customer customer, SushiDishOrder dish)
     {
-        if (SushiLevelOneTutorial.IsInputLocked) return false;
-        if (!CanInteract || board == null || customer == null || dish == null || !customer.IsSeated ||
+        if (board == null || customer == null || dish == null || !customer.IsSeated ||
             customer.IsCompleted || customer.RushExpired || dish.IsComplete || customerManager == null) return false;
         bool active = false, ownsDish = false;
         foreach (Customer seated in customerManager.ActiveCustomers) active |= seated == customer;
         foreach (SushiDishOrder order in customer.Dishes) ownsDish |= order == dish;
-        if (!active || !ownsDish) return false;
+        return active && ownsDish;
+    }
+
+    // Preview availability without consuming ingredients, including while a tutorial holds gameplay.
+    public bool CanTargetMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
+    {
+        if (!IsValidMagnetTarget(board, customer, dish)) return false;
         if (preparedDishPrefab != null)
         {
-            if (!TryMagnetPreparedDish(board, customer, dish)) return false;
-            magnetOrdersInFlight.Add(dish);
-            return true;
+            foreach (var pair in slotDishes)
+                if (pair.Value.Owner == customer && pair.Value.Order == dish && pair.Value.IsReady) return true;
+            if (!customer.CanAssembleDish(dish)) return false;
+            bool canReceive = false;
+            foreach (OrderItem ingredient in dish.Ingredients)
+                canReceive |= customer.CanReceivePreparedIngredient(dish, ingredient.typeFood, includeIncomingFoundation: true);
+            if (!canReceive) return false;
         }
+        return TryBuildMagnetPlan(board, dish, out _, out _);
+    }
 
-        var boardPlan = new List<FoodPickup>();
-        var beltPlan = new List<KeyValuePair<Transform, FoodShushi>>();
+    private bool TryBuildMagnetPlan(BoardShishiManager board, SushiDishOrder dish,
+        out List<FoodPickup> boardPlan, out List<KeyValuePair<Transform, FoodShushi>> beltPlan)
+    {
+        boardPlan = new List<FoodPickup>();
+        beltPlan = new List<KeyValuePair<Transform, FoodShushi>>();
         int needed = 0;
         foreach (OrderItem ingredient in dish.Ingredients)
         {
@@ -327,7 +341,20 @@ public partial class ConveyorManager : MonoBehaviour
             // Thiếu bất kỳ nguyên liệu nào: giữ nguyên board, vòng xoay và order.
             if (remaining > 0) return false;
         }
-        if (needed == 0) return false;
+        return needed > 0;
+    }
+
+    public bool TryTakeMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
+    {
+        if (SushiLevelOneTutorial.IsInputLocked && !ControlTutorial.AllowsMagnet(customer, dish)) return false;
+        if (!CanInteract || !IsValidMagnetTarget(board, customer, dish)) return false;
+        if (preparedDishPrefab != null)
+        {
+            if (!TryMagnetPreparedDish(board, customer, dish)) return false;
+            magnetOrdersInFlight.Add(dish);
+            return true;
+        }
+        if (!TryBuildMagnetPlan(board, dish, out var boardPlan, out var beltPlan)) return false;
 
         var spawned = new List<FoodShushi>();
         var units = new List<FoodShushi>();

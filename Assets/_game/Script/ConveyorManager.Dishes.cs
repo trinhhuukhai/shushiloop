@@ -284,17 +284,7 @@ public partial class ConveyorManager
             return true;
         }
         if (!customer.CanAssembleDish(order)) return false;
-        var boardPlan = new List<FoodPickup>();
-        var beltPlan = new List<KeyValuePair<Transform, FoodShushi>>();
-        foreach (OrderItem need in order.Ingredients)
-        {
-            int left = need.requiredAmount - need.receivedAmount - need.incomingAmount;
-            left = CollectBeltIngredients(need.typeFood, left, beltPlan);
-            if (left > 0)
-                foreach (var pickup in board.BuildMagnet(need.typeFood, left)) { boardPlan.Add(pickup); left -= pickup.amount; }
-            if (left > 0) return false;
-        }
-        if (boardPlan.Count == 0 && beltPlan.Count == 0) return false;
+        if (!TryBuildMagnetPlan(board, order, out var boardPlan, out var beltPlan)) return false;
         var units = new List<FoodShushi>();
         try
         {

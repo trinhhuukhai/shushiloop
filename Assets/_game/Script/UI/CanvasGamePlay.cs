@@ -143,6 +143,8 @@ public class CanvasGamePlay : UICanvas
         // Select the ingredient before the spotlight starts intercepting world raycasts.
         if (type == BoosterType.Click && ControlTutorial.Ins != null)
             ControlTutorial.Ins.BeginClickBooster(LevelManager.Ins, () => EndBoosterTutorial(type, false));
+        if (type == BoosterType.Magnet && ControlTutorial.Ins != null &&
+            !ControlTutorial.Ins.BeginMagnetBooster(LevelManager.Ins, () => EndBoosterTutorial(type, false))) return;
         tutorialBooster = type;
         spotlight.ShowSpotlight(targetObj.GetComponent<RectTransform>());
 
@@ -375,7 +377,7 @@ public class CanvasGamePlay : UICanvas
         speedText.text = level.Conveyor.IsDoubleSpeed ? "2X" : "1X";
         setTxtGold();
         FoodPickMode mode = input != null ? input.PickMode : FoodPickMode.Tap;
-        bool guidedBooster = ControlTutorial.KeepsClickBoosterSelected;
+        bool guidedBooster = ControlTutorial.KeepsBoosterSelected;
         boosterHint.text = guidedBooster ? "" : mode == FoodPickMode.Chopsticks ? "Chọn nguyên liệu đang thấy · không gắp ô băng" :
             mode == FoodPickMode.Magnet ? "Chọn một món trong order để hút đủ nguyên liệu" : "";
         cancelBooster.gameObject.SetActive(mode != FoodPickMode.Tap && !guidedBooster);
@@ -467,6 +469,12 @@ public class CanvasGamePlay : UICanvas
 
     public void BoosterHut()
     {
+        if (ControlTutorial.IsInputLocked && ControlTutorial.Ins.Step == ControlTutorial.TutorialStep.Booster)
+        {
+            ControlTutorial.Ins.ConfirmMagnetBooster();
+            Refresh();
+            return;
+        }
         if (SushiLevelOneTutorial.IsInputLocked) return;
         if (IsAnyBoosterInUse) return;
         if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Magnet)) return;

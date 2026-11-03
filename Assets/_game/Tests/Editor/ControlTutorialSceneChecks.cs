@@ -56,7 +56,7 @@ public static class ControlTutorialSceneChecks
             if (runner == null) runner = Run();
             if (runner.MoveNext()) return;
             SessionState.SetBool(Key, false);
-            File.WriteAllText("ControlTutorialResults.txt", "PASS: level 1 order and marked pickup; Click booster button-to-random-ingredient lesson and free first use; hidden, ice, linked and tray item popup-to-random-ingredient lessons without ClickTut markers; wrong taps blocked; pointer layout; completion, persistence, cancellation/retry and level changes.\n");
+            File.WriteAllText("ControlTutorialResults.txt", "PASS: immediate booster unlock animation; level 1 order and marked pickup; Click booster ingredient lesson; Magnet button-to-dish lesson, description, selected dish completion and free first use; hidden, ice, linked and tray item lessons without ClickTut markers; wrong taps blocked; pointer layout; completion, persistence, cancellation/retry and level changes.\n");
             Debug.Log("CONTROL_TUTORIAL_SCENE_CHECKS_OK");
             EditorApplication.Exit(0);
         }
@@ -160,6 +160,10 @@ public static class ControlTutorialSceneChecks
         level.ShowGameplayHud();
         CanvasGamePlay hud = UIManager.Ins.GetUI<CanvasGamePlay>();
         Check(UIManager.Ins.IsOpened<CanvasUnlockBooster>() && !level.CanInteract, "Click unlock popup did not pause immediately.");
+        float popupDeadline = Time.realtimeSinceStartup + 0.4f;
+        while (Time.realtimeSinceStartup < popupDeadline) yield return null;
+        Check(Vector3.Distance(UIManager.Ins.GetUI<CanvasUnlockBooster>().mainPanelRect.localScale, Vector3.one) < 0.01f,
+            "Unlock popup still waits before appearing.");
         UIManager.Ins.GetUI<CanvasUnlockBooster>().btnOk();
         yield return null;
         Check(tutorial.Step == ControlTutorial.TutorialStep.Booster, "Click lesson did not point to its button.");
@@ -189,6 +193,9 @@ public static class ControlTutorialSceneChecks
             data.dataPlayer.boosterClick == 0 && level.CanInteract && input.PickMode == FoodPickMode.Tap,
             "Guided click pickup failed or charged the free first use.");
         CheckHidden(tutorial);
+
+        IEnumerator magnet = CheckMagnet(level, hud, input);
+        while (magnet.MoveNext()) yield return magnet.Current;
 
         GameManager.ins.LevelUnlockItemHoiCham = 5;
         GameManager.ins.LevelUnlockItemBang = 11;
@@ -237,6 +244,7 @@ public static class ControlTutorialSceneChecks
         data.Load();
         foreach (FoodState item in items) Check(data.IsItemTutorialDone(item), item + " completion was not persisted.");
         Check(data.IsBoosterTutorialDone(BoosterType.Click), "Click completion was not persisted.");
+        Check(data.IsBoosterTutorialDone(BoosterType.Magnet), "Magnet completion was not persisted.");
         // Closing an old popup after a level change must never start its callback in the new level.
         UIManager.Ins.CloseAll();
         data.dataPlayer.cur_level = 4;
@@ -246,6 +254,84 @@ public static class ControlTutorialSceneChecks
         UIManager.Ins.GetUI<CanvasNewItem>().Close();
         yield return null;
         Check(!ControlTutorial.IsInputLocked && level.CanInteract, "Stale item popup started a lesson in another level.");
+    }
+
+    private static IEnumerator CheckMagnet(LevelManager level, CanvasGamePlay hud, FoodInputController input)
+    {
+        var data = GameDataFragment.cur;
+        var tutorial = ControlTutorial.Ins;
+        string originalDescription = tutorial.objDesOrder.GetComponentInChildren<TMP_Text>(true).text;
+        data.dataPlayer.cur_level = GameDataFragment.BoosterMagnetUnlockLevel - 1;
+        data.dataPlayer.isShowUnlockMagnet = false;
+        data.dataPlayer.showTutorialBooster3 = false;
+        data.dataPlayer.fisrtUseBoosterMagnet = false;
+        data.dataPlayer.boosterHut = 0;
+        UIManager.Ins.CloseAll();
+        level.LoadLevel(data.dataPlayer.cur_level, false);
+        level.ShowGameplayHud();
+        Check(UIManager.Ins.IsOpened<CanvasUnlockBooster>(), "Magnet unlock popup is missing.");
+        UIManager.Ins.GetUI<CanvasUnlockBooster>().btnOk();
+        yield return null;
+        Check(tutorial.Step == ControlTutorial.TutorialStep.Booster &&
+            tutorial.Lesson == ControlTutorial.TutorialLesson.MagnetBooster && hud.handBsMagnet.activeSelf &&
+            level.IsTutorialHeld, "Magnet lesson did not hold gameplay and point to its button.");
+        hud.BoosterClick();
+        hud.BoosterSuffle();
+        Check(tutorial.Step == ControlTutorial.TutorialStep.Booster && input.PickMode == FoodPickMode.Tap,
+            "A different booster advanced the Magnet lesson.");
+        tutorial.CancelTutorial();
+        Check(!hud.handBsMagnet.activeSelf && !hud.spotlight.dimOverlay.activeSelf && level.CanInteract,
+            "Cancelling Magnet at its button retained the spotlight or gameplay hold.");
+        data.dataPlayer.showTutorialBooster3 = true; // Legacy saves ended the lesson at the booster button.
+        hud.CheckShowUnlockBooster();
+        hud.BoosterHut();
+        for (int i = 0; i < 12; i++) yield return null;
+        Check(tutorial.Step == ControlTutorial.TutorialStep.Order && input.PickMode == FoodPickMode.Magnet &&
+            tutorial.handOrder.activeSelf && tutorial.objDesOrder.activeSelf && !hud.handBsMagnet.activeSelf &&
+            !hud.spotlight.dimOverlay.activeSelf, "Magnet button did not show the dish hand and description.");
+        Check(tutorial.objDesOrder.GetComponentInChildren<TMP_Text>(true).text.Contains("hút đủ nguyên liệu"),
+            "Magnet dish description is missing.");
+        Check(!data.IsBoosterTutorialDone(BoosterType.Magnet) && !data.dataPlayer.fisrtUseBoosterMagnet,
+            "Selecting Magnet completed the lesson or consumed its first use.");
+        CheckPointer(tutorial.handOrder, tutorial.TargetOrder.DishImage.transform.position);
+        CheckNoBlockingUI(tutorial.TargetOrder.DishImage.transform.position);
+        Check(!input.TryUseMagnet(tutorial.TargetCustomer, tutorial.TargetDish) &&
+            !level.Conveyor.TryTakeMagnet(level.Board, tutorial.TargetCustomer, tutorial.TargetDish),
+            "Unconfirmed Magnet use bypassed the tutorial.");
+        Press(tutorial, level.Board.FoodQueues[0].GetTopFood().transform.position);
+        Check(tutorial.Step == ControlTutorial.TutorialStep.Order && !data.IsBoosterTutorialDone(BoosterType.Magnet),
+            "Tapping an ingredient completed the Magnet lesson.");
+        Capture("ControlTutorialMagnet", level);
+        tutorial.CancelTutorial();
+        Check(level.CanInteract && input.PickMode == FoodPickMode.Tap && !data.IsBoosterTutorialDone(BoosterType.Magnet) &&
+            tutorial.objDesOrder.GetComponentInChildren<TMP_Text>(true).text == originalDescription,
+            "Cancelling Magnet retained booster mode, changed the default text or saved completion.");
+        CheckHidden(tutorial);
+        hud.CheckShowUnlockBooster();
+        hud.BoosterHut();
+        yield return null;
+        SushiDishOrder selected = tutorial.TargetDish;
+        Press(tutorial, tutorial.TargetOrder.DishImage.transform.position);
+        Check(data.IsBoosterTutorialDone(BoosterType.Magnet) && data.dataPlayer.fisrtUseBoosterMagnet &&
+            data.dataPlayer.boosterHut == 0 && level.CanInteract && input.PickMode == FoodPickMode.Tap,
+            "Guided Magnet failed or charged its free first use.");
+        CheckHidden(tutorial);
+        float deadline = Time.realtimeSinceStartup + 10f;
+        while (!selected.IsComplete && Time.realtimeSinceStartup < deadline) yield return null;
+        Check(selected.IsComplete, "Guided Magnet did not complete the selected dish.");
+        level.LoadLevel(GameDataFragment.BoosterMagnetUnlockLevel - 1);
+        yield return null;
+        Check(!ControlTutorial.IsInputLocked, "Completed Magnet lesson replayed.");
+        data.dataPlayer.showTutorialBooster3 = false;
+        data.dataPlayer.boosterHut = 1;
+        hud.CheckShowUnlockBooster();
+        hud.BoosterHut();
+        Check(ControlTutorial.KeepsBoosterSelected, "Magnet lesson did not restart for the reload check.");
+        level.LoadLevel(1);
+        Check(!ControlTutorial.IsInputLocked && input.PickMode == FoodPickMode.Tap && level.CanInteract &&
+            !data.IsBoosterTutorialDone(BoosterType.Magnet), "Level change retained or completed the Magnet lesson.");
+        CheckHidden(tutorial);
+        data.Load(); // Restore the successful, persisted completion.
     }
 
     private static void RemoveTutorialMarkers(LevelManager level)

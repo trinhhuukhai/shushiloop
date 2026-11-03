@@ -219,7 +219,8 @@ public class GameDataFragment : DataFragment
         {
             case BoosterType.Click: return dataPlayer.showTutorialBooster1;
             case BoosterType.Shuffle: return dataPlayer.showTutorialBooster2;
-            case BoosterType.Magnet: return dataPlayer.showTutorialBooster3;
+            // Older saves marked this lesson done on the button, before selecting a dish.
+            case BoosterType.Magnet: return dataPlayer.showTutorialBooster3 && dataPlayer.fisrtUseBoosterMagnet;
             default: return true;
         }
     }

@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
 {
     public enum TutorialStep { Inactive, Waiting, Order, Food, Booster }
-    public enum TutorialLesson { LevelOne, ClickBooster, Item }
+    public enum TutorialLesson { LevelOne, ClickBooster, Item, MagnetBooster }
 
     public SpriteRenderer img_lop_phu_duoi;
     public GameObject objDesOrder;
@@ -27,10 +27,14 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
     public TutorialLesson Lesson { get; private set; }
     public FoodShushi TargetFood { get; private set; }
     public SushiDishCardView TargetOrder { get; private set; }
+    public Customer TargetCustomer { get; private set; }
+    public SushiDishOrder TargetDish { get; private set; }
     public static bool IsInputLocked => Ins != null && Ins.Step != TutorialStep.Inactive;
     public static bool IsConfirmingPickup => Ins != null && Ins.confirmingPickup;
     public static bool KeepsClickBoosterSelected => IsInputLocked && Ins.Lesson == TutorialLesson.ClickBooster &&
         (Ins.Step == TutorialStep.Food || Ins.Step == TutorialStep.Waiting);
+    public static bool KeepsBoosterSelected => KeepsClickBoosterSelected || IsInputLocked &&
+        Ins.Lesson == TutorialLesson.MagnetBooster && Ins.Step == TutorialStep.Order;
 
     private LevelManager level;
     private CustomerRecipeView recipeView;
@@ -42,6 +46,8 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
     private System.Action closeBoosterSpotlight;
     private TMP_Text foodDescription;
     private string defaultFoodDescription;
+    private TMP_Text orderDescription;
+    private string defaultOrderDescription;
     private Vector3 foodPanelPosition;
     private Vector3 orderHandScale;
     private Vector3 foodHandScale;
@@ -60,6 +66,8 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         foodPanelPosition = objDesFood != null ? objDesFood.transform.position : Vector3.zero;
         foodDescription = objDesFood != null ? objDesFood.GetComponentInChildren<TMP_Text>(true) : null;
         defaultFoodDescription = foodDescription != null ? foodDescription.text : "";
+        orderDescription = objDesOrder != null ? objDesOrder.GetComponentInChildren<TMP_Text>(true) : null;
+        defaultOrderDescription = orderDescription != null ? orderDescription.text : "";
         HideVisuals();
     }
 
@@ -137,7 +145,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
 
     public bool ConfirmClickBooster()
     {
-        if (Step != TutorialStep.Booster || input == null || level == null || level.IsPopupOpen ||
+        if (Lesson != TutorialLesson.ClickBooster || Step != TutorialStep.Booster || input == null || level == null || level.IsPopupOpen ||
             (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return false;
         confirmingPickup = true;
         level.SetTutorialHold(false);
@@ -147,6 +155,62 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         HideBoosterSpotlight();
         SetFoodDescription("BOOSTER GẮP", "Gắp một nguyên liệu đang thấy", "Chạm ô có bàn tay để gắp lên băng chuyền.");
         SetStep(TutorialStep.Food);
+        return true;
+    }
+
+    public bool BeginMagnetBooster(LevelManager owner, System.Action hideSpotlight)
+    {
+        if (!CanBegin(owner)) return false;
+        CancelTutorial();
+        level = owner;
+        loadVersion = owner.LoadVersion;
+        Lesson = TutorialLesson.MagnetBooster;
+        input = FindFirstObjectByType<FoodInputController>();
+        if (input == null || !FoodInputController.CanUseMagnetBooster || !FindMagnetTarget())
+        { CancelTutorial(); return false; }
+        closeBoosterSpotlight = hideSpotlight;
+        Step = TutorialStep.Booster;
+        level.SetTutorialHold(true);
+        return true;
+    }
+
+    private bool FindMagnetTarget()
+    {
+        foreach (Customer customer in level.Conveyor.Customers.ActiveCustomers)
+        {
+            if (customer == null || !customer.IsSeated) continue;
+            var view = customer.GetComponent<CustomerRecipeView>();
+            if (view == null) continue;
+            foreach (SushiDishOrder dish in customer.Dishes)
+            {
+                var card = view.CardAt(dish.Index);
+                if (card == null || !card.gameObject.activeInHierarchy ||
+                    !level.Conveyor.CanTargetMagnet(level.Board, customer, dish)) continue;
+                TargetCustomer = customer;
+                TargetDish = dish;
+                TargetOrder = card;
+                recipeView = view;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool ConfirmMagnetBooster()
+    {
+        if (Lesson != TutorialLesson.MagnetBooster || Step != TutorialStep.Booster || input == null ||
+            level == null || level.IsPopupOpen || (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return false;
+        confirmingPickup = true;
+        level.SetTutorialHold(false);
+        try { input.SelectMagnet(); }
+        finally { confirmingPickup = false; level.SetTutorialHold(true); }
+        if (input.PickMode != FoodPickMode.Magnet) return false;
+        HideBoosterSpotlight();
+        if (orderDescription != null)
+            orderDescription.text = "<size=65%><color=#3479AD>BOOSTER NAM CHÂM</color></size>\n" +
+                "<b>Hoàn thành ngay một món ăn</b>\n<size=78%>Chạm món có bàn tay để hút đủ nguyên liệu.</size>";
+        recipeView.SetMagnetTargeting(true);
+        SetStep(TutorialStep.Order);
         return true;
     }
 
@@ -253,10 +317,14 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
     {
         if (Step == TutorialStep.Inactive) return;
         bool isClick = Lesson == TutorialLesson.ClickBooster;
-        if (level == null || !level.IsPlaying || level.LoadVersion != loadVersion ||
-            TargetFood == null || TargetFood.Owner != targetQueue ||
-            (isClick ? targetQueue.IndexOf(TargetFood) >= 4 : targetQueue.GetTopFood() != TargetFood) ||
-            (Lesson == TutorialLesson.LevelOne && (TargetOrder == null || !TargetOrder.gameObject.activeInHierarchy)))
+        bool isMagnet = Lesson == TutorialLesson.MagnetBooster;
+        bool invalidTarget = isMagnet
+            ? TargetCustomer == null || !TargetCustomer.IsSeated || TargetCustomer.IsCompleted || TargetCustomer.RushExpired ||
+                TargetDish == null || TargetDish.IsComplete || TargetOrder == null || !TargetOrder.gameObject.activeInHierarchy
+            : TargetFood == null || targetQueue == null || TargetFood.Owner != targetQueue ||
+                (isClick ? targetQueue.IndexOf(TargetFood) >= 4 : targetQueue.GetTopFood() != TargetFood) ||
+                (Lesson == TutorialLesson.LevelOne && (TargetOrder == null || !TargetOrder.gameObject.activeInHierarchy));
+        if (level == null || !level.IsPlaying || level.LoadVersion != loadVersion || invalidTarget)
         { CancelTutorial(); return; }
         if (Step != TutorialStep.Waiting || level.IsPopupOpen ||
             (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return;
@@ -293,8 +361,11 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         if (Step == TutorialStep.Order && TargetOrder != null)
         {
             Plane plane = new Plane(TargetOrder.transform.forward, TargetOrder.transform.position);
-            if (plane.Raycast(ray, out float distance) && TargetOrder.Contains(ray.GetPoint(distance)) &&
-                recipeView.ShowRecipeDetails(TargetOrder)) SetStep(TutorialStep.Food);
+            if (plane.Raycast(ray, out float distance) && TargetOrder.Contains(ray.GetPoint(distance)))
+            {
+                if (Lesson == TutorialLesson.MagnetBooster) TryCompleteMagnet();
+                else if (recipeView.ShowRecipeDetails(TargetOrder)) SetStep(TutorialStep.Food);
+            }
         }
         else if (Step == TutorialStep.Food && TargetFood != null && targetQueue != null)
         {
@@ -312,6 +383,28 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
 
     public static bool AllowsChopsticks(FoodShushi food) => IsConfirmingPickup && Ins.Step == TutorialStep.Food &&
         Ins.Lesson == TutorialLesson.ClickBooster && food != null && food == Ins.TargetFood;
+
+    public static bool AllowsMagnet(Customer customer, SushiDishOrder dish) => IsConfirmingPickup &&
+        Ins.Step == TutorialStep.Order && Ins.Lesson == TutorialLesson.MagnetBooster &&
+        customer != null && customer == Ins.TargetCustomer && dish != null && dish == Ins.TargetDish;
+
+    private void TryCompleteMagnet()
+    {
+        if (confirmingPickup || input == null) return;
+        bool taken = false;
+        confirmingPickup = true;
+        LevelManager owner = level;
+        owner.SetTutorialHold(false);
+        try { taken = input.TryUseMagnet(TargetCustomer, TargetDish); }
+        finally
+        {
+            confirmingPickup = false;
+            if (!taken && level == owner) owner.SetTutorialHold(true);
+        }
+        if (!taken) return;
+        GameDataFragment.cur?.MarkBoosterTutorialDone(BoosterType.Magnet);
+        CancelTutorial();
+    }
 
     private void TryPickTarget()
     {
@@ -371,7 +464,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
                 camera.orthographicSize * 2 / (size.y * Mathf.Abs(parentScale.y)), 1);
         }
         GameObject hand = Step == TutorialStep.Order ? handOrder : handFood;
-        if (hand == null || TargetFood == null || (Step == TutorialStep.Order && TargetOrder == null)) return;
+        if (hand == null || (Step == TutorialStep.Order ? TargetOrder == null : TargetFood == null)) return;
         Vector3 target = Step == TutorialStep.Order
             ? TargetOrder.DishImage.rectTransform.TransformPoint(TargetOrder.DishImage.rectTransform.rect.center)
             : TargetFood.transform.position;
@@ -427,7 +520,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
 
     public void CancelTutorial()
     {
-        bool cancelBooster = Lesson == TutorialLesson.ClickBooster;
+        bool cancelBooster = Lesson == TutorialLesson.ClickBooster || Lesson == TutorialLesson.MagnetBooster;
         Step = TutorialStep.Inactive;
         step1 = step2 = confirmingPickup = false;
         RestoreHighlight();
@@ -435,6 +528,8 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         HideBoosterSpotlight();
         if (cancelBooster && input != null) input.CancelBooster();
         if (foodDescription != null) foodDescription.text = defaultFoodDescription;
+        if (orderDescription != null) orderDescription.text = defaultOrderDescription;
+        if (Lesson == TutorialLesson.MagnetBooster && recipeView != null) recipeView.SetMagnetTargeting(false);
         if (objDesFood != null) objDesFood.transform.position = foodPanelPosition;
         if (level != null) level.SetTutorialHold(false);
         level = null;
@@ -442,6 +537,8 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         targetQueue = null;
         TargetFood = null;
         TargetOrder = null;
+        TargetCustomer = null;
+        TargetDish = null;
         input = null;
         Lesson = TutorialLesson.LevelOne;
         tutorialItem = FoodState.Normal;

@@ -1399,6 +1399,8 @@ public static partial class SushiGameplayRegression
         Customer customer = SetRecipeOrders(new DishOrderData { dish = SushiDishId.NigiriAvocado },
             new DishOrderData { dish = SushiDishId.MakiAvocado });
         Check(Tap(0) && conveyor.FreeSlotCount == 0, "full-belt magnet setup failed");
+        Check(conveyor.CanTargetMagnet(board, customer, customer.Dishes[1]) && conveyor.OccupiedSlotCount == 1 &&
+            conveyor.DeliveringCount == 0, "Magnet preview changed the board or rejected an available dish");
         Check(conveyor.TryTakeMagnet(board, customer, customer.Dishes[1]) && conveyor.OccupiedSlotCount == 0 &&
             conveyor.DeliveringCount == 3, "magnet did not send all three ingredients straight to the selected dish");
         Check(Column(1).GetTopFood().Amount == 3 && Column(3).GetTopFood().Amount == 1 &&
@@ -1431,6 +1433,7 @@ public static partial class SushiGameplayRegression
         customer = SetRecipeOrders(new DishOrderData { dish = SushiDishId.MakiAvocado });
         Check(Tap(0), "atomic magnet setup failed");
         FoodShushi beltFood = new List<FoodShushi>(Get<Dictionary<Transform, FoodShushi>>(conveyor, "slotFoods").Values)[0];
+        Check(!conveyor.CanTargetMagnet(board, customer, customer.Dishes[0]), "Magnet preview accepted missing seaweed");
         Check(!conveyor.TryTakeMagnet(board, customer, customer.Dishes[0]) && conveyor.OccupiedSlotCount == 1 &&
             conveyor.DeliveringCount == 0 && beltFood.Location == FoodLocation.MovingToConveyor && Column(1).Count == 1 &&
             customer.Dishes[0].Ingredients[0].incomingAmount == 0, "missing seaweed partially changed the board, belt or reservations");

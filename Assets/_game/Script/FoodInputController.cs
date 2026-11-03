@@ -18,7 +18,7 @@ public class FoodInputController : MonoBehaviour
     private bool CanInteract => (!SushiLevelOneTutorial.IsInputLocked || ControlTutorial.IsConfirmingPickup) &&
         (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
     public void SelectChopsticks() { if (CanInteract && CanUseClickBooster) SetPickMode(FoodPickMode.Chopsticks); }
-    public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) SetPickMode(FoodPickMode.Magnet); }
+    public void SelectMagnet() { if (CanInteract && CanUseMagnetBooster) SetPickMode(FoodPickMode.Magnet); }
     public void CancelBooster() { SetPickMode(FoodPickMode.Tap); }
 
     private void SetPickMode(FoodPickMode mode)
@@ -80,6 +80,8 @@ public class FoodInputController : MonoBehaviour
 
     private static bool CanUseClickBooster => BoosterCount(BoosterType.Click) < 0 ||
         (GameDataFragment.cur != null && GameDataFragment.cur.CanUseBooster(BoosterType.Click));
+    public static bool CanUseMagnetBooster => BoosterCount(BoosterType.Magnet) < 0 ||
+        (GameDataFragment.cur != null && GameDataFragment.cur.CanUseBooster(BoosterType.Magnet));
 
     private void Awake() { if (gameCamera == null) gameCamera = Camera.main; }
 
@@ -94,7 +96,7 @@ public class FoodInputController : MonoBehaviour
 
     public bool TryUseMagnet(Customer customer, SushiDishOrder dish)
     {
-        if (!CanInteract || BoosterCount(BoosterType.Magnet) == 0 || PickMode != FoodPickMode.Magnet || conveyorManager == null || LevelManager.Ins == null ||
+        if (!CanInteract || !CanUseMagnetBooster || PickMode != FoodPickMode.Magnet || conveyorManager == null || LevelManager.Ins == null ||
             !conveyorManager.TryTakeMagnet(LevelManager.Ins.Board, customer, dish)) return false;
         ConsumeBooster(BoosterType.Magnet);
         CancelBooster();
@@ -106,7 +108,7 @@ public class FoodInputController : MonoBehaviour
         if (!CanInteract)
         {
             shuffleInProgress = false;
-            if (!ControlTutorial.KeepsClickBoosterSelected) CancelBooster();
+            if (!ControlTutorial.KeepsBoosterSelected) CancelBooster();
         }
         else if (shuffleInProgress)
         {
