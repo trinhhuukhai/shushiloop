@@ -95,6 +95,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
     private void OnDisable()
     {
+        ControlTutorial.Ins?.CancelTutorial();
         GetComponent<SushiLevelOneTutorial>()?.Cancel();
         if (customerManager != null) customerManager.OnRushExpired -= HandleRushExpired;
     }
@@ -200,6 +201,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
 
         // Tạo dữ liệu mới trước khi dọn màn cũ.
         List<FoodQueueData> boardData = levelData.CreateBoardData();
+        ControlTutorial.Ins?.CancelTutorial();
         GetComponent<SushiLevelOneTutorial>()?.Cancel();
         gameplayHudShown = false;
 
@@ -268,7 +270,8 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         UIManager.Ins.OpenUI<CanvasGamePlay>();
         UIManager.Ins.OpenUI<CanvasFloating>();
         gameplayHudShown = true;
-        GetComponent<SushiLevelOneTutorial>()?.Prepare(this);
+        if (ControlTutorial.Ins != null) ControlTutorial.Ins.Prepare(this);
+        else GetComponent<SushiLevelOneTutorial>()?.Prepare(this);
     }
 
     // =====================================================================
@@ -518,6 +521,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     // Sand: OnMainMenu -> dọn toàn bộ gameplay khi về Home.
     public void EnterMainMenu()
     {
+        ControlTutorial.Ins?.CancelTutorial();
         GetComponent<SushiLevelOneTutorial>()?.Cancel();
         tutorialHold = false;
         gameplayHudShown = false;

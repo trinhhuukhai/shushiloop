@@ -19,7 +19,8 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
     public RectTransform RecipeTarget { get; private set; }
     public string DishName { get; private set; }
     public string IngredientName => SushiRecipeCatalog.IngredientName(targetIngredient);
-    public static bool IsInputLocked => Instance != null && Instance.Stage != TutorialStage.Inactive;
+    public static bool IsInputLocked => ControlTutorial.IsInputLocked ||
+        (Instance != null && Instance.Stage != TutorialStage.Inactive);
 
     private LevelManager level;
     private CanvasTutorial overlay;
@@ -28,7 +29,8 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
     private void Awake() => Instance = this;
 
     // The target is accepted only inside the overlay's confirmed click, never by a world tap behind it.
-    public static bool AllowsQueue(FoodQueue queue) => Instance != null && Instance.acceptingTarget &&
+    public static bool AllowsQueue(FoodQueue queue) => ControlTutorial.AllowsQueue(queue) ||
+        Instance != null && Instance.acceptingTarget &&
         Instance.Stage == TutorialStage.Ingredient && queue != null && queue == Instance.TargetQueue &&
         queue.GetTopFood() == Instance.TargetFood;
 

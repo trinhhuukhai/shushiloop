@@ -137,8 +137,12 @@ public class GameDataFragment : DataFragment
     }
     public bool IsBoosterUnlocked(BoosterType type)
     {
-        // cur_level bắt đầu từ 0, level hiển thị = cur_level + 1
-        return dataPlayer != null && dataPlayer.cur_level + 1 >= GetBoosterUnlockLevel(type);
+        if (dataPlayer == null) return false;
+        int reachedLevel = dataPlayer.cur_level + 1;
+        // Inspector level previews use the active level, while replay keeps previously unlocked boosters.
+        if (LevelManager.Ins != null && LevelManager.Ins.IsPlaying)
+            reachedLevel = Mathf.Max(reachedLevel, LevelManager.Ins.CurrentLevelIndex + 1);
+        return reachedLevel >= GetBoosterUnlockLevel(type);
     }
 
     public bool IsAnyBoosterUnlocked()
@@ -231,6 +235,41 @@ public class GameDataFragment : DataFragment
         Save();
     }
 
+    public bool IsItemTutorialDone(FoodState item) => dataPlayer != null &&
+        dataPlayer.completedItemTutorials != null && dataPlayer.completedItemTutorials.Contains(item);
+
+    public bool IsItemPopupShown(FoodState item)
+    {
+        switch (item)
+        {
+            case FoodState.HoiCham: return dataPlayer.isShowTrapHoiCham;
+            case FoodState.Ice: return dataPlayer.isShowTrapIce;
+            case FoodState.Lock: return dataPlayer.isShowTrapLinked;
+            case FoodState.RigidTray: return dataPlayer.isShowTrapTray;
+            default: return true;
+        }
+    }
+
+    public void MarkItemPopupShown(FoodState item)
+    {
+        switch (item)
+        {
+            case FoodState.HoiCham: dataPlayer.isShowTrapHoiCham = true; break;
+            case FoodState.Ice: dataPlayer.isShowTrapIce = true; break;
+            case FoodState.Lock: dataPlayer.isShowTrapLinked = true; break;
+            case FoodState.RigidTray: dataPlayer.isShowTrapTray = true; break;
+        }
+        Save();
+    }
+
+    public void MarkItemTutorialDone(FoodState item)
+    {
+        if (dataPlayer == null) return;
+        if (dataPlayer.completedItemTutorials == null) dataPlayer.completedItemTutorials = new List<FoodState>();
+        if (!dataPlayer.completedItemTutorials.Contains(item)) dataPlayer.completedItemTutorials.Add(item);
+        Save();
+    }
+
 
 #if UNITY_EDITOR
     //[ContextMenu("Set Dirty")]
@@ -296,6 +335,7 @@ public class GameDataFragment : DataFragment
         //tutorial
         public bool showTutorialLevel1 = false;
         public bool showTutorialLevel2 = false;
+        public List<FoodState> completedItemTutorials = new List<FoodState>();
 
         public bool fisrtUseBoosterClear = false;
         public bool fisrtUseBoosterSuffle = false;

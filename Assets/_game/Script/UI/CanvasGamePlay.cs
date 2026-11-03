@@ -69,6 +69,7 @@ public class CanvasGamePlay : UICanvas
     public GameObject handBsSwap;
     public GameObject handBsMagnet;
     private static readonly BoosterType[] AllBoosterTypes = { BoosterType.Click, BoosterType.Shuffle, BoosterType.Magnet };
+    private static readonly FoodState[] TutorialItems = { FoodState.HoiCham, FoodState.Ice, FoodState.Lock, FoodState.RigidTray };
     private BoosterType? tutorialBooster;
 
 
@@ -104,17 +105,23 @@ public class CanvasGamePlay : UICanvas
     public void CheckShowUnlockBooster()
     {
         var data = GameDataFragment.cur;
-        if (data == null || data.dataPlayer == null || tutorialBooster.HasValue) return;
+        LevelManager owner = LevelManager.Ins;
+        if (data == null || data.dataPlayer == null || tutorialBooster.HasValue || owner == null || !owner.IsPlaying ||
+            owner.IsPopupOpen || SushiLevelOneTutorial.IsInputLocked || (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return;
 
-        int level = data.dataPlayer.cur_level + 1; // level hiển thị
+        int level = owner.CurrentLevelIndex + 1;
         foreach (BoosterType type in AllBoosterTypes)
         {
             if (level != GameDataFragment.GetBoosterUnlockLevel(type)) continue;
 
             if (!data.IsUnlockPopupShown(type))
             {
+                int version = owner.LoadVersion;
+                UIManager.Ins.OpenUI<CanvasUnlockBooster>().Setupp(type, () =>
+                {
+                    if (owner != null && owner.IsPlaying && owner.LoadVersion == version) StartBoosterTutorial(type);
+                });
                 data.MarkUnlockPopupShown(type);
-                UIManager.Ins.OpenUI<CanvasUnlockBooster>().Setupp(type, () => StartBoosterTutorial(type));
                 return;
             }
 
@@ -128,10 +135,14 @@ public class CanvasGamePlay : UICanvas
 
     public void StartBoosterTutorial(BoosterType type)
     {
+        if (SushiLevelOneTutorial.IsInputLocked) return;
         GameObject targetObj = GetBoosterUnlockObj(type);
         if (spotlight == null || targetObj == null) return;
 
         RefreshBoosterStates(); // đảm bảo obj unlock đã bật trước khi spotlight
+        // Select the ingredient before the spotlight starts intercepting world raycasts.
+        if (type == BoosterType.Click && ControlTutorial.Ins != null)
+            ControlTutorial.Ins.BeginClickBooster(LevelManager.Ins, () => EndBoosterTutorial(type, false));
         tutorialBooster = type;
         spotlight.ShowSpotlight(targetObj.GetComponent<RectTransform>());
 
@@ -147,14 +158,14 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
-    private void EndBoosterTutorial(BoosterType type)
+    private void EndBoosterTutorial(BoosterType type, bool completed = true)
     {
         if (tutorialBooster != type) return;
         tutorialBooster = null;
 
         if (spotlight != null) spotlight.HideSpotlight();
         SetActiveSafe(GetBoosterHand(type), false);
-        GameDataFragment.cur.MarkBoosterTutorialDone(type);
+        if (completed) GameDataFragment.cur.MarkBoosterTutorialDone(type);
     }
 
     private GameObject GetBoosterUnlockObj(BoosterType type)
@@ -304,31 +315,36 @@ public class CanvasGamePlay : UICanvas
 
     public void OpenUINewItem()
     {
-        int level = GameDataFragment.cur.dataPlayer.cur_level + 1;
-        if(!GameDataFragment.cur.dataPlayer.isShowTrapHoiCham && level == GameManager.ins.GetItemUnlockLevel(FoodState.HoiCham))
+        var data = GameDataFragment.cur;
+        LevelManager owner = LevelManager.Ins;
+        if (data == null || data.dataPlayer == null || owner == null || !owner.IsPlaying || GameManager.ins == null ||
+            owner.IsPopupOpen || SushiLevelOneTutorial.IsInputLocked || GameManager.ins.IsLoadingLevel) return;
+        foreach (FoodState item in TutorialItems)
         {
-            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.HoiCham);
-            GameDataFragment.cur.dataPlayer.isShowTrapHoiCham = true;
+            if (owner.CurrentLevelIndex + 1 != GameManager.ins.GetItemUnlockLevel(item)) continue;
+            if (!data.IsItemPopupShown(item))
+            {
+                int version = owner.LoadVersion;
+                UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(item, () =>
+                {
+                    if (owner != null && owner.IsPlaying && owner.LoadVersion == version)
+                        ControlTutorial.Ins?.BeginItem(owner, item);
+                });
+                data.MarkItemPopupShown(item);
+                return;
+            }
+            if (!data.IsItemTutorialDone(item) && ControlTutorial.Ins != null && ControlTutorial.Ins.BeginItem(owner, item)) return;
         }
-        if (!GameDataFragment.cur.dataPlayer.isShowTrapIce && level == GameManager.ins.GetItemUnlockLevel(FoodState.Ice))
-        {
-            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.Ice);
-            GameDataFragment.cur.dataPlayer.isShowTrapIce = true;
-        }
-        if (!GameDataFragment.cur.dataPlayer.isShowTrapLinked && level == GameManager.ins.GetItemUnlockLevel(FoodState.Lock))
-        {
-            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.Lock);
-            GameDataFragment.cur.dataPlayer.isShowTrapLinked = true;
-        }
-        if (!GameDataFragment.cur.dataPlayer.isShowTrapTray && level == GameManager.ins.GetItemUnlockLevel(FoodState.RigidTray))
-        {
-            UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.RigidTray);
-            GameDataFragment.cur.dataPlayer.isShowTrapTray = true;
-        }
-        GameDataFragment.cur.Save();
     }
 
-    private void Update() => Refresh();
+    private void Update()
+    {
+        Refresh();
+        LevelManager level = LevelManager.Ins;
+        if (level == null || !level.CanInteract) return;
+        OpenUINewItem();
+        CheckShowUnlockBooster();
+    }
 
     public void Refresh()
     {
@@ -359,9 +375,10 @@ public class CanvasGamePlay : UICanvas
         speedText.text = level.Conveyor.IsDoubleSpeed ? "2X" : "1X";
         setTxtGold();
         FoodPickMode mode = input != null ? input.PickMode : FoodPickMode.Tap;
-        boosterHint.text = mode == FoodPickMode.Chopsticks ? "Chọn nguyên liệu đang thấy · không gắp ô băng" :
+        bool guidedBooster = ControlTutorial.KeepsClickBoosterSelected;
+        boosterHint.text = guidedBooster ? "" : mode == FoodPickMode.Chopsticks ? "Chọn nguyên liệu đang thấy · không gắp ô băng" :
             mode == FoodPickMode.Magnet ? "Chọn một món trong order để hút đủ nguyên liệu" : "";
-        cancelBooster.gameObject.SetActive(mode != FoodPickMode.Tap);
+        cancelBooster.gameObject.SetActive(mode != FoodPickMode.Tap && !guidedBooster);
         levelSelector.SetActive(level.ShowLevelSelector);
         previousLevel.interactable = level.HasPreviousLevel;
         nextLevel.interactable = level.HasNextLevel;
@@ -418,6 +435,13 @@ public class CanvasGamePlay : UICanvas
     // nên nếu không chọn được (hết lượt, đang khoá input...) cờ không bị kẹt true.
     public void BoosterClick()
     {
+        if (ControlTutorial.IsInputLocked && ControlTutorial.Ins.Step == ControlTutorial.TutorialStep.Booster)
+        {
+            ControlTutorial.Ins.ConfirmClickBooster();
+            Refresh();
+            return;
+        }
+        if (SushiLevelOneTutorial.IsInputLocked) return;
         if (IsAnyBoosterInUse) return;
         if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Click)) return;
         EndBoosterTutorial(BoosterType.Click);
@@ -430,6 +454,7 @@ public class CanvasGamePlay : UICanvas
 
     public void BoosterSuffle()
     {
+        if (SushiLevelOneTutorial.IsInputLocked) return;
         if (IsAnyBoosterInUse) return;
         if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Shuffle)) return;
         EndBoosterTutorial(BoosterType.Shuffle);
@@ -442,6 +467,7 @@ public class CanvasGamePlay : UICanvas
 
     public void BoosterHut()
     {
+        if (SushiLevelOneTutorial.IsInputLocked) return;
         if (IsAnyBoosterInUse) return;
         if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Magnet)) return;
         EndBoosterTutorial(BoosterType.Magnet);
@@ -452,7 +478,7 @@ public class CanvasGamePlay : UICanvas
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Magnet);
     }
 
-    public void CancelBooster() { input?.CancelBooster(); Refresh(); }
+    public void CancelBooster() { if (SushiLevelOneTutorial.IsInputLocked) return; input?.CancelBooster(); Refresh(); }
     public void OnClickChangeSpeed() { if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract || SushiLevelOneTutorial.IsInputLocked) return; LevelManager.Ins.Conveyor.ToggleSpeed(); Refresh(); }
     public void ChangeSpeed(bool value)
     {

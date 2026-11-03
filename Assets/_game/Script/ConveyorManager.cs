@@ -289,7 +289,7 @@ public partial class ConveyorManager : MonoBehaviour
 
     public bool TryTakeChopsticks(FoodShushi food)
     {
-        if (SushiLevelOneTutorial.IsInputLocked) return false;
+        if (SushiLevelOneTutorial.IsInputLocked && !ControlTutorial.AllowsChopsticks(food)) return false;
         if (!CanInteract || food == null || food.Owner == null) return false;
         BoardShishiManager board = food.Owner.Board;
         return board != null && board.TryBuildChopsticks(food, out var plan) &&

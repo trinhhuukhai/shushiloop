@@ -15,8 +15,9 @@ public class FoodInputController : MonoBehaviour
     // Hoán đổi hàng: cờ shuffle giữ true tới khi board hết chuyển động.
     private bool shuffleInProgress;
 
-    private bool CanInteract => !SushiLevelOneTutorial.IsInputLocked && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
-    public void SelectChopsticks() { if (CanInteract && BoosterCount(BoosterType.Click) != 0) SetPickMode(FoodPickMode.Chopsticks); }
+    private bool CanInteract => (!SushiLevelOneTutorial.IsInputLocked || ControlTutorial.IsConfirmingPickup) &&
+        (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
+    public void SelectChopsticks() { if (CanInteract && CanUseClickBooster) SetPickMode(FoodPickMode.Chopsticks); }
     public void SelectMagnet() { if (CanInteract && BoosterCount(BoosterType.Magnet) != 0) SetPickMode(FoodPickMode.Magnet); }
     public void CancelBooster() { SetPickMode(FoodPickMode.Tap); }
 
@@ -77,11 +78,14 @@ public class FoodInputController : MonoBehaviour
         if (BoosterCount(type) >= 0) GameDataFragment.cur.ChangeBoosterCount(type, -1, "GamePlay");
     }
 
+    private static bool CanUseClickBooster => BoosterCount(BoosterType.Click) < 0 ||
+        (GameDataFragment.cur != null && GameDataFragment.cur.CanUseBooster(BoosterType.Click));
+
     private void Awake() { if (gameCamera == null) gameCamera = Camera.main; }
 
     public bool TryUseChopsticks(FoodShushi food)
     {
-        if (!CanInteract || BoosterCount(BoosterType.Click) == 0 || PickMode != FoodPickMode.Chopsticks || conveyorManager == null ||
+        if (!CanInteract || !CanUseClickBooster || PickMode != FoodPickMode.Chopsticks || conveyorManager == null ||
             !conveyorManager.TryTakeChopsticks(food)) return false;
         ConsumeBooster(BoosterType.Click);
         CancelBooster();
@@ -102,7 +106,7 @@ public class FoodInputController : MonoBehaviour
         if (!CanInteract)
         {
             shuffleInProgress = false;
-            CancelBooster();
+            if (!ControlTutorial.KeepsClickBoosterSelected) CancelBooster();
         }
         else if (shuffleInProgress)
         {
@@ -131,7 +135,6 @@ public class FoodInputController : MonoBehaviour
     private void Update()
     {
         if (!TryGetPressPosition(out Vector2 screenPosition)) return;
-        if (!CanInteract) return;
         if (gameCamera == null || conveyorManager == null) return;
         // Kiểm tra UI trực tiếp, kể cả touch mới xuất hiện trong frame hiện tại.
         if (EventSystem.current != null)
@@ -141,6 +144,12 @@ public class FoodInputController : MonoBehaviour
             EventSystem.current.RaycastAll(pointer, uiHits);
             if (uiHits.Count > 0) return;
         }
+        if (ControlTutorial.IsInputLocked)
+        {
+            ControlTutorial.Ins.TryHandlePress(screenPosition, gameCamera);
+            return;
+        }
+        if (!CanInteract) return;
         Ray ray = gameCamera.ScreenPointToRay(screenPosition);
         if (PickMode == FoodPickMode.Tap && conveyorManager.Customers != null)
         {

@@ -15,6 +15,7 @@ public class CanvasNewItem : UICanvas
     public RectTransform mainPanelRect;
     private Tween popTween;
     private FoodState currentItem;
+    private System.Action onClosed;
 
     public override void Open()
     {
@@ -30,8 +31,9 @@ public class CanvasNewItem : UICanvas
     }
 
     // Gọi ngay sau OpenUI<CanvasNewItem>() để chọn item cần hiển thị.
-    public void Setupp(FoodState item)
+    public void Setupp(FoodState item, System.Action onClosed = null)
     {
+        this.onClosed = onClosed;
         ShowItem(item);
         PlayPop();
     }
@@ -65,8 +67,23 @@ public class CanvasNewItem : UICanvas
         }
     }
 
+    protected override void OnDisable()
+    {
+        popTween?.Kill();
+        onClosed = null;
+        base.OnDisable();
+    }
+
     private void OnDestroy() => popTween?.Kill();
 
-    public void Close() => CloseDirectly();
-    public override void BackKey() => CloseDirectly();
+    private void CloseAndContinue()
+    {
+        var callback = onClosed;
+        onClosed = null;
+        CloseDirectly();
+        callback?.Invoke();
+    }
+
+    public void Close() => CloseAndContinue();
+    public override void BackKey() => CloseAndContinue();
 }

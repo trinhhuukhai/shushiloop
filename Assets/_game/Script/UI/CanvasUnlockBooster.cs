@@ -19,14 +19,21 @@ public class CanvasUnlockBooster : UICanvas
 
     public override void Open()
     {
-        DOVirtual.DelayedCall(1f, () =>
+        base.Open();
+        popTween?.Kill();
+        mainPanelRect.localScale = Vector3.zero;
+        popTween = DOVirtual.DelayedCall(1f, () =>
         {
-            base.Open();
-            popTween?.Kill();
-            mainPanelRect.localScale = Vector3.zero;
             popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
-        });
+        }).SetUpdate(true);
+    }
 
+    protected override void OnDisable()
+    {
+        popTween?.Kill();
+        popTween = null;
+        onClosed = null;
+        base.OnDisable();
     }
 
     public void Setupp(BoosterType type, Action onClosed)

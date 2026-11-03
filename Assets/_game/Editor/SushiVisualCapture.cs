@@ -192,6 +192,7 @@ public static class SushiVisualCapture
                     Canvas.ForceUpdateCanvases();
                     // Tutorial focus depends on the live world camera and capture viewport.
                     Object.FindFirstObjectByType<CanvasTutorial>()?.RefreshLayout();
+                    ControlTutorial.Ins?.RefreshLayout();
                     Canvas.ForceUpdateCanvases();
                     if (GraphicsSettings.currentRenderPipeline != null)
                         RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = target });
@@ -233,6 +234,7 @@ public static class SushiVisualCapture
             if (control != null) control.enabled = wasControlled;
             Canvas.ForceUpdateCanvases();
             Object.FindFirstObjectByType<CanvasTutorial>()?.RefreshLayout();
+            ControlTutorial.Ins?.RefreshLayout();
             Canvas.ForceUpdateCanvases();
         }
     }

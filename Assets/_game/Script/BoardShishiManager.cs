@@ -100,6 +100,9 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return TryBuildTap(column, plan, true, out _);
     }
 
+    public bool CanTap(FoodQueue column, int freeSlots) =>
+        TryBuildTap(column, null, false, out int requiredSlots) && requiredSlots <= freeSlots;
+
     // A null plan checks the same pickup rules without allocations or click feedback.
     private bool TryBuildTap(FoodQueue column, List<FoodPickup> plan, bool showFeedback, out int requiredSlots)
     {
