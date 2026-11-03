@@ -1,6 +1,7 @@
 using DG.Tweening;
 using Spine.Unity;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +18,7 @@ public class CanvasGamePlay : UICanvas
     [SerializeField] private TMP_Text speedText;
     [SerializeField] private TMP_Text[] boosterCounts;
     [SerializeField] private Button[] boosterButtons;
-    [SerializeField] private GameObject[] selectedBoosters;
+    //[SerializeField] private GameObject[] selectedBoosters;
     [SerializeField] private Button cancelBooster;
     [SerializeField] private GameObject levelSelector;
     [SerializeField] private Button previousLevel;
@@ -44,6 +45,35 @@ public class CanvasGamePlay : UICanvas
     public GameObject imgStuck;
     public TMP_Text txtStuck;
 
+    //
+    public GameObject bsClickUnlock;
+    public GameObject bsClickLock;
+
+    public GameObject bsSwapUnlock;
+    public GameObject bsSwapLock;
+
+    public GameObject bsMagnetUnlock;
+    public GameObject bsMagnetLock;
+
+    public GameObject countBsClick;
+    public GameObject imgFreeBsClick;
+
+    public GameObject countBsSwap;
+    public GameObject imgFreeBsSwap;
+
+    public GameObject countBsMagnet;
+    public GameObject imgFreeMagnet;
+
+    public BoosterSpotlight spotlight;
+    public GameObject handBsClick;
+    public GameObject handBsSwap;
+    public GameObject handBsMagnet;
+    private static readonly BoosterType[] AllBoosterTypes = { BoosterType.Click, BoosterType.Shuffle, BoosterType.Magnet };
+    private BoosterType? tutorialBooster;
+
+
+
+
     // Có booster đang được dùng (cờ do FoodInputController bật/tắt trong BoosterManager).
     private static bool IsAnyBoosterInUse => BoosterManager.Existing != null && BoosterManager.Existing.IsUsingAny;
 
@@ -60,12 +90,174 @@ public class CanvasGamePlay : UICanvas
     {
         base.Open();
         GameManager.ChangeState(GameState.GamePlay);
+        CheckShowTabBooster();
+        RefreshBoosterStates();
         imgStuck.SetActive(false);
         OpenUINewItem();
         ShowAnim();
         input = FindFirstObjectByType<FoodInputController>();
         Refresh();
+        CheckShowUnlockBooster();
     }
+
+    // Đúng level unlock: chưa hiện popup -> popup rồi tut; đã hiện popup mà chưa xong tut -> chạy lại tut
+    public void CheckShowUnlockBooster()
+    {
+        var data = GameDataFragment.cur;
+        if (data == null || data.dataPlayer == null || tutorialBooster.HasValue) return;
+
+        int level = data.dataPlayer.cur_level + 1; // level hiển thị
+        foreach (BoosterType type in AllBoosterTypes)
+        {
+            if (level != GameDataFragment.GetBoosterUnlockLevel(type)) continue;
+
+            if (!data.IsUnlockPopupShown(type))
+            {
+                data.MarkUnlockPopupShown(type);
+                UIManager.Ins.OpenUI<CanvasUnlockBooster>().Setupp(type, () => StartBoosterTutorial(type));
+                return;
+            }
+
+            if (!data.IsBoosterTutorialDone(type))
+            {
+                StartBoosterTutorial(type);
+                return;
+            }
+        }
+    }
+
+    public void StartBoosterTutorial(BoosterType type)
+    {
+        GameObject targetObj = GetBoosterUnlockObj(type);
+        if (spotlight == null || targetObj == null) return;
+
+        RefreshBoosterStates(); // đảm bảo obj unlock đã bật trước khi spotlight
+        tutorialBooster = type;
+        spotlight.ShowSpotlight(targetObj.GetComponent<RectTransform>());
+
+        GameObject hand = GetBoosterHand(type);
+        if (hand != null)
+        {
+            // Bàn tay phải nằm trên overlay và trên booster
+            Canvas c = hand.GetComponent<Canvas>();
+            if (c == null) c = hand.AddComponent<Canvas>();
+            c.overrideSorting = true;
+            c.sortingOrder = spotlight.targetOrder + 1;
+            hand.SetActive(true);
+        }
+    }
+
+    private void EndBoosterTutorial(BoosterType type)
+    {
+        if (tutorialBooster != type) return;
+        tutorialBooster = null;
+
+        if (spotlight != null) spotlight.HideSpotlight();
+        SetActiveSafe(GetBoosterHand(type), false);
+        GameDataFragment.cur.MarkBoosterTutorialDone(type);
+    }
+
+    private GameObject GetBoosterUnlockObj(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return bsClickUnlock;
+            case BoosterType.Shuffle: return bsSwapUnlock;
+            case BoosterType.Magnet: return bsMagnetUnlock;
+            default: return null;
+        }
+    }
+
+    private GameObject GetBoosterHand(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return handBsClick;
+            case BoosterType.Shuffle: return handBsSwap;
+            case BoosterType.Magnet: return handBsMagnet;
+            default: return null;
+        }
+    }
+
+    public void CheckShowTabBooster()
+    {
+        if (BoosterGroup == null) return;
+        BoosterGroup.gameObject.SetActive(GameDataFragment.cur.IsAnyBoosterUnlocked());
+    }
+
+
+    // Ẩn/hiện các obj lock, unlock, count, free theo trạng thái từng booster
+    private void RefreshBoosterStates()
+    {
+        var data = GameDataFragment.cur;
+        if (data == null || data.dataPlayer == null) return;
+
+        ApplyBoosterState(BoosterType.Click, bsClickUnlock, bsClickLock, countBsClick, imgFreeBsClick);
+        ApplyBoosterState(BoosterType.Shuffle, bsSwapUnlock, bsSwapLock, countBsSwap, imgFreeBsSwap);
+        ApplyBoosterState(BoosterType.Magnet, bsMagnetUnlock, bsMagnetLock, countBsMagnet, imgFreeMagnet);
+    }
+
+    private static void ApplyBoosterState(BoosterType type, GameObject unlockObj, GameObject lockObj,
+        GameObject countObj, GameObject freeObj)
+    {
+        var data = GameDataFragment.cur;
+        bool unlocked = data.IsBoosterUnlocked(type);
+        bool firstUsed = data.IsBoosterFirstUsed(type);
+
+        SetActiveSafe(unlockObj, unlocked);
+        SetActiveSafe(lockObj, !unlocked);
+
+        // Chưa unlock: ẩn cả count và free
+        // Đã unlock, chưa dùng lần đầu: hiện "free", ẩn count
+        // Đã unlock, đã dùng lần đầu: hiện count, ẩn "free"
+        SetActiveSafe(freeObj, unlocked && !firstUsed);
+        SetActiveSafe(countObj, unlocked && firstUsed);
+    }
+
+    private static void SetActiveSafe(GameObject obj, bool active)
+    {
+        if (obj != null && obj.activeSelf != active) obj.SetActive(active);
+    }
+
+
+
+    public void FlyIconBooster(RectTransform iconFly, RectTransform target, int id)
+    {
+        if (iconFly == null || target == null)
+            return;
+        BlockUI.Ins.Block();
+        iconFly.DOKill();
+
+        iconFly.gameObject.SetActive(true);
+
+        DG.Tweening.Sequence seq = DOTween.Sequence();
+
+        seq.Join(
+            iconFly.DOMove(target.position, 0.8f)
+                .SetEase(Ease.InOutQuad)
+        );
+
+        seq.Join(
+            iconFly.DOScale(Vector3.one, 0.8f)
+                .SetEase(Ease.OutQuad)
+        );
+
+        seq.OnComplete(() =>
+        {
+            iconFly.gameObject.SetActive(false);
+            switch (id)
+            {
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+            }
+            BlockUI.Ins.UnBlock();
+        });
+    }
+
 
     public void setImgStuck(bool check, SushiReviveReason reviveReason)
     {
@@ -143,6 +335,7 @@ public class CanvasGamePlay : UICanvas
         LevelManager level = LevelManager.Ins;
         if (level == null || level.CurrentLevel == null) return;
         RefreshBoosterGroup(level);
+        RefreshBoosterStates();
         txtLevvel.text = "LV\n" + (level.CurrentLevelIndex + 1);
         if (levelBadge != null)
             levelBadge.sprite = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? superHardLevelBadge :
@@ -177,7 +370,7 @@ public class CanvasGamePlay : UICanvas
             int count = FoodInputController.BoosterCount((BoosterType)i);
             boosterCounts[i].text = count <= 0 ? "+" : count.ToString();
             //boosterButtons[i].interactable = level.CanInteract && count != 0;
-            selectedBoosters[i].SetActive(i == 0 && mode == FoodPickMode.Chopsticks || i == 2 && mode == FoodPickMode.Magnet);
+            //selectedBoosters[i].SetActive(i == 0 && mode == FoodPickMode.Chopsticks || i == 2 && mode == FoodPickMode.Magnet);
         }
     }
 
@@ -205,10 +398,11 @@ public class CanvasGamePlay : UICanvas
         if (!hasSeenBoardIngredients || boosterGroupSlidDown) return;
 
         boosterGroupSlidDown = true;
-        float slideDistance = Mathf.Max(24f,
-            BoosterGroup.anchoredPosition.y + BoosterGroup.rect.height * (1f - BoosterGroup.pivot.y) + 24f);
-        Vector2 targetPosition = boosterGroupStartPosition + Vector2.down * slideDistance;
-        BoosterGroup.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InOutCubic);
+        //float slideDistance = Mathf.Max(24f,
+        //    BoosterGroup.anchoredPosition.y + BoosterGroup.rect.height * (1f - BoosterGroup.pivot.y) + 24f);
+        //Vector2 targetPosition = boosterGroupStartPosition + Vector2.down * slideDistance;
+        Vector2 targetPosition = new Vector2(0, -300f);
+        BoosterGroup.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InOutSine);
     }
 
     private void OnDestroy()
@@ -225,8 +419,10 @@ public class CanvasGamePlay : UICanvas
     public void BoosterClick()
     {
         if (IsAnyBoosterInUse) return;
+        if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Click)) return;
+        EndBoosterTutorial(BoosterType.Click);
 
-        if (GameDataFragment.cur.dataPlayer.boosterClick > 0)
+        if (GameDataFragment.cur.CanUseBooster(BoosterType.Click))
             ButtonBoosterPick();
         else
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Click);
@@ -235,8 +431,10 @@ public class CanvasGamePlay : UICanvas
     public void BoosterSuffle()
     {
         if (IsAnyBoosterInUse) return;
+        if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Shuffle)) return;
+        EndBoosterTutorial(BoosterType.Shuffle);
 
-        if (GameDataFragment.cur.dataPlayer.boosterSuffle > 0)
+        if (GameDataFragment.cur.CanUseBooster(BoosterType.Shuffle))
             ButtonBoosterHoanDoi();
         else
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Shuffle);
@@ -245,8 +443,10 @@ public class CanvasGamePlay : UICanvas
     public void BoosterHut()
     {
         if (IsAnyBoosterInUse) return;
+        if (!GameDataFragment.cur.IsBoosterUnlocked(BoosterType.Magnet)) return;
+        EndBoosterTutorial(BoosterType.Magnet);
 
-        if (GameDataFragment.cur.dataPlayer.boosterHut > 0)
+        if (GameDataFragment.cur.CanUseBooster(BoosterType.Magnet))
             ButtonBoosterHut();
         else
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Magnet);

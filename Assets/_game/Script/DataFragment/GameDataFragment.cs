@@ -68,6 +68,14 @@ public class GameDataFragment : DataFragment
     }
     public void ChangeBoosterCount(BoosterType type, int amount, string place = null)
     {
+        // Lần dùng đầu tiên (flag chưa bật): không trừ count, chỉ đánh dấu đã dùng.
+        if (amount < 0 && !IsBoosterFirstUsed(type))
+        {
+            MarkBoosterFirstUsed(type);
+            Save();
+            return;
+        }
+
         switch (type)
         {
             case BoosterType.Click:
@@ -112,6 +120,117 @@ public class GameDataFragment : DataFragment
         }
         Save();
     }
+
+
+    public const int BoosterClickUnlockLevel = 4;
+    public const int BoosterSwapUnlockLevel = 6;
+    public const int BoosterMagnetUnlockLevel = 8;
+    public static int GetBoosterUnlockLevel(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return BoosterClickUnlockLevel;
+            case BoosterType.Shuffle: return BoosterSwapUnlockLevel;
+            case BoosterType.Magnet: return BoosterMagnetUnlockLevel;
+            default: return int.MaxValue;
+        }
+    }
+    public bool IsBoosterUnlocked(BoosterType type)
+    {
+        // cur_level bắt đầu từ 0, level hiển thị = cur_level + 1
+        return dataPlayer != null && dataPlayer.cur_level + 1 >= GetBoosterUnlockLevel(type);
+    }
+
+    public bool IsAnyBoosterUnlocked()
+    {
+        return IsBoosterUnlocked(BoosterType.Click)
+            || IsBoosterUnlocked(BoosterType.Shuffle)
+            || IsBoosterUnlocked(BoosterType.Magnet);
+    }
+
+    // true nếu đã dùng booster này lần đầu (flag trong data)
+    public bool IsBoosterFirstUsed(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return dataPlayer.fisrtUseBoosterClear;
+            case BoosterType.Shuffle: return dataPlayer.fisrtUseBoosterSuffle;
+            case BoosterType.Magnet: return dataPlayer.fisrtUseBoosterMagnet;
+            default: return true;
+        }
+    }
+
+    private void MarkBoosterFirstUsed(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: dataPlayer.fisrtUseBoosterClear = true; break;
+            case BoosterType.Shuffle: dataPlayer.fisrtUseBoosterSuffle = true; break;
+            case BoosterType.Magnet: dataPlayer.fisrtUseBoosterMagnet = true; break;
+        }
+    }
+
+    public int GetBoosterCount(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return dataPlayer.boosterClick;
+            case BoosterType.Shuffle: return dataPlayer.boosterSuffle;
+            case BoosterType.Magnet: return dataPlayer.boosterHut;
+            default: return 0;
+        }
+    }
+
+    // Còn lượt dùng: có count, hoặc là lần dùng đầu tiên (miễn phí)
+    public bool CanUseBooster(BoosterType type)
+    {
+        return IsBoosterUnlocked(type) && (!IsBoosterFirstUsed(type) || GetBoosterCount(type) > 0);
+    }
+
+    public bool IsUnlockPopupShown(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return dataPlayer.isShowUnlockClick;
+            case BoosterType.Shuffle: return dataPlayer.isShowUnlockSwap;
+            case BoosterType.Magnet: return dataPlayer.isShowUnlockMagnet;
+            default: return true;
+        }
+    }
+
+    public void MarkUnlockPopupShown(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: dataPlayer.isShowUnlockClick = true; break;
+            case BoosterType.Shuffle: dataPlayer.isShowUnlockSwap = true; break;
+            case BoosterType.Magnet: dataPlayer.isShowUnlockMagnet = true; break;
+        }
+        Save();
+    }
+
+    public bool IsBoosterTutorialDone(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: return dataPlayer.showTutorialBooster1;
+            case BoosterType.Shuffle: return dataPlayer.showTutorialBooster2;
+            case BoosterType.Magnet: return dataPlayer.showTutorialBooster3;
+            default: return true;
+        }
+    }
+
+    public void MarkBoosterTutorialDone(BoosterType type)
+    {
+        switch (type)
+        {
+            case BoosterType.Click: dataPlayer.showTutorialBooster1 = true; break;
+            case BoosterType.Shuffle: dataPlayer.showTutorialBooster2 = true; break;
+            case BoosterType.Magnet: dataPlayer.showTutorialBooster3 = true; break;
+        }
+        Save();
+    }
+
 
 #if UNITY_EDITOR
     //[ContextMenu("Set Dirty")]
@@ -165,6 +284,11 @@ public class GameDataFragment : DataFragment
         public bool showTutorialBooster2 = false;
         public bool showTutorialBooster3 = false;
 
+        public bool isShowUnlockClick = false;
+        public bool isShowUnlockSwap = false;
+        public bool isShowUnlockMagnet = false;
+
+
         public bool isClickBucketTutorialClear = false;
         public bool isClickBucketTutorialMagnet = false;
         public List<int> completedLevels = new();
@@ -211,6 +335,11 @@ public class GameDataFragment : DataFragment
             showTutorialBooster1 = false;
             showTutorialBooster2 = false;
             showTutorialBooster3 = false;
+
+            isShowUnlockClick = false;
+            isShowUnlockSwap = false;
+            isShowUnlockMagnet = false;
+
             isFirstRevive = false;
 
             isShowTrapHoiCham = false;
