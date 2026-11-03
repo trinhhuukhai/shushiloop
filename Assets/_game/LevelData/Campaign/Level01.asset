@@ -27,24 +27,15 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 5
-      amount: 1
-  - rushCustomer: 0
-    rushSeconds: 0
-    dishes:
-    - dish: 2
+    - recipeKind: 0
+      dish: 5
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   boardColumns:
   - foods:
     - typeFood: 1
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - typeFood: 5
       amount: 1
       foodState: 0
       hidden: 0
@@ -61,12 +52,4 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  - foods:
-    - typeFood: 1
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
+  - foods: []

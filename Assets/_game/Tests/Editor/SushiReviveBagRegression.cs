@@ -4,12 +4,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DG.Tweening;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 public static partial class SushiGameplayRegression
 {
+    public static void RunReviveBagEdgeBatch()
+    {
+        SessionState.SetBool(PendingKey + ".ReviveBagEdge", true);
+        RunReviveBagBatch();
+    }
+
     public static void RunReviveBagBatch()
     {
         if (!Application.isBatchMode) throw new InvalidOperationException("Run in an isolated batch project.");
@@ -27,14 +34,20 @@ public static partial class SushiGameplayRegression
             CreateFixture();
             CreateLevel();
             Set(conveyor, "reviveBagPrefab", Prefab<SushiReviveBag>("ReviveBag"));
-            Run("full belt offers paid revive after the grace period and frees exactly four slots", FullBeltRevive);
-            Run("pickup flights and fewer than five eligible ingredients cannot be packed", BagEligibility);
-            Run("quantity, linked pairs and trays offer bag revive when remaining slots are insufficient", PartialBeltRevive);
+            bool edgeCasesOnly = SessionState.GetBool(PendingKey + ".ReviveBagEdge", false);
+            SessionState.SetBool(PendingKey + ".ReviveBagEdge", false);
+            if (!edgeCasesOnly)
+            {
+                Run("full belt offers paid revive after the grace period and frees exactly four slots", FullBeltRevive);
+                Run("quantity, linked pairs and trays offer bag revive when remaining slots are insufficient", PartialBeltRevive);
+                Run("a bag serves directly to customer plates, respecting foundations and quantities", BagDelivery);
+                Run("Magnet includes bag contents and rejects incomplete recipes atomically", BagMagnet);
+                Run("repeated revives preserve existing bags and do not overlap reserved slots", BagRepeatedRevive);
+                Run("replay clears stored food and cancels packing flights", BagReload);
+            }
+            Run("pickup flights and existing bags are excluded while short bags remain eligible", BagEligibility);
             Run("available moves skip bag revive and frozen heads retain the ice revive", PartialBeltReviveGuards);
-            Run("a bag serves directly to customer plates, respecting foundations and quantities", BagDelivery);
-            Run("Magnet includes bag contents and rejects incomplete recipes atomically", BagMagnet);
-            Run("repeated revives preserve existing bags and do not overlap reserved slots", BagRepeatedRevive);
-            Run("replay clears stored food and cancels packing flights", BagReload);
+            Run("out-slot revives pack remaining ingredients, clear ice and restore reused popup text", ShortBeltRevive);
             Debug.Log("SUSHI_REVIVE_BAG_OK: " + passed + " scenarios passed");
             System.IO.File.WriteAllText("SushiReviveBagResults.txt", "PASS: " + passed + " scenarios\n");
             EditorApplication.Exit(0);
@@ -103,11 +116,72 @@ public static partial class SushiGameplayRegression
         Check(!conveyor.CanReviveFullConveyor && !conveyor.TryReviveFullConveyor(), "packing stole in-flight reservations");
         Advance(2);
         Check(conveyor.CanReviveFullConveyor && conveyor.TryReviveFullConveyor(), "settled ingredients were not eligible");
-        Check(!conveyor.TryReviveFullConveyor() && conveyor.ReviveBagCount == 1, "less than five loose ingredients created another bag");
+        Check(conveyor.TryReviveFullConveyor() && conveyor.ReviveBagCount == 2 && conveyor.FreeSlotCount == 6,
+            "three remaining ingredients were not packed into a second bag");
+        Check(!conveyor.CanReviveFullConveyor && !conveyor.TryReviveFullConveyor(), "existing bag contents were repacked");
         Load(4, new[] { Food(PoolType.Shrimp, 3) }, new[] { Food(PoolType.Shrimp) });
         Check(Tap(0) && Tap(1), "small belt setup failed");
         Advance(2);
-        Check(!conveyor.CanReviveFullConveyor, "less than five plates offered a four-slot revive");
+        Check(conveyor.CanReviveFullConveyor && conveyor.TryReviveFullConveyor() && FirstBag.Foods.Count == 4 &&
+            conveyor.FreeSlotCount == 3, "four remaining ingredients were not packed into one plate");
+        Load(4, new[] { Food() });
+        Check(!conveyor.CanReviveFullConveyor && !conveyor.TryReviveFullConveyor(), "an empty belt created an empty bag");
+    }
+
+    private static void ShortBeltRevive()
+    {
+        GameDataFragment previousProfile = GameDataFragment.cur;
+        var profile = ScriptableObject.CreateInstance<SushiRegressionGoldProfile>();
+        profile.dataPlayer = new GameDataFragment.DataPlayer();
+        GameDataFragment.cur = profile;
+        CanvasRevive popup = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
+            "Assets/_game/Resources/UI/UICRevive.prefab"), fixture).GetComponent<CanvasRevive>();
+        TMP_Text description = Get<TMP_Text>(popup, "noSpaceReviveDescription");
+        Check(description != null, "out-slot revive description is not bound in the prefab");
+        string originalDescription = description.text;
+        try
+        {
+            foreach (int count in new[] { 1, 2, 3, 4, 5, 6 })
+            foreach (bool hasIce in new[] { true, false })
+            {
+                Set(conveyor, "preparedDishPrefab", null);
+                level.LoadLevel(0);
+                Load(count + 1, new[] { Food(PoolType.Shrimp, Math.Min(count, 3)), Food(PoolType.Egg, 2),
+                    Food(ice: hasIce ? 5 : 0, tray: 7), Food(PoolType.Egg, ice: hasIce ? 3 : 0, tray: 7),
+                    Food(ice: hasIce ? 4 : 0, hidden: true) },
+                    count > 3 ? new[] { Food(PoolType.Shrimp, count - 3), Food(PoolType.Egg, 2) } : new FoodData[0]);
+                Check(Tap(0) && (count <= 3 || Tap(1)), "short belt setup failed");
+                Advance(2);
+                Check(conveyor.FreeSlotCount == 1 && !board.HasAvailableTap(1) && !conveyor.CanMakeProgress,
+                    "fixture must have insufficient space and no automatic progress");
+                CheckLevelState(4);
+                Check(level.PendingRevive == SushiReviveReason.None, "short belt skipped the grace period");
+                CheckLevelState(1);
+                Check(level.IsPlaying && level.PendingRevive == SushiReviveReason.FullConveyor &&
+                    level.WillReviveBreakIce == hasIce, "short belt lost or reported the wrong ice action");
+                Invoke(popup, "Refresh");
+                Check(popup.loseOutSpace.activeSelf && !popup.loseStuckIce.activeSelf &&
+                    (hasIce ? description.text.Contains("Unfreeze all") : description.text == originalDescription),
+                    "out-slot popup did not describe ice removal or restore its authored text");
+                level.ReVive();
+                int packed = Math.Min(count, 5);
+                Check(level.CanInteract && level.PendingRevive == SushiReviveReason.None &&
+                    conveyor.ReviveBagCount == 1 && FirstBag.Foods.Count == packed &&
+                    conveyor.OccupiedSlotCount == count - packed + 1 && !board.HasIce,
+                    "revive lost ingredients, reserved the wrong number of slots or left ice");
+                Check(Column(0).Foods[1].TrayId == 7 && Column(0).Foods[2].TrayId == 7 &&
+                    Column(0).Foods[3].IsHidden, "ice removal changed trays or revealed a hidden ingredient");
+                Advance(2);
+                Check(!FirstBag.IsPacking && FirstBag.Foods.All(food => !food.gameObject.activeSelf && food.Amount == 1),
+                    "remaining ingredients did not finish packing");
+            }
+        }
+        finally
+        {
+            Object.DestroyImmediate(popup.gameObject);
+            Object.DestroyImmediate(profile);
+            GameDataFragment.cur = previousProfile;
+        }
     }
 
     private static void PartialBeltRevive()

@@ -19,9 +19,8 @@ public partial class ConveyorManager
             // A linked pair, tray or quantity stack can exceed the remaining free slots.
             // LevelManager decides whether the board is blocked before offering this revive.
             if (reviveBagPrefab == null || Capacity == 0) return false;
-            int eligible = 0;
             foreach (FoodShushi food in slotFoods.Values)
-                if (food != null && food.Location == FoodLocation.Conveyor && ++eligible >= ReviveBagSize) return true;
+                if (food != null && food.Location == FoodLocation.Conveyor) return true;
             return false;
         }
     }
@@ -33,7 +32,7 @@ public partial class ConveyorManager
         var contents = new List<FoodShushi>();
         foreach (Transform slot in slots)
         {
-            if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food.Location != FoodLocation.Conveyor) continue;
+            if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food == null || food.Location != FoodLocation.Conveyor) continue;
             selectedSlots.Add(slot);
             contents.Add(food);
             if (contents.Count == ReviveBagSize) break;
@@ -52,7 +51,7 @@ public partial class ConveyorManager
             AnimateFlight(food, bag.Opening, bagPackingDuration, 0.35f, 0.12f,
                 i * 0.035f, 0, bagTweenId, () => bag.Store(food));
         }
-        // Reserve exactly one plate immediately, even while the five ingredients fly into the bag.
+        // Reserve one plate while up to five remaining ingredients fly into the bag.
         NotifyOccupancy();
         return true;
     }

@@ -348,6 +348,17 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return true;
     }
 
+    public bool HasIce
+    {
+        get
+        {
+            foreach (FoodQueue column in foodQueues)
+                foreach (FoodShushi food in column.Foods)
+                    if (food.IceLayers > 0) return true;
+            return false;
+        }
+    }
+
     public void BreakAllIce()
     {
         foreach (FoodQueue column in foodQueues)

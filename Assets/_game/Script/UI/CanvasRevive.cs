@@ -15,6 +15,8 @@ public class CanvasRevive : UICanvas
     public TMP_Text priceTxtNoSpace;
     public TMP_Text priceTxtTimeup;
     public TMP_Text priceTxtStuckIce;
+    [SerializeField] private TMP_Text noSpaceReviveDescription;
+    private string defaultNoSpaceReviveDescription;
     private const int RevivePrice = 1000;
 
     [SerializeField] private CanvasGroup grandCg;
@@ -59,6 +61,14 @@ public class CanvasRevive : UICanvas
         }else if(revive && level.PendingRevive == SushiReviveReason.FullConveyor)
         {
             loseOutSpace.SetActive(true);
+            if (noSpaceReviveDescription != null)
+            {
+                if (defaultNoSpaceReviveDescription == null)
+                    defaultNoSpaceReviveDescription = noSpaceReviveDescription.text;
+                noSpaceReviveDescription.text = level.WillReviveBreakIce
+                    ? "Pack ingredients into 1 bag\nand <color=#FF3B30>Unfreeze all</color> trays!"
+                    : defaultNoSpaceReviveDescription;
+            }
         }else if(revive && level.PendingRevive == SushiReviveReason.FrozenHeads)
         {
             loseStuckIce.SetActive(true);

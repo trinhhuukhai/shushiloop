@@ -19,7 +19,7 @@ public class CustomerManager : MonoBehaviour
 
     [Header("Di chuyển")]
     [SerializeField] private float moveDuration = 0.35f;
-    [SerializeField, Range(0.3f, 1f)] private float waitingScale = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float waitingScale = 0.6f;
 
     [Header("Avatar")]
     [SerializeField]

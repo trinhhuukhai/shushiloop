@@ -1004,7 +1004,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4424907160643049570
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2509,7 +2509,7 @@ MonoBehaviour:
   _bursts:
   - time: 0
     count: 42
-    used: 0
+    used: 1
   _particleTrailRenderer: {fileID: 0}
   _trailModule:
     enabled: 0
@@ -3304,6 +3304,7 @@ MonoBehaviour:
   priceTxtNoSpace: {fileID: 45098076254403956}
   priceTxtTimeup: {fileID: 6417028214061294294}
   priceTxtStuckIce: {fileID: 8380580065312291408}
+  noSpaceReviveDescription: {fileID: 2597005996642897035}
   grandCg: {fileID: 3159550663659719336}
   mainPanelRect: {fileID: 4317287740701787010}
 --- !u!1 &3427381561903720087
@@ -6546,7 +6547,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7879682796380360667
 RectTransform:
   m_ObjectHideFlags: 0

@@ -53,6 +53,9 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public bool CanPurchaseRevive => reviveProvider != null && !awaitingAd && CanApplyRevive;
     private bool CanApplyRevive => IsPlaying && PendingRevive != SushiReviveReason.None &&
         (PendingRevive != SushiReviveReason.FullConveyor || conveyorManager.CanReviveFullConveyor);
+    public bool WillReviveBreakIce =>
+        (PendingRevive == SushiReviveReason.FullConveyor || PendingRevive == SushiReviveReason.FrozenHeads) &&
+        boardManager != null && boardManager.HasIce;
 
     public ConveyorManager Conveyor => conveyorManager;
     public BoardShishiManager Board => boardManager;
@@ -352,6 +355,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         else if (PendingRevive == SushiReviveReason.FullConveyor)
         {
             if (!conveyorManager.TryReviveFullConveyor()) return;
+            if (WillReviveBreakIce) boardManager.BreakAllIce();
         }
         else if (PendingRevive == SushiReviveReason.FrozenHeads) boardManager.BreakAllIce();
         reviveCount++;
