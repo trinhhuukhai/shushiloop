@@ -155,7 +155,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         finally { confirmingPickup = false; level.SetTutorialHold(true); }
         if (input.PickMode != FoodPickMode.Chopsticks) return false;
         HideBoosterSpotlight();
-        SetFoodDescription("BOOSTER GẮP", "Gắp một nguyên liệu đang thấy", "Chạm ô có bàn tay để gắp lên băng chuyền.");
+        SetFoodDescription("BOOSTER TONGS", "Gắp một nguyên liệu đang thấy", "Chạm ô có bàn tay để gắp lên băng chuyền.");
         SetStep(TutorialStep.Food);
         return true;
     }
@@ -209,7 +209,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         if (input.PickMode != FoodPickMode.Magnet) return false;
         HideBoosterSpotlight();
         if (orderDescription != null)
-            orderDescription.text = "<size=65%><color=#3479AD>BOOSTER NAM CHÂM</color></size>\n" +
+            orderDescription.text = "<size=65%><color=#3479AD>BOOSTER MAGNET</color></size>\n" +
                 "<b>Hoàn thành ngay một món ăn</b>\n<size=78%>Chạm món có bàn tay để hút đủ nguyên liệu.</size>";
         recipeView.SetMagnetTargeting(true);
         SetStep(TutorialStep.Order);
