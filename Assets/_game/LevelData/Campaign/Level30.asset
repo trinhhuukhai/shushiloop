@@ -130,7 +130,8 @@ MonoBehaviour:
       amount: 1
   boardColumns:
   - foods:
-    - typeFood: 3
+    - tutFood: 1
+      typeFood: 3
       amount: 1
       foodState: 0
       hidden: 0

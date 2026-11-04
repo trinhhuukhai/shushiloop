@@ -247,6 +247,7 @@ public class GameDataFragment : DataFragment
             case FoodState.Ice: return dataPlayer.isShowTrapIce;
             case FoodState.Lock: return dataPlayer.isShowTrapLinked;
             case FoodState.RigidTray: return dataPlayer.isShowTrapTray;
+            case FoodState.Time: return dataPlayer.isShowTrapTime;
             default: return true;
         }
     }
@@ -259,6 +260,7 @@ public class GameDataFragment : DataFragment
             case FoodState.Ice: dataPlayer.isShowTrapIce = true; break;
             case FoodState.Lock: dataPlayer.isShowTrapLinked = true; break;
             case FoodState.RigidTray: dataPlayer.isShowTrapTray = true; break;
+            case FoodState.Time: dataPlayer.isShowTrapTime = true; break;
         }
         Save();
     }
@@ -348,6 +350,7 @@ public class GameDataFragment : DataFragment
         public bool isShowTrapIce = false;
         public bool isShowTrapTray = false;
         public bool isShowTrapLinked = false;
+        public bool isShowTrapTime = false;
 
 
 
@@ -387,6 +390,7 @@ public class GameDataFragment : DataFragment
             isShowTrapIce = false;
             isShowTrapLinked = false;
             isShowTrapTray = false;
+            isShowTrapTime = false;
 
 
 

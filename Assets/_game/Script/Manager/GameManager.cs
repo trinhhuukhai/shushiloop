@@ -78,6 +78,8 @@ public class GameManager : MonoBehaviour
     [Min(0)] public int LevelUnlockItemBang = 11;
     [Min(0)] public int LevelUnlockItemLinked = 21;
     [Min(0)] public int LevelUnlockItemTray = 31;
+    [Header("Rush customer tutorial (1-based, 0 = disabled)")]
+    [Min(0)] public int LevelUnlockItemTime = 10;
 
     public int GetItemUnlockLevel(FoodState item)
     {
@@ -87,6 +89,7 @@ public class GameManager : MonoBehaviour
             case FoodState.Ice: return LevelUnlockItemBang;
             case FoodState.Lock: return LevelUnlockItemLinked;
             case FoodState.RigidTray: return LevelUnlockItemTray;
+            case FoodState.Time: return LevelUnlockItemTime;
             default: return 0;
         }
     }

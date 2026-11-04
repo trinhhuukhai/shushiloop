@@ -43,31 +43,43 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
             (player.completedLevels != null && player.completedLevels.Contains(0))) return;
 
         level = owner;
-        var queues = level.Board.FoodQueues;
-        var customers = level.Conveyor.Customers.ActiveCustomers;
-        if (targetColumn >= queues.Count || targetCustomerIndex >= customers.Count ||
-            customers[targetCustomerIndex] == null)
-        { InvalidConfiguration(); return; }
-
-        TargetQueue = queues[targetColumn];
-        TargetFood = TargetQueue.GetTopFood();
-        Customer customer = customers[targetCustomerIndex];
-        if (TargetFood == null || TargetFood.Type != targetIngredient || TargetFood.Amount != 1 || !TargetFood.CanPick() ||
-            TargetFood.LinkId > 0 || TargetFood.TrayId > 0 || targetDishIndex >= customer.Dishes.Count)
-        { InvalidConfiguration(); return; }
-
-        var dish = customer.Dishes[targetDishIndex];
-        bool usesIngredient = false;
-        foreach (PoolType ingredient in dish.Recipe.Ingredients) usesIngredient |= ingredient == targetIngredient;
-        CustomerRecipeView recipe = customer.GetComponent<CustomerRecipeView>();
-        if (!usesIngredient || recipe == null || !customer.IsSeated)
-        { InvalidConfiguration(); return; }
-
-        RecipeTarget = recipe.CardAt(targetDishIndex).Rect;
-        DishName = dish.Recipe.Name;
+        if (!FindMarkedTarget()) { InvalidConfiguration(); return; }
         Stage = TutorialStage.Waiting;
         //level.SetTutorialHold(true, false);
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
+    }
+
+    private bool FindMarkedTarget()
+    {
+        foreach (FoodQueue queue in level.Board.FoodQueues)
+        {
+            FoodShushi food = queue.GetTopFood();
+            if (food == null || food.TutorialType != TypeTutFood.ClickTut || food.Amount != 1 ||
+                !food.CanPick() || queue.IsPickupPending || food.LinkId > 0 || food.TrayId > 0) continue;
+            var customers = level.Conveyor.Customers.ActiveCustomers;
+            for (int c = 0; c < customers.Count; c++)
+            {
+                Customer customer = customers[c];
+                if (customer == null || !customer.IsSeated) continue;
+                var recipe = customer.GetComponent<CustomerRecipeView>();
+                if (recipe == null) continue;
+                foreach (SushiDishOrder dish in customer.Dishes)
+                {
+                    var card = recipe.CardAt(dish.Index);
+                    if (dish.FindAvailableIngredient(food.Type) == null || card == null) continue;
+                    TargetQueue = queue;
+                    TargetFood = food;
+                    targetColumn = queue.columnIndex;
+                    targetIngredient = food.Type;
+                    targetCustomerIndex = c;
+                    targetDishIndex = dish.Index;
+                    RecipeTarget = card.Rect;
+                    DishName = dish.Recipe.Name;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void Update()
@@ -150,7 +162,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
 
     private void InvalidConfiguration()
     {
-        Debug.LogWarning("Level 1 tutorial target no longer matches the board/recipe. Configure SushiLevelOneTutorial on LevelManager.", this);
+        Debug.LogWarning("Level 1 tutorial needs a usable ClickTut head tile matching a seated order.", this);
         Cancel();
     }
 

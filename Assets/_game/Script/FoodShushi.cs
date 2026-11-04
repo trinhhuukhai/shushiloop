@@ -9,7 +9,8 @@ public enum FoodState
     HoiCham = 1, // hidden_tile
     Ice = 2,     // frozen_tile
     Lock = 3,    // linked_tile (lockId cũ là linkId)
-    RigidTray = 4
+    RigidTray = 4,
+    Time = 5,
 }
 
 public enum FoodLocation
@@ -47,10 +48,12 @@ public class FoodShushi : GameUnit
     private bool boardVisible = true;
     private Tween revealTween;
     private Sprite platedSprite;
+    private Sprite defaultBoardBase;
     private Vector2 platedSize;
     private int platedSortingOrder;
     private void Awake()
     {
+        if (tileBackground != null) defaultBoardBase = tileBackground.sprite;
         if (cover != null) coverScale = cover.transform.localScale;
         if (quantityLabel != null) quantityPosition = quantityLabel.transform.localPosition;
         if (stateLabel != null)
@@ -146,6 +149,7 @@ public class FoodShushi : GameUnit
         linkId = data.linkId > 0 ? data.linkId : data.lockId;
         trayId = data.trayId;
         boardVisible = true;
+        SetBoardBaseSprite(null);
         ApplyIngredientArt();
         cover.transform.localScale = coverScale;
         RefreshVisual();
@@ -220,6 +224,11 @@ public class FoodShushi : GameUnit
 
     public void BreakLink() { linkId = 0; RefreshVisual(); }
     internal void SetAmount(int value) { amount = Mathf.Max(0, value); RefreshVisual(); }
+    internal void SetBoardBaseSprite(Sprite sprite)
+    {
+        if (tileBackground != null) tileBackground.sprite = sprite != null ? sprite : defaultBoardBase;
+    }
+
     internal void SetBoardVisible(bool value)
     {
         if (boardVisible == value) return;

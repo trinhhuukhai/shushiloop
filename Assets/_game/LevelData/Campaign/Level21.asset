@@ -449,7 +449,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 1
+    - tutFood: 1
+      typeFood: 1
       amount: 2
       foodState: 0
       hidden: 0

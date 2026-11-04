@@ -7,8 +7,10 @@ using UnityEngine.EventSystems;
 // Scene-authored tutorial: point to an order, then guide one marked head tile.
 public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
 {
+    // The Click lesson may reach behind the head, but never into the deep rows.
+    private const int ClickTutorialRows = 2;
     public enum TutorialStep { Inactive, Waiting, Order, Food, Booster }
-    public enum TutorialLesson { LevelOne, ClickBooster, Item, MagnetBooster }
+    public enum TutorialLesson { LevelOne, ClickBooster, Item, MagnetBooster, RushCustomer }
 
     public SpriteRenderer img_lop_phu_duoi;
     public GameObject objDesOrder;
@@ -79,7 +81,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         {
             FoodShushi food = queue != null ? queue.GetTopFood() : null;
             if (food != null && food.TutorialType == TypeTutFood.ClickTut && food.CanPick() &&
-                food.LinkId == 0 && food.TrayId == 0) return food;
+                food.LinkId == 0 && food.TrayId == 0 && !queue.IsPickupPending) return food;
         }
         return null;
     }
@@ -134,7 +136,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         loadVersion = owner.LoadVersion;
         Lesson = TutorialLesson.ClickBooster;
         input = FindFirstObjectByType<FoodInputController>();
-        TargetFood = FindActionableFood(true);
+        TargetFood = FindMarkedFood(true);
         if (TargetFood == null || input == null) { CancelTutorial(); return false; }
         targetQueue = TargetFood.Owner;
         closeBoosterSpotlight = hideSpotlight;
@@ -216,6 +218,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
 
     public bool BeginItem(LevelManager owner, FoodState item)
     {
+        if (item == FoodState.Time) return BeginRushCustomer(owner);
         if (!CanBegin(owner) || item == FoodState.Normal) return false;
         CancelTutorial();
         level = owner;
@@ -223,10 +226,55 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         Lesson = TutorialLesson.Item;
         tutorialItem = item;
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
-        TargetFood = FindActionableFood(false);
+        TargetFood = FindMarkedFood(false);
         if (TargetFood == null) { CancelTutorial(); return false; }
         targetQueue = TargetFood.Owner;
         SetItemDescription();
+        Step = TutorialStep.Waiting;
+        level.SetTutorialHold(true);
+        return true;
+    }
+
+    public static bool HasRushCustomer(LevelManager owner)
+    {
+        if (owner == null || !owner.IsPlaying || owner.Conveyor == null || owner.Conveyor.Customers == null) return false;
+        foreach (Customer customer in owner.Conveyor.Customers.ActiveCustomers)
+            if (customer != null && customer.IsRush && customer.IsSeated && !customer.IsCompleted && !customer.RushExpired)
+                return true;
+        return false;
+    }
+
+    private bool BeginRushCustomer(LevelManager owner)
+    {
+        if (!CanBegin(owner) || !HasRushCustomer(owner)) return false;
+        CancelTutorial();
+        level = owner;
+        loadVersion = owner.LoadVersion;
+        Lesson = TutorialLesson.RushCustomer;
+        tutorialItem = FoodState.Time;
+        foreach (Customer customer in owner.Conveyor.Customers.ActiveCustomers)
+        {
+            if (customer == null || !customer.IsRush || !customer.IsSeated || customer.IsCompleted || customer.RushExpired) continue;
+            var view = customer.GetComponent<CustomerRecipeView>();
+            if (view == null) continue;
+            foreach (SushiDishOrder dish in customer.Dishes)
+            {
+                var card = view.CardAt(dish.Index);
+                if (dish.IsComplete || card == null || !card.gameObject.activeInHierarchy) continue;
+                TargetCustomer = customer;
+                TargetDish = dish;
+                TargetOrder = card;
+                recipeView = view;
+                break;
+            }
+            if (TargetOrder != null) break;
+        }
+        if (TargetOrder == null) { CancelTutorial(); return false; }
+        FindFirstObjectByType<FoodInputController>()?.CancelBooster();
+        if (orderDescription != null)
+            orderDescription.text = "<size=65%><color=#3479AD>KHÁCH VỘI</color></size>\n" +
+                "<b>Ưu tiên hoàn thành order này!</b>\n<size=78%>Hoàn thành order trước khi hết giờ!\n" +
+                "Chạm để xem nguyên liệu và tiếp tục.</size>";
         Step = TutorialStep.Waiting;
         level.SetTutorialHold(true);
         return true;
@@ -236,27 +284,23 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         img_lop_phu_duoi != null && objDesOrder != null && handOrder != null && objDesFood != null &&
         handFood != null && Step == TutorialStep.Inactive;
 
-    private FoodShushi FindActionableFood(bool chopsticks)
+    private FoodShushi FindMarkedFood(bool chopsticks)
     {
-        FoodShushi selected = null;
-        int bestPriority = -1, samePriority = 0;
-        foreach (FoodQueue queue in level.Board.FoodQueues)
+        // Respect the level author's marker. Prefer the shallowest marked tile if
+        // several exist; an unusable marker must never redirect the hand to a Normal tile.
+        for (int row = 0; row < (chopsticks ? ClickTutorialRows : 1); row++)
         {
-            if (queue == null || queue.IsPickupPending) continue;
-            int visible = chopsticks ? Mathf.Min(4, queue.Count) : Mathf.Min(1, queue.Count);
-            for (int row = 0; row < visible; row++)
+            foreach (FoodQueue queue in level.Board.FoodQueues)
             {
+                if (queue == null || queue.IsPickupPending || row >= queue.Count) continue;
                 FoodShushi food = queue.Foods[row];
-                if (food.IsHidden || !IsVisibleFood(food) ||
+                if (food.TutorialType != TypeTutFood.ClickTut || food.IsHidden || !IsVisibleFood(food) ||
                     (chopsticks ? !food.CanUseChopsticks || food.Amount > level.Conveyor.FreeSlotCount :
                     !food.CanPick() || !level.Board.CanTap(queue, level.Conveyor.FreeSlotCount))) continue;
-                int priority = chopsticks ? (row > 0 ? 1 : 0) : ItemPriority(queue, food);
-                if (priority < bestPriority) continue;
-                if (priority > bestPriority) { bestPriority = priority; samePriority = 0; }
-                if (Random.Range(0, ++samePriority) == 0) selected = food;
+                return food;
             }
         }
-        return selected;
+        return null;
     }
 
     private bool IsVisibleFood(FoodShushi food)
@@ -317,19 +361,23 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
     {
         if (Step == TutorialStep.Inactive) return;
         bool isClick = Lesson == TutorialLesson.ClickBooster;
-        bool isMagnet = Lesson == TutorialLesson.MagnetBooster;
-        bool invalidTarget = isMagnet
+        bool isRush = Lesson == TutorialLesson.RushCustomer;
+        bool hasOrderTarget = Lesson == TutorialLesson.MagnetBooster || isRush;
+        bool invalidTarget = hasOrderTarget
             ? TargetCustomer == null || !TargetCustomer.IsSeated || TargetCustomer.IsCompleted || TargetCustomer.RushExpired ||
-                TargetDish == null || TargetDish.IsComplete || TargetOrder == null || !TargetOrder.gameObject.activeInHierarchy
-            : TargetFood == null || targetQueue == null || TargetFood.Owner != targetQueue ||
-                (isClick ? targetQueue.IndexOf(TargetFood) >= 4 : targetQueue.GetTopFood() != TargetFood) ||
+                (isRush && !TargetCustomer.IsRush) || TargetDish == null || TargetDish.IsComplete ||
+                TargetOrder == null || !TargetOrder.gameObject.activeInHierarchy
+            : TargetFood == null || TargetFood.TutorialType != TypeTutFood.ClickTut ||
+                targetQueue == null || TargetFood.Owner != targetQueue ||
+                (isClick ? targetQueue.IndexOf(TargetFood) < 0 || targetQueue.IndexOf(TargetFood) >= ClickTutorialRows :
+                    targetQueue.GetTopFood() != TargetFood) ||
                 (Lesson == TutorialLesson.LevelOne && (TargetOrder == null || !TargetOrder.gameObject.activeInHierarchy));
         if (level == null || !level.IsPlaying || level.LoadVersion != loadVersion || invalidTarget)
         { CancelTutorial(); return; }
         if (Step != TutorialStep.Waiting || level.IsPopupOpen ||
             (GameManager.ins != null && GameManager.ins.IsLoadingLevel)) return;
         Canvas.ForceUpdateCanvases();
-        SetStep(Lesson == TutorialLesson.LevelOne ? TutorialStep.Order : TutorialStep.Food);
+        SetStep(Lesson == TutorialLesson.LevelOne || isRush ? TutorialStep.Order : TutorialStep.Food);
     }
 
     private void SetStep(TutorialStep next)
@@ -364,6 +412,14 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
             if (plane.Raycast(ray, out float distance) && TargetOrder.Contains(ray.GetPoint(distance)))
             {
                 if (Lesson == TutorialLesson.MagnetBooster) TryCompleteMagnet();
+                else if (Lesson == TutorialLesson.RushCustomer)
+                {
+                    if (recipeView.ShowRecipeDetails(TargetOrder))
+                    {
+                        GameDataFragment.cur?.MarkItemTutorialDone(FoodState.Time);
+                        CancelTutorial();
+                    }
+                }
                 else if (recipeView.ShowRecipeDetails(TargetOrder)) SetStep(TutorialStep.Food);
             }
         }

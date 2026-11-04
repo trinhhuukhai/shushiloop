@@ -191,7 +191,7 @@ public static class SushiTutorialSetup
         {
             if (board[index].foods.Count == 0) continue;
             FoodData food = board[index].foods[0];
-            if (food.amount != 1 || food.hidden || food.foodState != FoodState.Normal ||
+            if (food.tutFood != TypeTutFood.ClickTut || food.amount != 1 || food.hidden || food.foodState != FoodState.Normal ||
                 food.iceLayers != 0 || food.linkId != 0 || food.lockId != 0 || food.trayId != 0) continue;
             for (int customerIndex = 0; customerIndex < Mathf.Min(2, first.customers.Count); customerIndex++)
             {
@@ -209,7 +209,7 @@ public static class SushiTutorialSetup
                 }
             }
         }
-        throw new InvalidOperationException("Level 1 needs a plain head tile with amount 1 matching one of the first two customers.");
+        throw new InvalidOperationException("Level 1 needs a ClickTut head tile with amount 1 matching one of the first two customers.");
     }
 
     private static RectTransform Rect(Transform parent, string name, Vector2 size, Vector2 position)

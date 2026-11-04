@@ -237,7 +237,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2332916586375528485
 Transform:
   m_ObjectHideFlags: 0
@@ -378,6 +378,8 @@ MonoBehaviour:
   - {fileID: 7826190819093160517}
   - {fileID: 7632176067546604535}
   lowerRowsShade: {fileID: 9134756201847365102}
+  normalSprite: {fileID: -7049752581813627975, guid: 99859a3ddbb08be418307c3ae0a82ae5, type: 3}
+  topSprite: {fileID: -1696467935659191346, guid: 7abe4db79bf8bab4595539c734ded655, type: 3}
 --- !u!61 &6587341503249192686
 BoxCollider2D:
   m_ObjectHideFlags: 0

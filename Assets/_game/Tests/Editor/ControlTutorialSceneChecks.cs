@@ -32,6 +32,7 @@ public static class ControlTutorialSceneChecks
     {
         Check(Application.isBatchMode && PlayerSettings.productName == "Sushi Tutorial Verification" &&
             Application.persistentDataPath.Contains("Sushi Tutorial Verification"), "Use the isolated tutorial verification project.");
+        CheckCampaignTargets();
         // Home startup avoids the early-level WaitForEndOfFrame in batch mode.
         var profile = AssetDatabase.LoadAssetAtPath<GameDataFragment>("Assets/_game/DataSO/GameDataFragment.asset");
         profile.dataPlayer = new GameDataFragment.DataPlayer { cur_level = 4 };
@@ -56,7 +57,8 @@ public static class ControlTutorialSceneChecks
             if (runner == null) runner = Run();
             if (runner.MoveNext()) return;
             SessionState.SetBool(Key, false);
-            File.WriteAllText("ControlTutorialResults.txt", "PASS: immediate booster unlock animation; level 1 order and marked pickup; Click booster ingredient lesson; Magnet button-to-dish lesson, description, selected dish completion and free first use; hidden, ice, linked and tray item lessons without ClickTut markers; wrong taps blocked; pointer layout; completion, persistence, cancellation/retry and level changes.\n");
+            int campaignLevelsChecked = SessionState.GetInt(Key + ".CampaignLevels", 0);
+            File.WriteAllText("ControlTutorialResults.txt", $"PASS: {campaignLevelsChecked} campaign assets have one shallow ClickTut marker; level 1, Click, Magnet and ingredient lessons; level 10 Rush popup and order lesson, timer pause/resume, correct customer, recipe reveal, direct popup, cancellation/retry, persistence and stale callbacks; missing/deep markers, wrong taps, pointer layout and campaign targets.\n");
             Debug.Log("CONTROL_TUTORIAL_SCENE_CHECKS_OK");
             EditorApplication.Exit(0);
         }
@@ -134,6 +136,7 @@ public static class ControlTutorialSceneChecks
         tutorial.CancelTutorial();
         Check(level.CanInteract && !GameDataFragment.cur.dataPlayer.showTutorialLevel1, "Cancel saved completion or retained a hold.");
         CheckHidden(tutorial);
+        CheckLegacyMarkerTarget(level);
         level.LoadLevel(0);
         yield return null;
         level.LoadLevel(1);
@@ -142,6 +145,59 @@ public static class ControlTutorialSceneChecks
         CheckHidden(tutorial);
         IEnumerator introductions = CheckIntroductions(level);
         while (introductions.MoveNext()) yield return introductions.Current;
+        IEnumerator rush = CheckRushIntroduction(level);
+        while (rush.MoveNext()) yield return rush.Current;
+        IEnumerator campaign = CheckCampaignRuntimeTargets(level);
+        while (campaign.MoveNext()) yield return campaign.Current;
+    }
+
+    private static void CheckLegacyMarkerTarget(LevelManager level)
+    {
+        var legacy = level.GetComponent<SushiLevelOneTutorial>();
+        bool created = legacy == null;
+        if (created) legacy = level.gameObject.AddComponent<SushiLevelOneTutorial>();
+        var enabled = typeof(SushiLevelOneTutorial).GetField("enableTutorial",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        bool original = (bool)enabled.GetValue(legacy);
+        try
+        {
+            enabled.SetValue(legacy, true);
+            legacy.Prepare(level);
+            Check(legacy.Stage == SushiLevelOneTutorial.TutorialStage.Waiting &&
+                legacy.TargetFood.TutorialType == TypeTutFood.ClickTut && legacy.TargetQueue.GetTopFood() == legacy.TargetFood,
+                "Legacy overlay did not follow the authored marker.");
+        }
+        finally
+        {
+            legacy.Cancel();
+            enabled.SetValue(legacy, original);
+            if (created) UnityEngine.Object.Destroy(legacy);
+        }
+    }
+
+    private static IEnumerator CheckCampaignRuntimeTargets(LevelManager level)
+    {
+        UIManager.Ins.CloseAll();
+        var tutorial = ControlTutorial.Ins;
+        GameDataFragment.cur.dataPlayer.showTutorialLevel1 = true;
+        for (int index = 0; index < level.LevelCount; index++)
+        {
+            level.LoadLevel(index, false);
+            bool click = index + 1 == GameDataFragment.BoosterClickUnlockLevel;
+            bool started = click ? tutorial.BeginClickBooster(level, null) : tutorial.BeginItem(level, FoodState.HoiCham);
+            Check(started && tutorial.TargetFood != null && tutorial.TargetFood.TutorialType == TypeTutFood.ClickTut,
+                "Level " + (index + 1) + " did not resolve its authored tutorial target.");
+            yield return null;
+            if (!click)
+            {
+                tutorial.RefreshLayout();
+                Check(tutorial.Step == ControlTutorial.TutorialStep.Food && tutorial.TargetFood.Owner.GetTopFood() == tutorial.TargetFood,
+                    "Level " + (index + 1) + " lost its head target.");
+                CheckPointer(tutorial.handFood, tutorial.TargetFood.transform.position);
+            }
+            CheckNoBlockingUI(tutorial.TargetFood.transform.position);
+            tutorial.CancelTutorial();
+        }
     }
 
     private static IEnumerator CheckIntroductions(LevelManager level)
@@ -156,9 +212,10 @@ public static class ControlTutorialSceneChecks
         data.dataPlayer.boosterClick = 0;
         UIManager.Ins.CloseAll();
         level.LoadLevel(3, false);
-        RemoveTutorialMarkers(level);
+        CheckMarkerSelection(level);
         level.ShowGameplayHud();
         CanvasGamePlay hud = UIManager.Ins.GetUI<CanvasGamePlay>();
+        for (int i = 0; i < 2; i++) yield return null;
         Check(UIManager.Ins.IsOpened<CanvasUnlockBooster>() && !level.CanInteract, "Click unlock popup did not pause immediately.");
         float popupDeadline = Time.realtimeSinceStartup + 0.4f;
         while (Time.realtimeSinceStartup < popupDeadline) yield return null;
@@ -171,8 +228,8 @@ public static class ControlTutorialSceneChecks
         for (int i = 0; i < 12; i++) yield return null;
         Check(tutorial.Step == ControlTutorial.TutorialStep.Food && tutorial.Lesson == ControlTutorial.TutorialLesson.ClickBooster &&
             input.PickMode == FoodPickMode.Chopsticks, "Click button did not preserve booster mode and show ingredient pointer.");
-        Check(tutorial.TargetFood.TutorialType == TypeTutFood.Normal && tutorial.TargetFood.Owner.IndexOf(tutorial.TargetFood) > 0,
-            "Click lesson requires a marker or ignores visible lower rows.");
+        Check(tutorial.TargetFood.TutorialType == TypeTutFood.ClickTut && tutorial.TargetFood.Owner.IndexOf(tutorial.TargetFood) == 1,
+            "Click lesson did not select the authored marker in the second row.");
         Check(!data.IsBoosterTutorialDone(BoosterType.Click), "Click lesson finished before actual pickup.");
         CheckPointer(tutorial.handFood, tutorial.TargetFood.transform.position);
         CheckNoBlockingUI(tutorial.TargetFood.transform.position);
@@ -213,14 +270,14 @@ public static class ControlTutorialSceneChecks
             data.dataPlayer.isShowTrapTray = false;
             UIManager.Ins.CloseAll();
             level.LoadLevel(index, false);
-            RemoveTutorialMarkers(level);
             level.ShowGameplayHud();
+            for (int i = 0; i < 2; i++) yield return null;
             Check(UIManager.Ins.IsOpened<CanvasNewItem>(), item + " did not show its introduction popup.");
             UIManager.Ins.GetUI<CanvasNewItem>().Close();
             for (int i = 0; i < 12; i++) yield return null;
             Check(tutorial.Step == ControlTutorial.TutorialStep.Food && tutorial.Lesson == ControlTutorial.TutorialLesson.Item &&
-                tutorial.TargetFood.TutorialType == TypeTutFood.Normal && tutorial.TargetFood.Owner.GetTopFood() == tutorial.TargetFood &&
-                level.Board.CanTap(tutorial.TargetFood.Owner, level.Conveyor.FreeSlotCount), item + " did not select a valid unmarked ingredient.");
+                tutorial.TargetFood.TutorialType == TypeTutFood.ClickTut && tutorial.TargetFood.Owner.GetTopFood() == tutorial.TargetFood &&
+                level.Board.CanTap(tutorial.TargetFood.Owner, level.Conveyor.FreeSlotCount), item + " did not select the marked head ingredient.");
             CheckPointer(tutorial.handFood, tutorial.TargetFood.transform.position);
             CheckNoBlockingUI(tutorial.TargetFood.transform.position);
             if (item == FoodState.HoiCham)
@@ -269,6 +326,7 @@ public static class ControlTutorialSceneChecks
         UIManager.Ins.CloseAll();
         level.LoadLevel(data.dataPlayer.cur_level, false);
         level.ShowGameplayHud();
+        for (int i = 0; i < 2; i++) yield return null;
         Check(UIManager.Ins.IsOpened<CanvasUnlockBooster>(), "Magnet unlock popup is missing.");
         UIManager.Ins.GetUI<CanvasUnlockBooster>().btnOk();
         yield return null;
@@ -334,11 +392,156 @@ public static class ControlTutorialSceneChecks
         data.Load(); // Restore the successful, persisted completion.
     }
 
-    private static void RemoveTutorialMarkers(LevelManager level)
+    private static IEnumerator CheckRushIntroduction(LevelManager level)
     {
+        var data = GameDataFragment.cur;
+        var tutorial = ControlTutorial.Ins;
+        CanvasGamePlay hud = UIManager.Ins.GetUI<CanvasGamePlay>();
+        Check(GameManager.ins.GetItemUnlockLevel(FoodState.Time) == 10, "The rush example should be configured at level 10.");
+        data.dataPlayer.isShowTrapTime = false;
+        data.dataPlayer.completedItemTutorials.Remove(FoodState.Time);
+        data.dataPlayer.cur_level = 9;
+        UIManager.Ins.CloseAll();
+        level.LoadLevel(9, false);
         foreach (FoodQueue queue in level.Board.FoodQueues)
             foreach (FoodShushi food in queue.Foods)
                 typeof(FoodShushi).GetProperty("TutorialType").SetValue(food, TypeTutFood.Normal);
+        level.ShowGameplayHud();
+        for (int i = 0; i < 3; i++) yield return null;
+        Check(UIManager.Ins.IsOpened<CanvasNewItem>(), "Level 10 did not open the Rush introduction.");
+        var popup = UIManager.Ins.GetUI<CanvasNewItem>();
+        Check(popup.imgItemTime != null && popup.imgItemTime.activeSelf && !popup.imgItemHoiCham.activeSelf &&
+            !popup.imgItemHoiBang.activeSelf && !popup.imgItemLink.activeSelf && !popup.imgItemKhay.activeSelf,
+            "Rush artwork is missing or overlaps another item.");
+        Customer rush = level.Conveyor.Customers.ActiveCustomers[0];
+        Check(rush.IsRush && rush.IsSeated && Mathf.Approximately(rush.RushDuration, 85),
+            "Level 10 needs its first customer rushing with an 85-second limit.");
+        float remaining = rush.RushRemaining;
+        for (int i = 0; i < 12; i++) yield return null;
+        Check(Mathf.Approximately(remaining, rush.RushRemaining) && !level.CanInteract, "Rush timer ran during its popup.");
+        popup.Close();
+        for (int i = 0; i < 12; i++) yield return null;
+        Check(tutorial.Lesson == ControlTutorial.TutorialLesson.RushCustomer && tutorial.Step == ControlTutorial.TutorialStep.Order &&
+            tutorial.TargetCustomer == rush && tutorial.TargetOrder != null && tutorial.TargetFood == null &&
+            level.IsTutorialHeld && !level.CanInteract && Mathf.Approximately(remaining, rush.RushRemaining),
+            "Rush tutorial did not hold the timer and target the rush customer's order without food markers.");
+        Check(tutorial.handOrder.activeSelf && tutorial.objDesOrder.activeSelf && !tutorial.handFood.activeSelf &&
+            tutorial.objDesOrder.GetComponentInChildren<TMP_Text>(true).text.Contains("Ưu tiên"), "Rush explanation or hand is missing.");
+        CheckPointer(tutorial.handOrder, tutorial.TargetOrder.DishImage.transform.position);
+        CheckNoBlockingUI(tutorial.TargetOrder.DishImage.transform.position);
+        Press(tutorial, level.Board.FoodQueues[0].GetTopFood().transform.position);
+        Press(tutorial, level.Conveyor.Customers.ActiveCustomers[1].GetComponent<CustomerRecipeView>().CardAt(0).DishImage.transform.position);
+        Check(ControlTutorial.IsInputLocked && !data.IsItemTutorialDone(FoodState.Time), "A wrong customer or ingredient dismissed the Rush lesson.");
+        Capture("ControlTutorialRushCustomer", level);
+        tutorial.CancelTutorial();
+        Check(!data.IsItemTutorialDone(FoodState.Time) && !level.IsTutorialHeld, "Cancelling Rush completed its lesson or kept gameplay held.");
+        hud.OpenUINewItem();
+        for (int i = 0; i < 2; i++) yield return null;
+        Check(tutorial.Step == ControlTutorial.TutorialStep.Order, "Rush lesson cannot resume after its popup was shown.");
+        SushiDishCardView order = tutorial.TargetOrder;
+        Press(tutorial, order.DishImage.transform.position);
+        Check(order.IsRecipeExpanded && data.IsItemTutorialDone(FoodState.Time) && !ControlTutorial.IsInputLocked && level.CanInteract,
+            "Rush order tap did not reveal ingredients, save completion and resume play.");
+        CheckHidden(tutorial);
+        remaining = rush.RushRemaining;
+        for (int i = 0; i < 3; i++) yield return null;
+        Check(rush.RushRemaining < remaining, "Rush timer did not resume after the explanation.");
+        data.Load();
+        Check(data.IsItemPopupShown(FoodState.Time) && data.IsItemTutorialDone(FoodState.Time), "Rush introduction was not persisted.");
+        level.LoadLevel(9);
+        for (int i = 0; i < 3; i++) yield return null;
+        Check(!ControlTutorial.IsInputLocked && !UIManager.Ins.IsOpened<CanvasNewItem>(), "Completed Rush introduction replayed.");
+
+        data.dataPlayer.isShowTrapTime = false;
+        data.dataPlayer.completedItemTutorials.Remove(FoodState.Time);
+        UIManager.Ins.CloseAll();
+        level.LoadLevel(9, false);
+        level.ShowGameplayHud();
+        for (int i = 0; i < 3; i++) yield return null;
+        Check(UIManager.Ins.IsOpened<CanvasNewItem>(), "Rush popup retry is missing.");
+        level.LoadLevel(1, false);
+        popup.Close();
+        yield return null;
+        Check(!ControlTutorial.IsInputLocked && !level.IsTutorialHeld && !data.IsItemTutorialDone(FoodState.Time),
+            "Closing an old Rush popup started or completed a lesson in another level.");
+        Check(!tutorial.BeginItem(level, FoodState.Time), "A normal customer was selected as a Rush target.");
+
+        // The public popup API must work without a HUD-supplied callback too.
+        UIManager.Ins.CloseAll();
+        level.LoadLevel(9, false);
+        UIManager.Ins.OpenUI<CanvasNewItem>().Setupp(FoodState.Time);
+        popup.Close();
+        for (int i = 0; i < 3; i++) yield return null;
+        Check(tutorial.Step == ControlTutorial.TutorialStep.Order && tutorial.TargetCustomer.IsRush,
+            "Directly opening the Time popup did not start its lesson.");
+        Press(tutorial, tutorial.TargetOrder.DishImage.transform.position);
+        Check(data.IsItemTutorialDone(FoodState.Time) && level.CanInteract, "Direct Rush lesson did not finish.");
+    }
+
+    private static void CheckCampaignTargets()
+    {
+        string[] assets = AssetDatabase.FindAssets("t:SushiLevelData", new[] { "Assets/_game/LevelData/Campaign" });
+        Check(assets.Length > 0, "Campaign levels are missing.");
+        SessionState.SetInt(Key + ".CampaignLevels", assets.Length);
+        foreach (string guid in assets)
+        {
+            var data = AssetDatabase.LoadAssetAtPath<SushiLevelData>(AssetDatabase.GUIDToAssetPath(guid));
+            var board = data.CreateBoardData();
+            int markers = 0;
+            foreach (FoodQueueData queue in board)
+                for (int row = 0; row < queue.foods.Count; row++)
+                {
+                    FoodData food = queue.foods[row];
+                    if (food.tutFood != TypeTutFood.ClickTut) continue;
+                    markers++;
+                    Check(row == (data.number == 4 ? 1 : 0) && food.foodState == FoodState.Normal && !food.hidden &&
+                        food.iceLayers == 0 && food.linkId == 0 && food.lockId == 0 && food.trayId == 0 && food.amount <= data.beltSlots,
+                        data.name + " has an inaccessible or deep tutorial marker.");
+                }
+            Check(markers == 1, data.name + " needs exactly one tutorial marker.");
+        }
+    }
+
+    private static void CheckMarkerSelection(LevelManager level)
+    {
+        var tutorial = ControlTutorial.Ins;
+        var property = typeof(FoodShushi).GetProperty("TutorialType");
+        var original = new Dictionary<FoodShushi, TypeTutFood>();
+        FoodShushi deep = null;
+        foreach (FoodQueue queue in level.Board.FoodQueues)
+            for (int row = 0; row < queue.Count; row++)
+            {
+                FoodShushi food = queue.Foods[row];
+                original.Add(food, food.TutorialType);
+                property.SetValue(food, TypeTutFood.Normal);
+                if (row == 2 && !food.IsHidden && food.CanUseChopsticks) deep = food;
+            }
+        try
+        {
+            Check(!tutorial.BeginClickBooster(level, null) && !tutorial.BeginItem(level, FoodState.HoiCham) &&
+                !level.IsTutorialHeld && !ControlTutorial.IsInputLocked, "Missing markers selected an unmarked tile or held gameplay.");
+            CanvasGamePlay hud = UIManager.Ins.GetUI<CanvasGamePlay>();
+            hud.StartBoosterTutorial(BoosterType.Click);
+            Check(!hud.handBsClick.activeSelf && !hud.spotlight.dimOverlay.activeSelf &&
+                !GameDataFragment.cur.IsBoosterTutorialDone(BoosterType.Click),
+                "A missing marker started the old button-only lesson or marked it complete.");
+            Check(deep != null, "Missing deep tile for marker regression.");
+            property.SetValue(deep, TypeTutFood.ClickTut);
+            Check(!tutorial.BeginClickBooster(level, null) && !tutorial.BeginItem(level, FoodState.HoiCham),
+                "A deep marker was selected for the tutorial.");
+            var head = level.Board.FoodQueues[1].GetTopFood();
+            property.SetValue(head, TypeTutFood.ClickTut);
+            Check(tutorial.BeginItem(level, FoodState.HoiCham) && tutorial.TargetFood == head,
+                "An explicitly marked head did not override other ingredients.");
+            tutorial.CancelTutorial();
+            Check(tutorial.BeginClickBooster(level, null) && tutorial.TargetFood == head,
+                "Click selected a deep tile instead of the shallow marker.");
+        }
+        finally
+        {
+            tutorial.CancelTutorial();
+            foreach (var entry in original) property.SetValue(entry.Key, entry.Value);
+        }
     }
 
     private static void Capture(string label, LevelManager level)

@@ -69,7 +69,7 @@ public class CanvasGamePlay : UICanvas
     public GameObject handBsSwap;
     public GameObject handBsMagnet;
     private static readonly BoosterType[] AllBoosterTypes = { BoosterType.Click, BoosterType.Shuffle, BoosterType.Magnet };
-    private static readonly FoodState[] TutorialItems = { FoodState.HoiCham, FoodState.Ice, FoodState.Lock, FoodState.RigidTray };
+    private static readonly FoodState[] TutorialItems = { FoodState.HoiCham, FoodState.Ice, FoodState.Lock, FoodState.RigidTray, FoodState.Time };
     private BoosterType? tutorialBooster;
 
 
@@ -94,11 +94,11 @@ public class CanvasGamePlay : UICanvas
         CheckShowTabBooster();
         RefreshBoosterStates();
         imgStuck.SetActive(false);
-        OpenUINewItem();
+        //OpenUINewItem();
         ShowAnim();
         input = FindFirstObjectByType<FoodInputController>();
         Refresh();
-        CheckShowUnlockBooster();
+        //CheckShowUnlockBooster();
     }
 
     // Đúng level unlock: chưa hiện popup -> popup rồi tut; đã hiện popup mà chưa xong tut -> chạy lại tut
@@ -141,8 +141,8 @@ public class CanvasGamePlay : UICanvas
 
         RefreshBoosterStates(); // đảm bảo obj unlock đã bật trước khi spotlight
         // Select the ingredient before the spotlight starts intercepting world raycasts.
-        if (type == BoosterType.Click && ControlTutorial.Ins != null)
-            ControlTutorial.Ins.BeginClickBooster(LevelManager.Ins, () => EndBoosterTutorial(type, false));
+        if (type == BoosterType.Click && ControlTutorial.Ins != null &&
+            !ControlTutorial.Ins.BeginClickBooster(LevelManager.Ins, () => EndBoosterTutorial(type, false))) return;
         if (type == BoosterType.Magnet && ControlTutorial.Ins != null &&
             !ControlTutorial.Ins.BeginMagnetBooster(LevelManager.Ins, () => EndBoosterTutorial(type, false))) return;
         tutorialBooster = type;
@@ -324,6 +324,7 @@ public class CanvasGamePlay : UICanvas
         foreach (FoodState item in TutorialItems)
         {
             if (owner.CurrentLevelIndex + 1 != GameManager.ins.GetItemUnlockLevel(item)) continue;
+            if (item == FoodState.Time && !ControlTutorial.HasRushCustomer(owner)) continue;
             if (!data.IsItemPopupShown(item))
             {
                 int version = owner.LoadVersion;

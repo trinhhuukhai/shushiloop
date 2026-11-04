@@ -96,7 +96,8 @@ MonoBehaviour:
       amount: 1
   boardColumns:
   - foods:
-    - typeFood: 14
+    - tutFood: 1
+      typeFood: 14
       amount: 1
       foodState: 0
       hidden: 0

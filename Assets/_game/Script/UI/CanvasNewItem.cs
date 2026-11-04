@@ -11,17 +11,18 @@ public class CanvasNewItem : UICanvas
     public GameObject imgItemHoiBang;
     public GameObject imgItemLink;
     public GameObject imgItemKhay;
+    public GameObject imgItemTime;
 
     public RectTransform mainPanelRect;
     private Tween popTween;
     private FoodState currentItem;
     private System.Action onClosed;
 
-    public override void Open()
-    {
-        base.Open();
-        PlayPop();
-    }
+    //public override void Open()
+    //{
+    //    base.Open();
+    //    PlayPop();
+    //}
 
     private void PlayPop()
     {
@@ -33,9 +34,21 @@ public class CanvasNewItem : UICanvas
     // Gọi ngay sau OpenUI<CanvasNewItem>() để chọn item cần hiển thị.
     public void Setupp(FoodState item, System.Action onClosed = null)
     {
-        this.onClosed = onClosed;
-        ShowItem(item);
         PlayPop();
+        this.onClosed = onClosed;
+        // Directly opening the rush popup also starts its lesson after dismissal.
+        if (item == FoodState.Time && onClosed == null)
+        {
+            LevelManager owner = LevelManager.Ins;
+            int version = owner != null ? owner.LoadVersion : -1;
+            this.onClosed = () =>
+            {
+                if (owner != null && owner.IsPlaying && owner.LoadVersion == version)
+                    ControlTutorial.Ins?.BeginItem(owner, FoodState.Time);
+            };
+            GameDataFragment.cur?.MarkItemPopupShown(FoodState.Time);
+        }
+        ShowItem(item);
     }
 
     private void ShowItem(FoodState item)
@@ -45,6 +58,7 @@ public class CanvasNewItem : UICanvas
         if (imgItemHoiBang != null) imgItemHoiBang.SetActive(item == FoodState.Ice);
         if (imgItemLink != null) imgItemLink.SetActive(item == FoodState.Lock);
         if (imgItemKhay != null) imgItemKhay.SetActive(item == FoodState.RigidTray);
+        if (imgItemTime != null) imgItemTime.SetActive(item == FoodState.Time);
 
         switch (item)
         {
@@ -63,6 +77,10 @@ public class CanvasNewItem : UICanvas
             case FoodState.RigidTray:
                 txtTile.text = "Trays";
                 des.text = "Ingredients in the same tray move together. Make room on the conveyor to collect them all!";
+                break;
+            case FoodState.Time:
+                txtTile.text = "Customer Rush";
+                des.text = "Khách vội chỉ chờ trong thời gian giới hạn. Hãy ưu tiên hoàn thành toàn bộ order của khách trước khi thanh thời gian cạn!";
                 break;
         }
     }

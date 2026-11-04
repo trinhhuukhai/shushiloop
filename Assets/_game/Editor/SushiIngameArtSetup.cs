@@ -95,7 +95,10 @@ public static class SushiIngameArtSetup
             Fit(belt.Find("Right rail").GetComponent<SpriteRenderer>(), "line2", new Vector2(.09f, 5.2f));
             foreach (var renderer in root.GetComponentsInChildren<SpriteRenderer>(true))
                 if (renderer.name.StartsWith("Empty belt base")) Fit(renderer, "tray", new Vector2(1.26f, 1.09f));
-            World(belt, "Head selection", "tray_selecct", new Vector2(1.32f, 1.15f), Vector2.zero, 0);
+            World(belt, "Head selection", "tray_selecct", new Vector2(1.32f, 1.15f), Vector2.zero, 0).gameObject.SetActive(false);
+            var queue = root.GetComponent<FoodQueue>();
+            Bind(queue, "normalSprite", Sprite("tray"));
+            Bind(queue, "topSprite", Sprite("tray_selecct"));
             for (int row = 0; row < 4; row++)
                 World(belt, "Belt seam " + row, "conveyor1_line", new Vector2(1.4f, .045f), new Vector2(0, -.65f - row * 1.3f), -3);
         });

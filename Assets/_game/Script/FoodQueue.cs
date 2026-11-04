@@ -24,6 +24,9 @@ public class FoodQueue : MonoBehaviour
     [SerializeField] private List<Transform> emptyBases = new List<Transform>();
     [SerializeField] private SpriteRenderer lowerRowsShade;
 
+    [SerializeField] private Sprite normalSprite;
+    [SerializeField] private Sprite topSprite;
+
     public BoardShishiManager Board { get; internal set; }
     public IReadOnlyList<FoodShushi> Foods => foods;
     public int Count => foods.Count;
@@ -96,8 +99,10 @@ public class FoodQueue : MonoBehaviour
     {
         food.SetAmount(food.Amount - count);
         if (food.Amount > 0 || (preserveTray && food.TrayId > 0)) return;
+        food.SetBoardBaseSprite(normalSprite);
         food.CopyBoardBase(EnsureDepartingTray());
         foods.Remove(food);
+        SetTopVisual(true);
         food.Owner = null;
         food.transform.SetParent(null, true);
         // Nguyên liệu bay và hiệu ứng khay rỗng dùng các view riêng.
@@ -143,8 +148,9 @@ public class FoodQueue : MonoBehaviour
         {
             FoodShushi food = foods[i];
             food.SetBoardVisible(i < VisibleRows);
-            food.transform.DOLocalMove(GetRowPosition(i), Mathf.Max(0.01f, moveDuration))
+            Tween move = food.transform.DOLocalMove(GetRowPosition(i), Mathf.Max(0.01f, moveDuration))
                 .SetEase(Ease.OutCubic).SetId(rowTweenId);
+            if (i == 0) move.OnComplete(() => SetTopVisual(true));
         }
         RevealTopFood();
         RefreshEmptyBasesImmediate();
@@ -156,6 +162,7 @@ public class FoodQueue : MonoBehaviour
         columnMoveTween?.Kill();
         DOTween.Kill(rowTweenId);
         IsPickupPending = true;
+        SetTopVisual(true);
         float delay = Mathf.Max(0, wait);
         float duration = Mathf.Max(0.01f, moveDuration);
         Sequence sequence = DOTween.Sequence().AppendInterval(delay + duration);
@@ -261,6 +268,7 @@ public class FoodQueue : MonoBehaviour
         }
         RefreshEmptyBasesImmediate();
         RefreshCollider();
+        SetTopVisual(true);
     }
 
     private void RefreshCollider()
@@ -274,7 +282,20 @@ public class FoodQueue : MonoBehaviour
     }
 
     private Vector3 GetRowPosition(int row) => Vector3.down * rowSpace * row;
-    private void RevealTopFood() { GetTopFood()?.Reveal(); }
+    private void RevealTopFood()
+    {
+        GetTopFood()?.Reveal();
+        SetTopVisual(true);
+    }
+
+    public void SetTopVisual(bool isTop)
+    {
+        // A new head receives its selected sprite only after reaching the front.
+        FoodShushi head = GetTopFood();
+        bool showHead = isTop && head != null && head.transform.localPosition == GetRowPosition(0);
+        for (int i = 0; i < foods.Count; i++)
+            if (foods[i] != null) foods[i].SetBoardBaseSprite(showHead && i == 0 ? topSprite : normalSprite);
+    }
 
     public FoodShushi FoodAtWorldPosition(Vector3 position)
     {
@@ -327,6 +348,7 @@ public class FoodQueue : MonoBehaviour
     {
         CancelColumnMovement();
         DOTween.Kill(rowTweenId);
+        SetTopVisual(false);
         foreach (FoodShushi food in foods)
         {
             if (food == null) continue;
