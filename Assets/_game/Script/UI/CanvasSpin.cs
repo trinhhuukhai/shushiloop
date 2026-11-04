@@ -84,6 +84,7 @@ public class CanvasSpin : UICanvas
     //private Vector2 upperPos;
     //private Vector2 bottomPos;
 
+    // Lưu tham chiếu popup vòng quay hiện tại.
     private void Awake()
     {
         cur = this;
@@ -92,6 +93,7 @@ public class CanvasSpin : UICanvas
         //bottomPos = rootPos - Vector2.up * 180;
     }
 
+    // Mở vòng quay, cập nhật quyền quay, góc ban đầu và khởi động đèn nhấp nháy.
     public override void Open()
     {
         base.Open();
@@ -122,14 +124,17 @@ public class CanvasSpin : UICanvas
         StartSpinWheelLightsBlink();
     }
 
+    // Hiển thị số tiền hiện có trên popup vòng quay.
     public void setGold()
     {
         txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
     }
+    // Đồng bộ số tiền hiển thị mỗi frame.
     private void Update()
     {
         setGold();
     }
+    // Điểm mở rộng hiệu ứng xuất hiện; hiện chưa có xử lý đang hoạt động.
     private void Pop()
     {
         //canvasGroup.DOFade(1, .28f);
@@ -138,6 +143,7 @@ public class CanvasSpin : UICanvas
         //mainPanelRect.DOAnchorPos(rootPos, .36f).SetEase(Ease.OutSine);
     }
 
+    // Đóng popup, hủy tween quay, tắt đèn nhấp nháy và xóa trạng thái đang quay.
     protected void Close()
     {
         CloseDirectly();
@@ -152,6 +158,7 @@ public class CanvasSpin : UICanvas
         isSpinning = false;
     }
 
+    // Chuyển thao tác đóng trực tiếp về lớp cơ sở.
     public override void CloseDirectly()
     {
         base.CloseDirectly();
@@ -168,6 +175,7 @@ public class CanvasSpin : UICanvas
         //    });
     }
 
+    // Tính lượng fill từ số màn đã thắng so với số màn cần cho một lượt quay.
     private void SetBar()
     {
         var require = SpinDataFragment.cur.GetRequiredPassedLevel();
@@ -177,6 +185,7 @@ public class CanvasSpin : UICanvas
         progressBarImage.fillAmount = per;
     }
 
+    // Chỉ thoát khi không đang quay, mở khóa UI và đóng popup.
     public void OnCLickExit()
     {
         if (isSpinning) return;
@@ -188,6 +197,7 @@ public class CanvasSpin : UICanvas
         Close();
     }
 
+    // Bắt đầu lượt quay đủ điều kiện, tiêu hao tiến trình thắng màn và cập nhật nút.
     public void OnClickSpin()
     {
         if (isSpinning || !isSpinable) return;
@@ -201,6 +211,7 @@ public class CanvasSpin : UICanvas
         CheckSpinButtonAndMore();
     }
 
+    // Kiểm tra lượt quay quảng cáo rồi gọi xử lý thành công trực tiếp; hiện chưa mở quảng cáo.
     public void OnClickAdsSpin()
     {
         if (isSpinning || !SpinDataFragment.cur.IsAdsAble()) return;
@@ -223,6 +234,7 @@ public class CanvasSpin : UICanvas
         onClose();
         //AdsManager.Ins.ShowRewardedAd("SPIN", () =>
         //{
+        // Tiêu hao quyền quay quảng cáo, ghi mốc thời gian và bắt đầu quay rồi mở lại tương tác.
         void onClose()
         {
             SpinDataFragment.cur.gameData.isAdsAble = false;
@@ -232,6 +244,7 @@ public class CanvasSpin : UICanvas
             canvasGroup.interactable = true;
         }
 
+        // Khôi phục tương tác và mở khóa UI ở nhánh quảng cáo thất bại.
         void onFall()
         {
             canvasGroup.interactable = true;
@@ -242,6 +255,7 @@ public class CanvasSpin : UICanvas
         //}, () => { canvasGroup.interactable = true; });
     }
 
+    // Cập nhật tiến trình thắng màn, mô tả và các nút quay thường, quảng cáo hoặc khóa.
     private void CheckSpinButtonAndMore()
     {
         var require = SpinDataFragment.cur.GetRequiredPassedLevel();
@@ -265,12 +279,14 @@ public class CanvasSpin : UICanvas
 
     private static WaitUntil waitForValidTime = new WaitUntil(() => UnbiasedTime.IsValidTime);
 
+    // Khởi động lại coroutine đếm thời gian tới lượt quay quảng cáo tiếp theo.
     public void CheckTimeLeftTillFree()
     {
         if (timeCor != null) StopCoroutine(timeCor);
         timeCor = StartCoroutine(ie_Check());
         return;
 
+        // Chờ nguồn giờ hợp lệ, cập nhật đếm ngược và làm mới nút khi đến chu kỳ quay mới.
         IEnumerator ie_Check()
         {
             while (!SpinDataFragment.cur.IsAdsAble())
@@ -296,11 +312,13 @@ public class CanvasSpin : UICanvas
         }
     }
 
+    // Đặt góc vòng quay ban đầu ngẫu nhiên.
     private void SetupWheel()
     {
         wheelTrans.eulerAngles = new Vector3(0, 0, Random.Range(0, 360f));
     }
 
+    // Tạo chuỗi lặp bật xen kẽ đèn chẵn và lẻ bằng thời gian không phụ thuộc timeScale.
     private void StartSpinWheelLightsBlink()
     {
         StopSpinWheelLightsBlink();
@@ -317,6 +335,7 @@ public class CanvasSpin : UICanvas
         spinLightsSequence.AppendInterval(step);
     }
 
+    // Hủy chuỗi nhấp nháy và tắt toàn bộ đèn vòng quay.
     private void StopSpinWheelLightsBlink()
     {
         spinLightsSequence?.Kill();
@@ -326,6 +345,7 @@ public class CanvasSpin : UICanvas
             SetSpinWheelLightState(i, false);
     }
 
+    // Bật một nhóm đèn theo chỉ số chẵn hoặc lẻ và tắt nhóm còn lại.
     private void SetSpinWheelLightsAlternating(bool oddIndicesLit)
     {
         if (spinWheelLights == null) return;
@@ -336,6 +356,7 @@ public class CanvasSpin : UICanvas
         }
     }
 
+    // Đổi cặp hình sáng và tắt của một đèn có chỉ số hợp lệ.
     private void SetSpinWheelLightState(int index, bool isOn)
     {
         if (spinWheelLights == null || index < 0 || index >= spinWheelLights.Length) return;
@@ -344,6 +365,7 @@ public class CanvasSpin : UICanvas
         if (pair.offObject != null) pair.offObject.SetActive(!isOn);
     }
 
+    // Chọn giải, quay nhiều vòng tới góc giải với nhịp kim gõ rồi trao thưởng khi dừng.
     private void Spinning()
     {
         // Kiểm tra dữ liệu trước, tránh exception làm kẹt trạng thái
@@ -391,6 +413,7 @@ public class CanvasSpin : UICanvas
             });
     }
 
+    // Lắc kim vòng quay và trả về góc gốc để mô phỏng kim chạm các nấc.
     private void PopPointer()
     {
         pointerPopTween?.Complete();
@@ -405,6 +428,7 @@ public class CanvasSpin : UICanvas
             });
     }
 
+    // Chọn chỉ số giải theo phân bố xác suất, dùng giải cố định cho hạng quay đầu.
     private int GetPossiblityIndex()
     {
         if (SpinDataFragment.cur.gameData.spinRank == 0)
@@ -424,6 +448,7 @@ public class CanvasSpin : UICanvas
         };
     }
 
+    // Cộng tiền hoặc booster theo ô trúng, phát hiệu ứng thưởng rồi mở khóa UI sau thời gian chờ.
     private void SetPrize(int index)
     {
         // var pos = starRect.position.ToFullScreenCanvasPosFromOverLayCanvasPos(canvasRect);

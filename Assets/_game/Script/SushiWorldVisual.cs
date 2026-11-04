@@ -66,6 +66,7 @@ public static class SushiWorldVisual
         }
     }
 
+    // Gán sprite cùng vật liệu chung và chỉnh tỉ lệ để khớp kích thước yêu cầu.
     public static void FitSprite(SpriteRenderer renderer, Sprite sprite, Vector2 size)
     {
         renderer.sprite = sprite;
@@ -74,6 +75,7 @@ public static class SushiWorldVisual
             size.y / Mathf.Max(0.01f, sprite.bounds.size.y), 1);
     }
 
+    // Tạo sáu mảnh băng bay tỏa ra, mờ dần rồi tự hủy sau hiệu ứng.
     public static void BurstIce(Transform parent, Vector3 position)
     {
         for (int i = 0; i < 6; i++)
@@ -94,6 +96,7 @@ public static class SushiWorldVisual
     public static Material LineMaterial => lineMaterial != null ? lineMaterial :
         (lineMaterial = new Material(SpriteMaterial) { mainTexture = Texture2D.whiteTexture });
 
+    // Tạo nhãn TextMeshPro trong thế giới game với vị trí, cỡ chữ và thứ tự vẽ chỉ định.
     public static TextMeshPro Label(Transform parent, string name, Vector3 position, float fontSize, int order)
     {
         var label = new GameObject(name).AddComponent<TextMeshPro>();
@@ -107,6 +110,7 @@ public static class SushiWorldVisual
         return label;
     }
 
+    // Tạo SpriteRenderer dạng bảng bo góc với vật liệu và thứ tự vẽ dùng chung.
     public static SpriteRenderer Panel(Transform parent, string name, int order)
     {
         var panel = new GameObject(name).AddComponent<SpriteRenderer>();
@@ -117,6 +121,7 @@ public static class SushiWorldVisual
         return panel;
     }
 
+    // Tạo đế ô nguyên liệu bằng sprite trong catalog hoặc ghép các lớp màu dự phòng.
     public static SpriteRenderer BoardBase(Transform parent, string name = "Board tile")
     {
         var rim = Panel(parent, name, 0);

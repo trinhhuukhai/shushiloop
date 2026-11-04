@@ -81,6 +81,7 @@ public class GameManager : MonoBehaviour
     [Header("Rush customer tutorial (1-based, 0 = disabled)")]
     [Min(0)] public int LevelUnlockItemTime = 10;
 
+    // Lấy mốc level mở khóa của từng cơ chế nguyên liệu hoặc khách rush.
     public int GetItemUnlockLevel(FoodState item)
     {
         switch (item)
@@ -94,6 +95,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Tìm cơ chế nguyên liệu mở khóa kế tiếp và mốc trước đó để tính tiến trình hiển thị.
     public bool TryGetNextItemUnlock(int reachedLevel, out FoodState item, out int previousLevel, out int unlockLevel)
     {
         reachedLevel = Mathf.Max(1, reachedLevel);
@@ -111,6 +113,7 @@ public class GameManager : MonoBehaviour
         unlockLevel = nextItem == FoodState.Normal ? 0 : next;
         return nextItem != FoodState.Normal;
 
+        // So sánh một mốc mở khóa với tiến trình để cập nhật mốc trước và mốc kế tiếp gần nhất.
         void Consider(FoodState candidate, int target)
         {
             if (target <= 0) return;
@@ -123,6 +126,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Giữ một GameManager xuyên cảnh và thiết lập tween, input, tốc độ khung hình cùng trạng thái ban đầu.
     protected void Awake()
     {
         if (ins != null && ins != this) { Destroy(gameObject); return; }
@@ -139,34 +143,41 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.MainMenu);
     }
 
+    // Khởi động coroutine nạp dữ liệu và điều hướng vào game.
     private void Start()
     {
         StartCoroutine(ie_LoadGame());
     }
 
+    // Xóa tham chiếu singleton nếu đối tượng hiện tại bị hủy.
     private void OnDestroy() { if (ins == this) ins = null; }
 
     // ===== State helpers =====
+    // Gán trạng thái hoạt động chung của game.
     public static void ChangeState(GameState state)
     {
         gameState = state;
     }
 
+    // Gán khu vực hiện tại trong luồng điều hướng game.
     public static void ChangeScene(GameScene state)
     {
         gameScene = state;
     }
 
+    // Kiểm tra game có đang ở trạng thái được yêu cầu.
     public static bool IsState(GameState state)
     {
         return gameState == state;
     }
 
+    // Kiểm tra game có đang ở khu vực được yêu cầu.
     public static bool IsScene(GameScene scence)
     {
         return gameScene == scence;
     }
 
+    // Lấy chỉ số màn cần chơi từ LevelManager, dùng màn đầu nếu chưa có manager.
     private int SelectedLevelIndex()
     {
         LevelManager level = LevelManager.Ins;
@@ -179,6 +190,7 @@ public class GameManager : MonoBehaviour
     //  Cùng thứ tự với game Sand:
     //  chờ hệ thống -> LoadData -> load scene GamePlay -> quyết định vào level hay Home.
     // =====================================================================
+    // Điều phối khởi động: chờ dữ liệu và UI, nạp cảnh gameplay rồi hiển thị màn chơi hoặc trang chủ.
     private IEnumerator ie_LoadGame()
     {
         IsLoadingLevel = true;
@@ -246,6 +258,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Giống Sand: allowSceneActivation = false tới 0.9 rồi mới cho kích hoạt.
+    // Nạp bất đồng bộ cảnh gameplay nếu chưa tồn tại và chờ cảnh được kích hoạt xong.
     private IEnumerator LoadGamePlayScene()
     {
         Scene scene = SceneManager.GetSceneByName(GamePlaySceneName);
@@ -266,6 +279,7 @@ public class GameManager : MonoBehaviour
     // Dựng board + mở HUD dưới lớp phủ (loading hoặc transit) để khi lớp phủ đóng thì UI đã sẵn sàng.
     // openHudUnderCover = false: chỉ dựng board, HUD sẽ được mở đúng lúc lớp phủ biến mất
     // (dùng cho lúc vào game để HUD và scene GamePlay hiện cùng một frame).
+    // Dựng màn dưới lớp che, chờ bố cục ổn định và tùy chọn mở HUD trước khi bỏ che.
     private IEnumerator LoadLevelUnderCover(LevelManager level, int index, bool openHudUnderCover)
     {
         level.LoadLevel(index, false);
@@ -287,6 +301,7 @@ public class GameManager : MonoBehaviour
     // =====================================================================
     //  LEVEL FLOW (tương đương ClickPlayGame / OnRetry 
     // =====================================================================
+    // Kiểm tra điều kiện bắt đầu từ trang chủ và khởi chạy luồng nạp màn đã chọn.
     public bool StartCurrentLevel()
     {
         if (IsLoadingLevel || !IsScene(GameScene.Home) || DataManager.ins == null ||
@@ -296,6 +311,7 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    // Nhận thưởng còn thiếu rồi điều hướng về trang chủ hoặc nạp màn tiếp theo sau chiến thắng.
     public bool ContinueAfterVictory()
     {
         LevelManager level = LevelManager.Ins;
@@ -314,6 +330,7 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    // Kiểm tra trạng thái và khởi chạy luồng chơi lại màn hiện tại.
     public bool ReplayCurrentLevel()
     {
         LevelManager level = LevelManager.Ins;
@@ -325,6 +342,7 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    // Che màn bằng hiệu ứng chuyển cảnh, giữ gameplay, dựng level và khôi phục UI khi hoàn tất.
     private IEnumerator LoadSelectedLevel(int index)
     {
         CanvasTransit transit = null;
@@ -382,6 +400,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Chạy chuyển cảnh về trang chủ sau chiến thắng và luôn dọn cờ đang nạp khi kết thúc.
     private IEnumerator ReturnHomeAfterVictory()
     {
         CanvasTransit transit = null;
@@ -406,6 +425,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Trở về trang chủ khi luồng nạp và chế độ hiện tại cho phép.
     public void ReturnToMainMenu()
     {
         if (IsLoadingLevel || UIManager.Ins == null) return;
@@ -413,6 +433,7 @@ public class GameManager : MonoBehaviour
         OpenMainMenu();
     }
 
+    // Đóng các UI liên quan, dọn màn chơi và mở trang chủ với trạng thái game tương ứng.
     private void OpenMainMenu(UICanvas transition = null)
     {
         if (UIManager.Ins == null) return;
@@ -425,6 +446,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Hook chạy ngay trước khi vào level (Sand: ResolutionFitter, NotificationManager...).
+    // Điểm mở rộng trước khi vào màn; hiện chưa có xử lý bổ sung.
     public void IntoLevelHandle()
     {
         //ResolutionFitter.cur.Apply();
@@ -434,6 +456,7 @@ public class GameManager : MonoBehaviour
     // =====================================================================
     //  APP LIFECYCLE
     // =====================================================================
+    // Lưu dữ liệu người chơi và PlayerPrefs khi ứng dụng bị tạm dừng.
     private void OnApplicationPause(bool pauseStatus)
     {
         if (!pauseStatus) return;
@@ -441,6 +464,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    // Lưu dữ liệu đã nạp khi ứng dụng mất quyền tập trung.
     private void OnApplicationFocus(bool hasFocus)
     {
         if (DataManager.ins == null || !DataManager.ins.isLoaded) return;

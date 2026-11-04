@@ -10,6 +10,7 @@ public class CanvasButtonLanguage : MonoBehaviour
     public TMP_Text textt1;
     public TMP_Text textt2;
 
+    // Đổi hình và nhãn sang trạng thái được chọn rồi gọi điểm xử lý chọn ngôn ngữ.
     public void OnClick()
     {
         if (imagebutton != null)
@@ -21,6 +22,7 @@ public class CanvasButtonLanguage : MonoBehaviour
         }
         OnSelectLanguage();
     }
+    // Điểm áp dụng ngôn ngữ được chọn; hiện chưa có xử lý đang hoạt động.
     public void OnSelectLanguage()
     {
         //LocalizationManager.CurrentLanguageCode = LanguageCode.ToString();
@@ -29,6 +31,7 @@ public class CanvasButtonLanguage : MonoBehaviour
         //SoundManager.PlayEfx(SoundID.sfx_ui_button_click);
         //UIManager.Ins.GetUI<CanvasSetting>().ChoosenLanguage();
     }
+    // Đồng bộ hai bộ hình và nhãn của nút ngôn ngữ theo trạng thái yêu cầu.
     public void SetActiveImage(bool ck)
     {
         if (imagebutton != null)

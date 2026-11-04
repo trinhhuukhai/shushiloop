@@ -12,6 +12,7 @@ public class ButtonScaleEffect : MonoBehaviour,
     [SerializeField] private float duration = 0.07f;
     private Vector3 originalScale;
 
+    // Lưu kích thước ban đầu của nút để phục hồi sau tương tác.
     void Start()
     {
         originalScale = transform.localScale;
@@ -37,6 +38,7 @@ public class ButtonScaleEffect : MonoBehaviour,
         ReturnToOriginal();
     }
 
+    // Dừng tween hiện tại và thu nút về tỉ lệ gốc bằng hiệu ứng chuyển động.
     private void ReturnToOriginal()
     {
         transform.DOKill();

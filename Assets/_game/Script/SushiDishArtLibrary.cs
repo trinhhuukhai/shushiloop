@@ -26,6 +26,7 @@ public class SushiDishArtLibrary : ScriptableObject
     [Tooltip("Ảnh order riêng cho từng tổ hợp. Để trống sẽ ghép ảnh nguyên liệu trên đĩa.")]
     public List<CustomEntry> customRecipes = new List<CustomEntry>();
 
+    // Tìm sprite theo công thức tùy chỉnh hoặc món catalog có cùng khóa nguyên liệu.
     public Sprite GetSprite(SushiRecipe recipe)
     {
         foreach (CustomEntry entry in customRecipes)
@@ -38,6 +39,7 @@ public class SushiDishArtLibrary : ScriptableObject
         return null;
     }
 
+    // Tìm sprite món ăn theo mã món trong danh sách thư viện.
     public Sprite GetSprite(SushiDishId id)
     {
         foreach (var entry in dishes) if (entry != null && entry.dish == id) return entry.sprite;

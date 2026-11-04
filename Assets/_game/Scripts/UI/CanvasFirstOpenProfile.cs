@@ -11,6 +11,7 @@ public class CanvasFirstOpenProfile : UICanvas
     public RectTransform mainPanelRect;
     private Tween popTween;
 
+    // Mở popup đặt tên lần đầu với hiệu ứng và điền tên hiện tại.
     public override void Open()
     {
         base.Open();
@@ -20,6 +21,7 @@ public class CanvasFirstOpenProfile : UICanvas
         inputField.text = ProfileDataFragment.cur.gameData.userName;
     }
 
+    // Ghi tên nhập không rỗng vào hồ sơ hoặc phục hồi tên cũ nếu để trống.
     public void OnEndEdit()
     {
         if (inputField.text.Length > 0)
@@ -32,6 +34,7 @@ public class CanvasFirstOpenProfile : UICanvas
         }
     }
 
+    // Mở popup hồ sơ chính rồi đóng popup đặt tên lần đầu.
     public void OnClickSave()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -39,6 +42,7 @@ public class CanvasFirstOpenProfile : UICanvas
         base.CloseDirectly();
     }
 
+    // Cắt nội dung còn 10 ký tự khi độ dài tên nhập vượt quá 14 ký tự.
     public void OnValueChange()
     {
         if (inputField.text.Length > 14)

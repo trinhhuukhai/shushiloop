@@ -24,6 +24,7 @@ public class CanvasNewItem : UICanvas
     //    PlayPop();
     //}
 
+    // Dừng tween cũ và chạy hiệu ứng xuất hiện cho panel giới thiệu.
     private void PlayPop()
     {
         popTween?.Kill();
@@ -32,6 +33,7 @@ public class CanvasNewItem : UICanvas
     }
 
     // Gọi ngay sau OpenUI<CanvasNewItem>() để chọn item cần hiển thị.
+    // Gán cơ chế cùng callback tiếp tục, tự chuẩn bị tutorial khách vội nếu chưa có callback.
     public void Setupp(FoodState item, System.Action onClosed = null)
     {
         PlayPop();
@@ -51,6 +53,7 @@ public class CanvasNewItem : UICanvas
         ShowItem(item);
     }
 
+    // Chọn hình ảnh, tiêu đề và mô tả theo cơ chế mới được giới thiệu.
     private void ShowItem(FoodState item)
     {
         currentItem = item;
@@ -85,6 +88,7 @@ public class CanvasNewItem : UICanvas
         }
     }
 
+    // Dừng hiệu ứng và xóa callback tiếp tục khi popup bị tắt.
     protected override void OnDisable()
     {
         popTween?.Kill();
@@ -92,8 +96,10 @@ public class CanvasNewItem : UICanvas
         base.OnDisable();
     }
 
+    // Hủy tween xuất hiện còn chạy khi popup bị hủy.
     private void OnDestroy() => popTween?.Kill();
 
+    // Lưu callback, đóng popup rồi gọi bước tiếp tục đúng một lần.
     private void CloseAndContinue()
     {
         var callback = onClosed;
@@ -102,6 +108,8 @@ public class CanvasNewItem : UICanvas
         callback?.Invoke();
     }
 
+    // Đóng giới thiệu cơ chế và tiếp tục callback đã gán.
     public void Close() => CloseAndContinue();
+    // Đóng giới thiệu và tiếp tục luồng hướng dẫn khi nhận phím quay lại.
     public override void BackKey() => CloseAndContinue();
 }

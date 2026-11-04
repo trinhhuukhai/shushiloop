@@ -112,6 +112,7 @@ public partial class ConveyorManager : MonoBehaviour
             return false;
         }
     }
+    // Kiểm tra tham chiếu, dựng các vị trí băng chuyền và khởi động với tốc độ của màn chơi.
     public void Init(int count, float speed)
     {
         if (spline == null || slotPrefab == null || slotRoot == null || customerManager == null || flyingFoodRoot == null)
@@ -156,6 +157,7 @@ public partial class ConveyorManager : MonoBehaviour
         NotifyOccupancy();
     }
 
+    // Di chuyển băng chuyền rồi xử lý nguyên liệu trong túi, ghép món và giao nguyên liệu cho khách.
     private void Update()
     {
         RefreshDoubleSpeed();
@@ -180,6 +182,7 @@ public partial class ConveyorManager : MonoBehaviour
         CheckCustomerOrders(previousProgress, advance);
     }
 
+    // Đặt từng vị trí băng chuyền lên đường chạy theo tiến độ vòng hiện tại.
     private void UpdateSlotPositions()
     {
         for (int i = 0; i < slots.Count; i++)
@@ -197,6 +200,7 @@ public partial class ConveyorManager : MonoBehaviour
         }
     }
 
+    // Dừng hoặc chạy lại băng chuyền khi đã có các vị trí hoạt động.
     public void SetPaused(bool paused)
     {
         isRunning = !paused && slots.Count > 0;
@@ -204,23 +208,27 @@ public partial class ConveyorManager : MonoBehaviour
 
     // Pause only belt movement so Magnet can still collect ingredients while targeting.
     // Keep the level/popup pause independent when targeting ends.
+    // Tạm dừng chuyển động băng chuyền trong lúc người chơi chọn mục tiêu nam châm.
     public void SetMagnetPaused(bool paused)
     {
         magnetPaused = paused;
     }
 
+    // Đảo lựa chọn tốc độ gấp đôi của người chơi và tính lại tốc độ thực tế.
     public void ToggleSpeed()
     {
         manualDoubleSpeed = !manualDoubleSpeed;
         RefreshDoubleSpeed();
     }
 
+    // Bật tốc độ gấp đôi khi người chơi chọn hoặc khi bàn nguyên liệu đã trống.
     private void RefreshDoubleSpeed()
     {
         BoardShishiManager board = BoardShishiManager.Ins;
         doubleSpeed = manualDoubleSpeed || (board != null && board.IsEmpty());
     }
 
+    // Dừng băng chuyền, hủy hiệu ứng, thu hồi nguyên liệu, món, túi và các vị trí cũ.
     public void Clear()
     {
         isRunning = false;
@@ -267,6 +275,7 @@ public partial class ConveyorManager : MonoBehaviour
         OccupiedSlotCount >= Mathf.CeilToInt(Capacity * 0.8f) ? capacityWarningColor : capacityNormalColor;
     private readonly object pickupTweenId = new object();
     public event System.Action<int, int> OnOccupancyChanged;
+    // Cập nhật nhãn sức chứa và phát sự kiện số vị trí đang bị chiếm.
     private void NotifyOccupancy()
     {
         if (capacityLabel != null)
@@ -279,6 +288,7 @@ public partial class ConveyorManager : MonoBehaviour
     }
     private bool CanInteract => isRunning && (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
 
+    // Kiểm tra quyền tương tác và tutorial trước khi lập kế hoạch lấy đầu cột lên băng chuyền.
     public bool TryTakeFromQueue(FoodQueue queue)
     {
         if (SushiLevelOneTutorial.IsInputLocked && !SushiLevelOneTutorial.AllowsQueue(queue)) return false;
@@ -287,6 +297,7 @@ public partial class ConveyorManager : MonoBehaviour
         return TryTakePlan(queue.Board, plan, FoodPickMode.Tap);
     }
 
+    // Kiểm tra tutorial và thử thực hiện kế hoạch lấy nguyên liệu bằng đũa.
     public bool TryTakeChopsticks(FoodShushi food)
     {
         if (SushiLevelOneTutorial.IsInputLocked && !ControlTutorial.AllowsChopsticks(food)) return false;
@@ -296,6 +307,7 @@ public partial class ConveyorManager : MonoBehaviour
             TryTakePlan(board, plan, FoodPickMode.Chopsticks);
     }
 
+    // Kiểm tra món thuộc khách đang phục vụ và khách vẫn còn khả năng nhận món.
     private bool IsValidMagnetTarget(BoardShishiManager board, Customer customer, SushiDishOrder dish)
     {
         if (board == null || customer == null || dish == null || !customer.IsSeated ||
@@ -307,6 +319,7 @@ public partial class ConveyorManager : MonoBehaviour
     }
 
     // Preview availability without consuming ingredients, including while a tutorial holds gameplay.
+    // Kiểm tra món có thể được chọn cho nam châm dựa trên tiến độ và nguồn nguyên liệu.
     public bool CanTargetMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
     {
         if (!IsValidMagnetTarget(board, customer, dish)) return false;
@@ -323,6 +336,7 @@ public partial class ConveyorManager : MonoBehaviour
         return TryBuildMagnetPlan(board, dish, out _, out _);
     }
 
+    // Lập kế hoạch hút đủ phần còn thiếu, ưu tiên nguyên liệu trên băng chuyền và trong túi trước bàn.
     private bool TryBuildMagnetPlan(BoardShishiManager board, SushiDishOrder dish,
         out List<FoodPickup> boardPlan, out List<KeyValuePair<Transform, FoodShushi>> beltPlan)
     {
@@ -344,6 +358,7 @@ public partial class ConveyorManager : MonoBehaviour
         return needed > 0;
     }
 
+    // Thực hiện hút nguyên liệu cho món sau khi giữ đủ ô nhận, rồi chờ các chuyến giao hoàn tất.
     public bool TryTakeMagnet(BoardShishiManager board, Customer customer, SushiDishOrder dish)
     {
         if (SushiLevelOneTutorial.IsInputLocked && !ControlTutorial.AllowsMagnet(customer, dish)) return false;
@@ -403,6 +418,7 @@ public partial class ConveyorManager : MonoBehaviour
         return true;
     }
 
+    // Kiểm tra kế hoạch, giữ đủ vị trí, tạo nguyên liệu lẻ rồi trừ bàn và chạy hiệu ứng bay.
     private bool TryTakePlan(BoardShishiManager board, IReadOnlyList<FoodPickup> plan, FoodPickMode mode)
     {
         int total = 0;
@@ -484,6 +500,7 @@ public partial class ConveyorManager : MonoBehaviour
         NotifyOccupancy();
         return true;
     }
+    // Phát hiện nguyên liệu đi qua điểm giao và giữ ô nhận cho khách ưu tiên còn cần loại đó.
     private void CheckCustomerOrders(
         float previousProgress,
         float advance)
@@ -559,6 +576,7 @@ public partial class ConveyorManager : MonoBehaviour
         }
     }
 
+    // Chạy hiệu ứng giao nguyên liệu đã giữ chỗ và xác nhận nhận hàng khi bay tới đích.
     private void FlyToCustomer(
     FoodShushi food,
     Customer customer,
@@ -597,17 +615,21 @@ public partial class ConveyorManager : MonoBehaviour
         }, preserveScale: true);
     }
 
+    // Tính thời gian bay với phần bù nhỏ theo khoảng cách tới đích.
     private static float TravelDuration(float duration, Vector3 start, Vector3 end) =>
         Mathf.Max(0.1f, duration) + Mathf.Min(0.16f, Vector3.Distance(start, end) * 0.025f);
 
+    // Đặt kích thước thế giới của đối tượng có tính đến tỉ lệ của đối tượng cha.
     private static void SetWorldScale(Transform subject, Vector3 scale)
     {
         Vector3 parentScale = subject.parent != null ? subject.parent.lossyScale : Vector3.one;
         subject.localScale = new Vector3(scale.x / Nonzero(parentScale.x), scale.y / Nonzero(parentScale.y), scale.z / Nonzero(parentScale.z));
     }
 
+    // Thay hệ số gần bằng không bằng 1 để tránh chia cho không khi đổi tỉ lệ.
     private static float Nonzero(float value) => Mathf.Abs(value) < 0.0001f ? 1f : value;
 
+    // Tạo chuyển động bay vòng cung tới đích động, kèm chờ, lấy đà và co giãn khi cần.
     private void AnimateFlight(FoodShushi food, Transform target, float duration, float height, float endScale,
         float delay, float anticipation, object tweenId, System.Action onComplete, bool preserveScale = false)
     {
@@ -656,6 +678,7 @@ public partial class ConveyorManager : MonoBehaviour
 
     private float[] deliveryProgresses;
 
+    // Chiếu vị trí các ghế lên đường băng chuyền để xác định các điểm giao nguyên liệu.
     private void BuildDeliveryPoints()
     {
         deliveryProgresses = new float[customerManager.ActiveCustomers.Count];
@@ -666,6 +689,7 @@ public partial class ConveyorManager : MonoBehaviour
         }
     }
 
+    // Hủy hiệu ứng giao, hoàn lại ô nhận đã giữ và trả nguyên liệu đang bay về pool.
     private void ClearDeliveringFoods()
     {
         DOTween.Kill(deliveryTweenId);

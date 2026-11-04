@@ -78,6 +78,7 @@ public class CanvasGamePlay : UICanvas
     // Có booster đang được dùng (cờ do FoodInputController bật/tắt trong BoosterManager).
     private static bool IsAnyBoosterInUse => BoosterManager.Existing != null && BoosterManager.Existing.IsUsingAny;
 
+    // Căn panel theo vùng an toàn và lưu vị trí ban đầu của nhóm booster.
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
@@ -87,6 +88,7 @@ public class CanvasGamePlay : UICanvas
             Debug.LogError("CanvasGamePlay requires BoosterGroup to be assigned.", this);
     }
 
+    // Mở HUD, cập nhật booster, trạng thái mắc kẹt và hiệu ứng độ khó cho màn đang chơi.
     public override void Open()
     {
         base.Open();
@@ -133,6 +135,7 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
+    // Chuẩn bị mục tiêu tutorial, làm nổi nút booster và bật bàn tay chỉ dẫn.
     public void StartBoosterTutorial(BoosterType type)
     {
         if (SushiLevelOneTutorial.IsInputLocked) return;
@@ -160,6 +163,7 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
+    // Tắt spotlight cùng bàn tay và tùy chọn lưu trạng thái đã học booster.
     private void EndBoosterTutorial(BoosterType type, bool completed = true)
     {
         if (tutorialBooster != type) return;
@@ -170,6 +174,7 @@ public class CanvasGamePlay : UICanvas
         if (completed) GameDataFragment.cur.MarkBoosterTutorialDone(type);
     }
 
+    // Lấy đối tượng nút đã mở khóa theo loại booster.
     private GameObject GetBoosterUnlockObj(BoosterType type)
     {
         switch (type)
@@ -181,6 +186,7 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
+    // Lấy bàn tay hướng dẫn tương ứng với loại booster.
     private GameObject GetBoosterHand(BoosterType type)
     {
         switch (type)
@@ -192,6 +198,7 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
+    // Hiện nhóm booster khi người chơi đã mở khóa ít nhất một loại.
     public void CheckShowTabBooster()
     {
         if (BoosterGroup == null) return;
@@ -210,6 +217,7 @@ public class CanvasGamePlay : UICanvas
         ApplyBoosterState(BoosterType.Magnet, bsMagnetUnlock, bsMagnetLock, countBsMagnet, imgFreeMagnet);
     }
 
+    // Áp dụng trạng thái khóa và lần dùng đầu vào các đối tượng hiển thị của một booster.
     private static void ApplyBoosterState(BoosterType type, GameObject unlockObj, GameObject lockObj,
         GameObject countObj, GameObject freeObj)
     {
@@ -227,6 +235,7 @@ public class CanvasGamePlay : UICanvas
         SetActiveSafe(countObj, unlocked && firstUsed);
     }
 
+    // Đổi trạng thái bật tắt khi đối tượng tồn tại và giá trị thực sự thay đổi.
     private static void SetActiveSafe(GameObject obj, bool active)
     {
         if (obj != null && obj.activeSelf != active) obj.SetActive(active);
@@ -234,6 +243,7 @@ public class CanvasGamePlay : UICanvas
 
 
 
+    // Khóa UI trong lúc icon booster bay tới đích rồi ẩn icon và mở lại thao tác.
     public void FlyIconBooster(RectTransform iconFly, RectTransform target, int id)
     {
         if (iconFly == null || target == null)
@@ -272,6 +282,7 @@ public class CanvasGamePlay : UICanvas
     }
 
 
+    // Hiện cảnh báo mắc kẹt với nội dung theo lý do đầy băng chuyền, hết giờ hoặc đóng băng.
     public void setImgStuck(bool check, SushiReviveReason reviveReason)
     {
         imgStuck.SetActive(check);
@@ -290,6 +301,7 @@ public class CanvasGamePlay : UICanvas
     }
 
     
+    // Chạy hiệu ứng giới thiệu màn Hard hoặc SuperHard rồi ẩn nhóm hiệu ứng sau thời gian chờ.
     public void ShowAnim()
     {
         AnimLevelHardGroup.gameObject.SetActive(false);
@@ -315,6 +327,7 @@ public class CanvasGamePlay : UICanvas
         });
     }
 
+    // Giới thiệu cơ chế mới đúng mốc level và chạy tutorial sau khi popup đóng trong cùng phiên màn.
     public void OpenUINewItem()
     {
         var data = GameDataFragment.cur;
@@ -340,6 +353,7 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
+    // Làm mới HUD mỗi frame và thử mở các bài giới thiệu khi người chơi được phép tương tác.
     private void Update()
     {
         Refresh();
@@ -349,6 +363,7 @@ public class CanvasGamePlay : UICanvas
         CheckShowUnlockBooster();
     }
 
+    // Đồng bộ level, tiến độ khách, sức chứa, tiền, tốc độ và hướng dẫn chế độ booster.
     public void Refresh()
     {
         LevelManager level = LevelManager.Ins;
@@ -394,6 +409,7 @@ public class CanvasGamePlay : UICanvas
         }
     }
 
+    // Khôi phục nhóm booster khi nạp màn mới và trượt nhóm xuống sau khi bàn hết nguyên liệu.
     private void RefreshBoosterGroup(LevelManager level)
     {
         if (BoosterGroup == null) return;
@@ -425,17 +441,22 @@ public class CanvasGamePlay : UICanvas
         BoosterGroup.DOAnchorPos(targetPosition, 0.35f).SetEase(Ease.InOutSine);
     }
 
+    // Hủy tween của nhóm booster khi HUD bị hủy.
     private void OnDestroy()
     {
         if (BoosterGroup != null) DOTween.Kill(BoosterGroup);
     }
 
+    // Chọn chế độ gắp bằng đũa rồi cập nhật HUD.
     public void ButtonBoosterPick() { input?.SelectChopsticks(); Refresh(); }
+    // Yêu cầu hoán đổi hàng rồi cập nhật HUD.
     public void ButtonBoosterHoanDoi() { input?.UseSwapRow(); Refresh(); }
+    // Chọn chế độ nam châm rồi cập nhật HUD.
     public void ButtonBoosterHut() { input?.SelectMagnet(); Refresh(); }
 
     // Cờ "đang dùng" do FoodInputController đặt khi vào chế độ booster thật sự,
     // nên nếu không chọn được (hết lượt, đang khoá input...) cờ không bị kẹt true.
+    // Xử lý nút đũa: xác nhận tutorial, kiểm tra quyền dùng hoặc mở popup bổ sung booster.
     public void BoosterClick()
     {
         if (ControlTutorial.IsInputLocked && ControlTutorial.Ins.Step == ControlTutorial.TutorialStep.Booster)
@@ -455,6 +476,7 @@ public class CanvasGamePlay : UICanvas
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Click);
     }
 
+    // Xử lý nút hoán đổi: kiểm tra trạng thái, kết thúc hướng dẫn và dùng hoặc bổ sung booster.
     public void BoosterSuffle()
     {
         if (SushiLevelOneTutorial.IsInputLocked) return;
@@ -468,6 +490,7 @@ public class CanvasGamePlay : UICanvas
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Shuffle);
     }
 
+    // Xử lý nút nam châm: xác nhận tutorial, kiểm tra quyền dùng hoặc mở popup bổ sung booster.
     public void BoosterHut()
     {
         if (ControlTutorial.IsInputLocked && ControlTutorial.Ins.Step == ControlTutorial.TutorialStep.Booster)
@@ -487,26 +510,41 @@ public class CanvasGamePlay : UICanvas
             UIManager.Ins.OpenUI<CanvasMoreBooster>().Innit(BoosterType.Magnet);
     }
 
+    // Hủy chế độ booster ngoài lúc tutorial khóa input và làm mới HUD.
     public void CancelBooster() { if (SushiLevelOneTutorial.IsInputLocked) return; input?.CancelBooster(); Refresh(); }
+    // Đổi tốc độ băng chuyền khi màn cho phép thao tác và tutorial không khóa input.
     public void OnClickChangeSpeed() { if (LevelManager.Ins == null || !LevelManager.Ins.CanInteract || SushiLevelOneTutorial.IsInputLocked) return; LevelManager.Ins.Conveyor.ToggleSpeed(); Refresh(); }
+    // Đồng bộ tốc độ gấp đôi theo giá trị yêu cầu thông qua thao tác đổi tốc độ hợp lệ.
     public void ChangeSpeed(bool value)
     {
         if (LevelManager.Ins != null && LevelManager.Ins.Conveyor.IsDoubleSpeed != value) OnClickChangeSpeed();
     }
+    // Chuyển tới màn trước qua LevelManager.
     public void PreviousLevel() => LevelManager.Ins?.PreviousLevel();
+    // Chuyển tới màn kế tiếp qua LevelManager.
     public void NextLevel() => LevelManager.Ins?.NextLevel();
+    // Nạp lại màn hiện tại qua LevelManager.
     public void ReplayLevel() => LevelManager.Ins?.ReplayLevel();
+    // Mở cài đặt trong game khi tutorial không khóa thao tác.
     public void btnSettingIngame() { if (!SushiLevelOneTutorial.IsInputLocked) UIManager.Ins.OpenUI<CanvasSetting>(); }
+    // Làm mới HUD để đồng bộ nhãn level cùng các thông tin liên quan.
     public void showTxtLevel() => Refresh();
+    // Hiển thị tiền hiện tại có phân nhóm hàng nghìn, dùng 0 khi chưa có dữ liệu.
     public void setTxtGold()
     {
         if (txtGold != null) txtGold.text = GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null ?
             GameDataFragment.cur.dataPlayer.money.ToString("N0") : "0";
     }
+    // Làm mới HUD và số lượng của tất cả booster.
     public void RefeshCoountAllBooster() => Refresh();
+    // Làm mới HUD sau thay đổi booster đũa.
     public void UpdateBoosterClick() => Refresh();
+    // Làm mới HUD sau thay đổi booster hoán đổi.
     public void UpdateBoosterSuffle() => Refresh();
+    // Làm mới HUD sau thay đổi booster nam châm.
     public void UpdateBoosterHut() => Refresh();
+    // Làm mới HUD để đồng bộ trạng thái tốc độ gấp đôi.
     public void ResfeshX2() => Refresh();
+    // Đóng trực tiếp giao diện gameplay.
     public void Close() => CloseDirectly();
 }

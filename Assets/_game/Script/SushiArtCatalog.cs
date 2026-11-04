@@ -27,6 +27,8 @@ public sealed class SushiArtCatalog : ScriptableObject
         }
     }
 
+    // Tra sprite nguyên liệu từ thư viện đang gắn với catalog.
     public Sprite GetIngredient(PoolType type) => ingredientImages != null ? ingredientImages.GetSprite(type) : null;
+    // Tra sprite món ăn từ thư viện món đang gắn với catalog.
     public Sprite GetDish(SushiDishId type) => dishImages != null ? dishImages.GetSprite(type) : null;
 }

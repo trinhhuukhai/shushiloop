@@ -41,6 +41,7 @@ public class CustomerManager : MonoBehaviour
 
     public IReadOnlyList<Customer> ActiveCustomers => activeCustomers;
 
+    // Duyệt khách đang ngồi trước, rồi khách chờ hoặc đang di chuyển theo thứ tự mã khách.
     public IEnumerable<Customer> FulfillmentPriority()
     {
         Customer first = activeCustomers[0], second = activeCustomers[1];
@@ -69,6 +70,7 @@ public class CustomerManager : MonoBehaviour
     public event Action OnAllCustomersCompleted;
     public event Action<Customer> OnRushExpired;
 
+    // Cập nhật thời gian chờ cho khách tại ghế và dừng ngay khi màn chơi mở popup.
     public void TickRush(float deltaTime)
     {
         foreach (Customer customer in activeCustomers)
@@ -79,6 +81,7 @@ public class CustomerManager : MonoBehaviour
         }
     }
 
+    // Tìm khách có mã nhỏ nhất tại ghế còn có thể nhận loại nguyên liệu này.
     public Customer FirstCustomerFor(PoolType type)
     {
         Customer first = null;
@@ -87,6 +90,7 @@ public class CustomerManager : MonoBehaviour
         return first;
     }
 
+    // Chuyển tiếp sự kiện khách hết giờ chờ cho hệ thống điều phối màn chơi.
     private void HandleRushExpired(Customer customer) => OnRushExpired?.Invoke(customer);
     [Header("Khách hoàn thành")]
     [SerializeField] private float completedDelay = 0.8f;
@@ -97,6 +101,7 @@ public class CustomerManager : MonoBehaviour
 
     private readonly object completedDelayId = new object();
     private bool allowSimultaneousRush = true;
+    // Kiểm tra dữ liệu, tạo khách cùng đơn hàng và bố trí hai ghế phục vụ với hàng chờ.
     public void Init(List<CustomerOrderData> customerOrders, bool simultaneousRush = true)
     {
         string error = ValidateData(customerOrders);
@@ -153,6 +158,7 @@ public class CustomerManager : MonoBehaviour
         NotifyProgress();
     }
 
+    // Kiểm tra prefab, ghế, vị trí hàng chờ và nội dung đơn hàng trước khi tạo khách.
     private string ValidateData(List<CustomerOrderData> customerOrders)
     {
         if (customerPrefab == null ||
@@ -207,6 +213,7 @@ public class CustomerManager : MonoBehaviour
         return null;
     }
 
+    // Chờ khách hoàn tất một nhịp rồi chạy chuyển động rời ghế.
     private void HandleCustomerCompleted(Customer customer)
     {
         int seatIndex = FindSeatIndex(customer);
@@ -242,6 +249,7 @@ public class CustomerManager : MonoBehaviour
         .SetId(completedDelayId);
     }
 
+    // Dọn khách đã rời đi, cập nhật tiến độ và gọi khách tiếp theo vào các ghế trống.
     private void FinishCustomerExit(Customer customer, int seatIndex)
     {
         if (customer == null || !finishingCustomers.Remove(customer)) return;
@@ -257,6 +265,7 @@ public class CustomerManager : MonoBehaviour
             OnAllCustomersCompleted?.Invoke();
     }
 
+    // Đưa khách đầu hàng vào ghế trống, tuân theo giới hạn khách rush đồng thời.
     private void MoveNextCustomerToSeat(int seatIndex)
     {
         if (activeCustomers[seatIndex] != null ||
@@ -310,6 +319,7 @@ public class CustomerManager : MonoBehaviour
         RefreshWaitingPositions();
     }
 
+    // Dồn các khách còn chờ về đúng vị trí sau khi hàng chờ thay đổi.
     private void RefreshWaitingPositions()
     {
         for (int i = 0; i < waitingCustomers.Count; i++)
@@ -331,11 +341,13 @@ public class CustomerManager : MonoBehaviour
         }
     }
 
+    // Lấy Transform ghế thứ nhất hoặc thứ hai theo chỉ số.
     public Transform GetSeat(int seatIndex)
     {
         return seatIndex == 0 ? firstSeat : seatIndex == 1 ? secondSeat : null;
     }
 
+    // Tìm chỉ số ghế đang phục vụ khách được chỉ định.
     private int FindSeatIndex(Customer customer)
     {
         for (int i = 0; i < activeCustomers.Length; i++)
@@ -347,6 +359,7 @@ public class CustomerManager : MonoBehaviour
         return -1;
     }
 
+    // Hủy đăng ký sự kiện, thu hồi nguyên liệu đã nhận và hủy đối tượng khách.
     private void RemoveCustomer(Customer customer)
     {
         if (customer == null)
@@ -373,6 +386,7 @@ public class CustomerManager : MonoBehaviour
         Destroy(customer.gameObject);
     }
 
+    // Phát số khách đã hoàn thành và tổng số khách cho các thành phần theo dõi.
     private void NotifyProgress()
     {
         OnProgressChanged?.Invoke(
@@ -381,6 +395,7 @@ public class CustomerManager : MonoBehaviour
         );
     }
 
+    // Hủy xử lý khách hoàn tất, dọn mọi khách tại ghế hoặc hàng chờ và đặt lại tiến độ.
     public void ClearCustomers()
     {
         DOTween.Kill(completedDelayId);
@@ -404,6 +419,7 @@ public class CustomerManager : MonoBehaviour
         CompletedCustomers = 0;
     }
 
+    // Hủy các tween di chuyển và trì hoãn hoàn tất khách khi manager bị hủy.
     private void OnDestroy()
     {
         DOTween.Kill(moveTweenId);

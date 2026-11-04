@@ -15,11 +15,13 @@ public class ConveyorSpline : MonoBehaviour
     public float Length { get; private set; }
     public bool Ready => positions != null && Length > 0f;
 
+    // Dựng dữ liệu đường chạy trước khi băng chuyền lấy vị trí.
     public void Initialize()
     {
         Rebuild();
     }
 
+    // Gán tâm, nửa kích thước và bán kính góc rồi dựng lại đường chạy.
     public void Configure(Vector2 centre, Vector2 half, float radius)
     {
         center = centre;
@@ -30,6 +32,7 @@ public class ConveyorSpline : MonoBehaviour
     }
 
     [Button]
+    // Tạo đường chữ nhật bo góc khép kín cùng bảng khoảng cách tích lũy cho băng chuyền.
     public void Rebuild()
     {
         float width = Mathf.Max(0.1f, halfSize.x);
@@ -74,6 +77,7 @@ public class ConveyorSpline : MonoBehaviour
         }
     }
 
+    // Thêm hai đầu mút đoạn thẳng vào danh sách điểm đường chạy.
     private static void AddLine( List<Vector2> points, Vector2 start, Vector2 end)
     {
         // Đoạn thẳng chỉ cần điểm đầu và điểm cuối.
@@ -81,6 +85,7 @@ public class ConveyorSpline : MonoBehaviour
         points.Add(end);
     }
 
+    // Lấy mẫu cung tròn để tạo các góc bo của đường băng chuyền.
     private static void AddArc(List<Vector2> points, Vector2 center, float radius, float startAngle, float endAngle)
     {
         const int samples = 40;
@@ -93,6 +98,7 @@ public class ConveyorSpline : MonoBehaviour
     }
 
     // progress: 0 → 1 là một vòng, vượt 1 sẽ tự lặp lại.
+    // Nội suy vị trí trên đường chạy theo tiến độ vòng đã chuẩn hóa.
     public Vector2 AtDistance(double progress)
     {
         CheckReady();
@@ -137,6 +143,7 @@ public class ConveyorSpline : MonoBehaviour
         return bestDistance / Length;
     }
 
+    // Báo lỗi nếu truy vấn đường chạy trước khi khởi tạo dữ liệu.
     private void CheckReady()
     {
         if (!Ready)

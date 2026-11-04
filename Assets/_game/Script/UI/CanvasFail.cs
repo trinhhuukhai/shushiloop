@@ -7,6 +7,7 @@ public class CanvasFail : UICanvas
     public TMP_Text txtGold;
     public RectTransform mainPanelRect;
     private Tween popTween;
+    // Mở popup thua, cập nhật trạng thái game, chạy hiệu ứng xuất hiện và hiển thị tiền.
     public override void Open()
     {
         base.Open();
@@ -18,14 +19,17 @@ public class CanvasFail : UICanvas
 
         Refresh();
     }
+    // Cập nhật số tiền người chơi trên popup thua.
     private void Refresh()
     {
         txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString();
     }
+    // Yêu cầu GameManager quay về trang chủ.
     public void BtnHome()
     {
         GameManager.ins.ReturnToMainMenu();
     }
+    // Chơi lại nếu còn mạng hoặc đang vô hạn mạng, chỉ trừ mạng sau khi yêu cầu chơi lại được chấp nhận.
     public void BtnRetry()
     {
 
@@ -52,5 +56,6 @@ public class CanvasFail : UICanvas
 
     }
 
+    // Đóng trực tiếp popup thất bại.
     public void Close() => CloseDirectly();
 }

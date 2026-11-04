@@ -44,6 +44,7 @@ public class CanvasVictory : UICanvas
     [SerializeField, Min(0f)] private float unlockFillDuration = 0.8f;
     private Tween unlockTween;
 
+    // Mở chiến thắng, đặt lại luồng nhận thưởng và cập nhật tiền cùng tiến độ mở khóa cơ chế.
     public override void Open()
     {
         base.Open();
@@ -60,18 +61,21 @@ public class CanvasVictory : UICanvas
         setGoldRwTmp();
     }
 
+    // Lưu khoản thưởng màn hiện tại vào tiền tạm để theo dõi thưởng chưa nhận.
     public void setGoldRwTmp()
     {
         GameDataFragment.cur.dataPlayer.moneyTemp = LevelManager.Ins.VictoryReward;
         GameDataFragment.cur.Save();
     }
 
+    // Xóa và lưu khoản tiền thưởng tạm sau khi đã xử lý nhận thưởng.
     public void ResetGoldtemp()
     {
         GameDataFragment.cur.dataPlayer.moneyTemp = 0;
         GameDataFragment.cur.Save();
     }
 
+    // Hiển thị cơ chế sắp mở khóa và chạy thanh tiến trình từ mốc trước đến sau chiến thắng.
     public void RefreshUnlockProgress(int fromLevel, int toLevel, bool animate = true)
     {
         StopUnlockAnimation();
@@ -106,12 +110,14 @@ public class CanvasVictory : UICanvas
             .SetEase(Ease.OutCubic).SetUpdate(true)
             .OnUpdate(UpdateCount).OnComplete(CompleteFill).OnKill(() => unlockTween = null);
 
+        // Cập nhật số mốc đã đi qua theo lượng fill hiện tại của thanh mở khóa.
         void UpdateCount()
         {
             if (txtUnlockProgress != null)
                 txtUnlockProgress.text = $"{Mathf.FloorToInt(fillUnlockItem.fillAmount * span + 0.0001f)}/{span}";
         }
 
+        // Chốt thanh tiến trình tại giá trị cuối và đổi nội dung khi đã đạt mốc mở khóa.
         void CompleteFill()
         {
             fillUnlockItem.fillAmount = end;
@@ -120,6 +126,7 @@ public class CanvasVictory : UICanvas
         }
     }
 
+    // Bật biểu tượng tương ứng với cơ chế đang được theo dõi mở khóa.
     private void SetUnlockIcon(FoodState item)
     {
         if (iconHoiCham != null) iconHoiCham.SetActive(item == FoodState.HoiCham);
@@ -128,6 +135,7 @@ public class CanvasVictory : UICanvas
         if (iconTray != null) iconTray.SetActive(item == FoodState.RigidTray);
     }
 
+    // Lấy tên hiển thị tiếng Anh của cơ chế mở khóa trên popup chiến thắng.
     private static string UnlockItemName(FoodState item)
     {
         switch (item)
@@ -140,12 +148,14 @@ public class CanvasVictory : UICanvas
         }
     }
 
+    // Dừng và xóa tween tiến trình mở khóa đang chạy.
     private void StopUnlockAnimation()
     {
         unlockTween?.Kill();
         unlockTween = null;
     }
 
+    // Dừng hiệu ứng mở khóa cùng nhận thưởng khi popup chiến thắng bị tắt.
     protected override void OnDisable()
     {
         StopUnlockAnimation();
@@ -153,21 +163,27 @@ public class CanvasVictory : UICanvas
         base.OnDisable();
     }
 
+    // Hiển thị giá trị thưởng thắng thông thường.
     public void setTexxtGold() => goldRwTxt.text = (LevelManager.Ins != null ? LevelManager.Ins.VictoryReward : 0).ToString();
+    // Hiển thị giá trị thưởng thắng với hệ số gấp đôi.
     public void setTexxtGoldAds() => textGoldAds.text = (LevelManager.Ins != null ? LevelManager.Ins.VictoryReward * 2 : 0).ToString();
     private static int CurrentGold => GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null
         ? GameDataFragment.cur.dataPlayer.money : 0;
+    // Đồng bộ số tiền đang hiển thị với số tiền thực tế của người chơi.
     public void setTxtGold()
     {
         displayedGold = CurrentGold;
         if (txtGold != null) txtGold.text = displayedGold.ToString();
     }
 
+    // Bắt đầu nhận thưởng thông thường rồi tiếp tục luồng sau chiến thắng.
     public void BtnNext() => BeginReward(1);
 
     // The existing Ads button uses this entry point; an ads SDK should call it after reward success.
+    // Bắt đầu nhận thưởng gấp đôi; hiện điểm gọi này chưa thực hiện bước xem quảng cáo.
     public void BtnNextAds() => BeginReward(2);
 
+    // Chặn nhận lặp, chốt thưởng theo phiên màn rồi khởi động hiệu ứng tiền bay hoặc xử lý dự phòng.
     private void BeginReward(int multiplier)
     {
         LevelManager level = LevelManager.Ins;
@@ -202,6 +218,7 @@ public class CanvasVictory : UICanvas
     private bool IsRewardCurrent => advancing && rewardLevel != null && rewardLevel == LevelManager.Ins &&
         rewardLevel.HasWon && rewardLevel.LoadVersion == rewardLoadVersion;
 
+    // Bắt đầu hiệu ứng nhận tiền và tăng bộ đếm tới tổng tiền mới khi phiên thưởng còn hợp lệ.
     private void StartReceivingGold()
     {
         if (!IsRewardCurrent || goldReceiving) return;
@@ -226,6 +243,7 @@ public class CanvasVictory : UICanvas
             }).OnKill(() => goldCountTween = null);
     }
 
+    // Chốt hiệu ứng tiền bay một lần, dừng bộ chờ dự phòng và kiểm tra có thể chuyển tiếp.
     private void FinishCoinFlight()
     {
         if (!IsRewardCurrent || coinFlightFinished) return;
@@ -236,6 +254,7 @@ public class CanvasVictory : UICanvas
         TryFinishReward();
     }
 
+    // Chờ cả tiền bay và bộ đếm xong rồi lên lịch tiếp tục sau một nhịp nghỉ.
     private void TryFinishReward()
     {
         if (!IsRewardCurrent || !coinFlightFinished || !goldCountFinished || rewardAdvanceTween != null) return;
@@ -243,6 +262,7 @@ public class CanvasVictory : UICanvas
             .OnKill(() => rewardAdvanceTween = null);
     }
 
+    // Tiếp tục về trang chủ hoặc màn kế tiếp khi phiên thưởng vẫn hợp lệ.
     private void ContinueAfterReward()
     {
         if (!IsRewardCurrent) return;
@@ -265,12 +285,14 @@ public class CanvasVictory : UICanvas
         else level.ReplayLevel();
     }
 
+    // Bật hoặc khóa hai nút nhận thưởng để tránh thao tác lặp.
     private void SetRewardButtons(bool interactable)
     {
         if (btnGoldRW != null) btnGoldRW.interactable = interactable;
         if (btnAdsRW != null) btnAdsRW.interactable = interactable;
     }
 
+    // Hủy tween, sự kiện particle và trạng thái phiên nhận thưởng đang chạy.
     private void StopRewardEffects()
     {
         advancing = false;
@@ -290,7 +312,10 @@ public class CanvasVictory : UICanvas
         if (efectcoin != null) efectcoin.Stop(true);
     }
 
+    // Chuyển yêu cầu xử lý thưởng tạm sang luồng nhận thưởng thông thường.
     public void CheckMoneyTemp() => BtnNext();
+    // Ẩn nhóm nút quảng cáo khi tham chiếu đã được gán.
     public void checkShowBtnAds() { if (btnAds != null) btnAds.SetActive(false); }
+    // Đóng trực tiếp popup chiến thắng.
     public void Close() => CloseDirectly();
 }

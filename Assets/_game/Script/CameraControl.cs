@@ -8,9 +8,12 @@ public class CameraControl : SingletonMonoBehaviour<CameraControl>
     [SerializeField] private Vector2 playfieldSize = new Vector2(9f, 16f);
     [SerializeField] private Vector2 playfieldCenter = Vector2.zero;
 
+    // Lấy camera gắn trên đối tượng và căn vùng chơi ngay khi được bật.
     private void OnEnable() { cam = GetComponent<Camera>(); Fit(); }
+    // Căn lại camera sau mỗi frame để thích ứng với kích thước và vùng an toàn màn hình.
     private void LateUpdate() => Fit();
 
+    // Chỉnh camera trực giao để toàn bộ vùng chơi dọc nằm trong vùng an toàn của thiết bị.
     private void Fit()
     {
         if (cam == null) cam = GetComponent<Camera>();

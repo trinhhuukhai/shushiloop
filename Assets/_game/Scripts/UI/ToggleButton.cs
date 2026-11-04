@@ -40,6 +40,7 @@ public class ToggleButton : MonoBehaviour
         }
     }
 
+    // Đọc thiết lập đã lưu và đặt hình công tắc về trạng thái tương ứng ngay lập tức.
     private void Start()
     {
         // Khi khởi đầu, đồng bộ UI với data
@@ -48,6 +49,7 @@ public class ToggleButton : MonoBehaviour
         ImmediatelySetUI(ReadData());
     }
 
+    // Đảo trạng thái công tắc thông qua thuộc tính IsOn khi được nhấn.
     public void OnPointerClick()
     {
         // Đảo trạng thái

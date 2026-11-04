@@ -10,6 +10,7 @@ public class BoosterManager : Singleton<BoosterManager>
 
     public bool IsUsingAny => isUsingBoosterClick || isUsingBoosterShuffle || isUsingBoosterMagnet;
 
+    // Xóa toàn bộ cờ đang dùng booster khi rời hoặc khởi tạo lại màn chơi.
     public void ResetUsing()
     {
         isUsingBoosterClick = false;

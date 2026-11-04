@@ -30,11 +30,13 @@ public class CanvasProfile : UICanvas
     public TMP_Text winStreakText;
     public TMP_Text exploredItemText;
 
+    // Lưu tham chiếu popup hồ sơ hiện tại cho các ô chọn avatar.
     private void Awake()
     {
         cur = this;
     }
 
+    // Khởi tạo các lựa chọn avatar, khung và điền hình ảnh cùng tên đang lưu.
     private void Start()
     {
         for (int i = 0; i < uIChooseAvatars.Length; i++)
@@ -54,6 +56,7 @@ public class CanvasProfile : UICanvas
         inputField_name.text = ProfileDataFragment.cur.gameData.userName;
     }
 
+    // Chuyển sang đặt tên khi mở lần đầu, hoặc mở hồ sơ chính với hiệu ứng và tắt chế độ sửa.
     public override void Open()
     {
         bool isFirstOpen =
@@ -85,6 +88,7 @@ public class CanvasProfile : UICanvas
         SetShowEdit(false);
     }
 
+    // Đồng bộ avatar, tên, level, thành tích và ngày tham gia trên bảng hồ sơ.
     public void UpdateMainPanel()
     {
         avatarImage.sprite = ProfileDataFragment.cur.spr_avatars[ProfileDataFragment.cur.gameData.idAvatar];
@@ -113,6 +117,7 @@ public class CanvasProfile : UICanvas
         }
     }
 
+    // Chuyển giữa bảng xem hồ sơ và bảng chỉnh sửa, đồng bộ dấu chọn avatar.
     public void SetShowEdit(bool isEditOn)
     {
         editPanelObject.SetActive(isEditOn);
@@ -129,6 +134,7 @@ public class CanvasProfile : UICanvas
         }
     }
 
+    // Đóng trực tiếp popup hồ sơ.
     public void OnClose()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -137,6 +143,7 @@ public class CanvasProfile : UICanvas
         base.CloseDirectly();
     }
 
+    // Bật chế độ chỉnh sửa hồ sơ.
     public void OnOpenEditProfile()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -145,6 +152,7 @@ public class CanvasProfile : UICanvas
         SetShowEdit(true);
     }
 
+    // Thoát chế độ chỉnh sửa và hiển thị lại bảng hồ sơ chính.
     public void OnCloseProfile()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -153,6 +161,7 @@ public class CanvasProfile : UICanvas
         SetShowEdit(false);
     }
 
+    // Làm mới avatar, khung cùng dấu chọn trong bảng chỉnh sửa theo dữ liệu hồ sơ.
     public void UpdateAvatar()
     {
         img_avatar.sprite = ProfileDataFragment.cur.spr_avatars[ProfileDataFragment.cur.gameData.idAvatar];
@@ -165,6 +174,7 @@ public class CanvasProfile : UICanvas
         choosing.img_selecting.gameObject.SetActive(true);
     }
 
+    // Cập nhật tên không rỗng hoặc phục hồi tên đang lưu nếu người chơi xóa hết.
     public void OnChangeName()
     {
         if (inputField_name.text.Length > 0)
@@ -177,6 +187,7 @@ public class CanvasProfile : UICanvas
         }
     }
 
+    // Cắt tên về 10 ký tự khi nội dung ô nhập vượt quá 14 ký tự.
     public void OnValueChange()
     {
         if (inputField_name.text.Length > 14)
@@ -185,6 +196,7 @@ public class CanvasProfile : UICanvas
         }
     }
 
+    // Điểm mở cheat từ hồ sơ trên bản production; hiện chưa có xử lý đang hoạt động.
     public void OpenCheatOnProduction()
     {
         //if(inputField_name.text == GrandManager.ins.SecretKey && AdsManager.Ins.cheatEnabled && UIManager.ins.FukCanvas==null)

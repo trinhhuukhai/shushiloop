@@ -17,10 +17,14 @@ public class FoodInputController : MonoBehaviour
 
     private bool CanInteract => (!SushiLevelOneTutorial.IsInputLocked || ControlTutorial.IsConfirmingPickup) &&
         (LevelManager.Ins == null || LevelManager.Ins.CanInteract);
+    // Bật chế độ gắp bằng đũa khi được phép tương tác và còn quyền dùng booster.
     public void SelectChopsticks() { if (CanInteract && CanUseClickBooster) SetPickMode(FoodPickMode.Chopsticks); }
+    // Bật chế độ chọn món cho nam châm khi được phép tương tác và dùng booster.
     public void SelectMagnet() { if (CanInteract && CanUseMagnetBooster) SetPickMode(FoodPickMode.Magnet); }
+    // Đưa thao tác chọn nguyên liệu về chế độ chạm thông thường.
     public void CancelBooster() { SetPickMode(FoodPickMode.Tap); }
 
+    // Đổi chế độ chọn, đồng bộ dừng băng chuyền, lớp che hàng dưới và cờ booster.
     private void SetPickMode(FoodPickMode mode)
     {
         if (PickMode != mode)
@@ -48,6 +52,7 @@ public class FoodInputController : MonoBehaviour
         manager.isUsingBoosterShuffle = shuffleInProgress;
     }
 
+    // Thử hoán đổi hàng, chỉ trừ booster khi bàn thay đổi và giữ cờ dùng đến hết chuyển động.
     public void UseSwapRow()
     {
         if (SushiLevelOneTutorial.IsInputLocked || LevelManager.Ins == null || !LevelManager.Ins.CanInteract || BoosterCount(BoosterType.Shuffle) == 0) return;
@@ -65,6 +70,7 @@ public class FoodInputController : MonoBehaviour
     }
 
     // Tests and editor fixtures without a loaded profile keep unlimited boosters.
+    // Đọc số booster trong hồ sơ; trả về -1 để dùng không giới hạn khi chưa nạp hồ sơ.
     public static int BoosterCount(BoosterType type)
     {
         if (DataManager.ins == null || !DataManager.ins.isLoaded || GameDataFragment.cur == null ||
@@ -73,6 +79,7 @@ public class FoodInputController : MonoBehaviour
         return type == BoosterType.Click ? player.boosterClick : type == BoosterType.Shuffle ? player.boosterSuffle : player.boosterHut;
     }
 
+    // Trừ một lượt booster khi đang dùng dữ liệu người chơi thực tế.
     private static void ConsumeBooster(BoosterType type)
     {
         if (BoosterCount(type) >= 0) GameDataFragment.cur.ChangeBoosterCount(type, -1, "GamePlay");
@@ -83,8 +90,10 @@ public class FoodInputController : MonoBehaviour
     public static bool CanUseMagnetBooster => BoosterCount(BoosterType.Magnet) < 0 ||
         (GameDataFragment.cur != null && GameDataFragment.cur.CanUseBooster(BoosterType.Magnet));
 
+    // Lấy camera chính nếu chưa gán camera xử lý thao tác.
     private void Awake() { if (gameCamera == null) gameCamera = Camera.main; }
 
+    // Thử gắp nguyên liệu bằng đũa, trừ lượt và thoát chế độ booster nếu thành công.
     public bool TryUseChopsticks(FoodShushi food)
     {
         if (!CanInteract || !CanUseClickBooster || PickMode != FoodPickMode.Chopsticks || conveyorManager == null ||
@@ -94,6 +103,7 @@ public class FoodInputController : MonoBehaviour
         return true;
     }
 
+    // Thử hút đủ nguyên liệu cho món đã chọn, trừ lượt và thoát chế độ booster nếu thành công.
     public bool TryUseMagnet(Customer customer, SushiDishOrder dish)
     {
         if (!CanInteract || !CanUseMagnetBooster || PickMode != FoodPickMode.Magnet || conveyorManager == null || LevelManager.Ins == null ||
@@ -103,6 +113,7 @@ public class FoodInputController : MonoBehaviour
         return true;
     }
 
+    // Kết thúc hoặc hủy trạng thái booster theo diễn biến màn chơi và cập nhật các món có thể hút.
     private void LateUpdate()
     {
         if (!CanInteract)
@@ -125,6 +136,7 @@ public class FoodInputController : MonoBehaviour
             if (customer != null) customer.GetComponent<CustomerRecipeView>()?.SetMagnetTargeting(PickMode == FoodPickMode.Magnet);
     }
 
+    // Hủy booster và bỏ đánh dấu các mục tiêu nam châm khi bộ điều khiển bị tắt.
     private void OnDisable()
     {
         shuffleInProgress = false;
@@ -134,6 +146,7 @@ public class FoodInputController : MonoBehaviour
             if (customer != null) customer.GetComponent<CustomerRecipeView>()?.SetMagnetTargeting(false);
     }
 
+    // Nhận thao tác chạm hoặc chuột, ưu tiên UI và tutorial rồi xử lý xem món, gắp hoặc hút nguyên liệu.
     private void Update()
     {
         if (!TryGetPressPosition(out Vector2 screenPosition)) return;
@@ -194,6 +207,7 @@ public class FoodInputController : MonoBehaviour
         }
     }
 
+    // Đọc vị trí bắt đầu chạm hoặc nhấn chuột từ hệ thống input đang được bật.
     private bool TryGetPressPosition(out Vector2 position)
     {
         position = Vector2.zero;

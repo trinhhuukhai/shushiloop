@@ -22,6 +22,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     public SushiDishOrder Order { get; private set; }
     public bool IsReady { get; private set; }
 
+    // Gắn khách và đơn món cho đĩa, tạo các điểm đặt nguyên liệu theo công thức.
     public void Bind(Customer customer, SushiDishOrder order)
     {
         Owner = customer; Order = order; IsReady = false;
@@ -46,12 +47,14 @@ public sealed class SushiPreparedDish : MonoBehaviour
         plate.enabled = true;
     }
 
+    // Hiện đĩa và ẩn hình món hoàn chỉnh khi bắt đầu ghép nguyên liệu.
     public void BeginAssembly()
     {
         plate.enabled = true;
         dishImage.enabled = false;
     }
 
+    // Đổi đơn món của đĩa, bổ sung hoặc bỏ điểm nguyên liệu và cập nhật hình ảnh.
     internal void ReassignOrder(SushiDishOrder order)
     {
         Order = order;
@@ -75,8 +78,10 @@ public sealed class SushiPreparedDish : MonoBehaviour
         RefreshArtwork(ingredientArt);
     }
 
+    // Lấy điểm đặt dành cho loại nguyên liệu trên đĩa.
     public Transform IngredientTarget(PoolType type) => ingredientTargets[type];
 
+    // Đặt vị trí và góc xoay điểm nguyên liệu theo hình ảnh của công thức.
     private void UpdateIngredientTarget(PoolType type, Transform target)
     {
         var artwork = ingredientArt != null ? ingredientArt.Find(type, Order.Recipe) : null;
@@ -85,6 +90,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         target.localRotation = Quaternion.Euler(0, 0, artwork != null ? artwork.rotation : 0);
     }
 
+    // Cập nhật đĩa, điểm đặt và hình nguyên liệu khi thư viện đang dùng thay đổi.
     public void RefreshArtwork(SushiPlatedIngredientArtLibrary changedArt)
     {
         if (Order == null || ingredientArt != changedArt) return;
@@ -94,6 +100,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
             if (food != null) ApplyIngredientArtwork(food, isFlying);
     }
 
+    // Chọn hình đĩa phù hợp công thức hoặc phục hồi đĩa mặc định.
     private void RefreshPlateArtwork()
     {
         if (!hasCachedPlate)
@@ -117,6 +124,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
             artwork.size.y / Mathf.Max(0.01f, artwork.sprite.bounds.size.y), defaultPlateScale.z);
     }
 
+    // Gán sprite, kích thước và lớp vẽ cho nguyên liệu tùy trạng thái nằm trên đĩa hay đang bay.
     public void ApplyIngredientArtwork(FoodShushi food, bool flying)
     {
         var artwork = ingredientArt != null ? ingredientArt.Find(food.Type, Order.Recipe) : null;
@@ -126,6 +134,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         food.SetPlatedArtwork(sprite, size, order);
     }
 
+    // Gắn nguyên liệu đã đáp xuống đúng điểm trên đĩa và thêm vào danh sách quản lý.
     public void AddAssemblyIngredient(FoodShushi food)
     {
         if (food == null) return;
@@ -137,6 +146,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         assemblyIngredients.Add(food);
     }
 
+    // Tách và trả toàn bộ nguyên liệu đã ghép trên đĩa về pool.
     public void ClearAssemblyIngredients()
     {
         foreach (FoodShushi food in assemblyIngredients)
@@ -148,22 +158,26 @@ public sealed class SushiPreparedDish : MonoBehaviour
         assemblyIngredients.Clear();
     }
 
+    // Đánh dấu đĩa đã ghép xong và sẵn sàng phục vụ.
     public void FinishAssembly()
     {
         // Keep the assembled layers together: the parent is the finished dish.
         IsReady = true;
         dishImage.enabled = false;
     }
+    // Đưa đĩa cùng nguyên liệu lên lớp vẽ phía trước khi bay giao món.
     public void SetFlying()
     {
         isFlying = true;
         plate.sortingOrder = 30;
         foreach (FoodShushi food in assemblyIngredients) ApplyIngredientArtwork(food, true);
     }
+    // Giữ hình đĩa khi công thức có đĩa riêng, nếu không thì ẩn đĩa lúc rời bàn.
     public void LeaveTable()
     {
         // The decorated sashimi plate is part of the dish delivered to its order.
         plate.enabled = ingredientArt != null && ingredientArt.GetPlate(Order.Recipe) != null;
     }
+    // Thu hồi nguyên liệu còn gắn trên đĩa khi đối tượng món bị hủy.
     private void OnDestroy() => ClearAssemblyIngredients();
 }

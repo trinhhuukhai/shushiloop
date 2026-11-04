@@ -12,12 +12,14 @@ public class NoffDailyLogin : MonoBehaviour
     private Tween noffTween;
     private Vector3 noffRootScale;
 
+    // Lưu đối tượng thông báo hiện tại và kích thước gốc của biểu tượng.
     private void Awake()
     {
         cur = this;
         noffRootScale = noffRect.localScale;
     }
 
+    // Cập nhật dấu thông báo và bắt đầu theo dõi ngày mới khi được bật.
     private void OnEnable()
     {
         UpdateNoff();
@@ -25,16 +27,19 @@ public class NoffDailyLogin : MonoBehaviour
         CheckTime();
     }
 
+    // Dừng hiệu ứng phóng to thu nhỏ của dấu thông báo.
     private void OnDisable()
     {
         noffTween?.Kill();
     }
 
+    // Khởi chạy coroutine theo dõi mốc ngày mới cho quà đăng nhập.
     private void CheckTime()
     {
         StartCoroutine(ie_Check());
         return;
 
+        // Chờ nguồn giờ hợp lệ rồi kiểm tra ngày mới mỗi giây để cập nhật thông báo.
         IEnumerator ie_Check()
         {
             yield return new WaitUntil(() => UnbiasedTime.IsValidTime);
@@ -50,6 +55,7 @@ public class NoffDailyLogin : MonoBehaviour
         }
     }
 
+    // Hiện và tạo nhịp thông báo khi quà đăng nhập hôm nay chưa được nhận.
     private void UpdateNoff()
     {
         var isOn = !DailyLoginDataFragment.cur.gameData.isClaimedToday;
@@ -59,12 +65,14 @@ public class NoffDailyLogin : MonoBehaviour
         else noffTween?.Kill();
     }
 
+    // Cho thành phần khác yêu cầu làm mới dấu thông báo đang tồn tại.
     public static void UpdateNoffStatic()
     {
         if (cur == null) return;
         cur.UpdateNoff();
     }
 
+    // Khởi động nhịp phóng to thu nhỏ lặp cho biểu tượng thông báo.
     private void NoffBubble()
     {
         noffTween?.Kill();

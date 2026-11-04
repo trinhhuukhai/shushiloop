@@ -5,6 +5,7 @@ public sealed class SushiProfileReviveProvider : SushiReviveProvider
 {
     public override bool CanShowRewardedAd => false;
 
+    // Kiểm tra ví đã nạp và đủ tiền rồi trừ chi phí hồi sinh.
     public override bool TrySpendCoins(int amount)
     {
         if (amount < 0 || DataManager.ins == null || !DataManager.ins.isLoaded ||
@@ -14,5 +15,6 @@ public sealed class SushiProfileReviveProvider : SushiReviveProvider
         return true;
     }
 
+    // Trả kết quả không có thưởng vì provider hiện chưa tích hợp quảng cáo.
     public override void ShowRewardedAd(Action<bool> onRewarded) => onRewarded?.Invoke(false);
 }

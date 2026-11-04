@@ -31,12 +31,15 @@ public class FoodQueue : MonoBehaviour
     public IReadOnlyList<FoodShushi> Foods => foods;
     public int Count => foods.Count;
     public bool IsPickupPending { get; private set; }
+    // Gán băng chuyền nhận nguyên liệu từ cột này.
     public void SetConveyor(ConveyorManager manager) { conveyor = manager; }
+    // Bật hoặc tắt lớp che các hàng dưới theo chế độ chọn nguyên liệu.
     internal void SetLowerRowsShadeVisible(bool visible)
     {
         if (lowerRowsShade != null) lowerRowsShade.gameObject.SetActive(visible);
     }
 
+    // Hiện thanh viền trái hoặc phải cho các cột ở mép bàn.
     internal void SetOuterRails(bool showLeft, bool showRight)
     {
         Transform leftRail = beltView != null ? beltView.Find("Left rail") : null;
@@ -50,16 +53,21 @@ public class FoodQueue : MonoBehaviour
         rightRail.gameObject.SetActive(showRight);
     }
 
+    // Lấy nguyên liệu đầu cột, trả về null khi cột trống.
     public FoodShushi GetTopFood() => foods.Count > 0 ? foods[0] : null;
+    // Kiểm tra danh sách nguyên liệu của cột đã trống.
     public bool IsEmpty() => foods.Count == 0;
+    // Kiểm tra cột đang hoạt động, đã đứng yên và có nguyên liệu đầu cột lấy được.
     public bool CanTakeTopFood() => isActiveAndEnabled && !IsPickupPending && GetTopFood() != null && GetTopFood().CanPick();
 
+    // Chuyển thao tác chạm cột sang băng chuyền để thử lấy nguyên liệu.
     public void OnClickColumn()
     {
         if (conveyor != null) conveyor.TryTakeFromQueue(this);
     }
 
     // Input được xử lý một lần bởi FoodInputController. Không dùng thêm OnMouseDown.
+    // Tạo nguyên liệu từ dữ liệu cột, sắp hàng và lật ô đầu tiên nếu đang bị che.
     public void OnInit(FoodQueueData data)
     {
         ClearFoods();
@@ -86,8 +94,11 @@ public class FoodQueue : MonoBehaviour
         RevealTopFood();
     }
 
+    // Lấy chỉ số của nguyên liệu trong thứ tự dữ liệu của cột.
     public int IndexOf(FoodShushi food) => foods.IndexOf(food);
+    // Tính hàng đang hiển thị của nguyên liệu dựa trên vị trí thực tế trong cột.
     internal int VisibleRowOf(FoodShushi food) => Mathf.RoundToInt(-food.transform.localPosition.y / rowSpace);
+    // Tìm nguyên liệu đang nằm ở hàng hiển thị được yêu cầu.
     internal FoodShushi FoodAtVisibleRow(int row)
     {
         foreach (FoodShushi food in foods)
@@ -95,6 +106,7 @@ public class FoodQueue : MonoBehaviour
         return null;
     }
 
+    // Trừ số lượng trong ô, giữ ô khay nếu cần hoặc trả ô đã hết về pool.
     internal void Consume(FoodShushi food, int count, bool preserveTray)
     {
         food.SetAmount(food.Amount - count);
@@ -109,6 +121,7 @@ public class FoodQueue : MonoBehaviour
         SimplePool.Despawn(food);
     }
 
+    // Tạo hoặc lấy nhóm chứa hình ảnh khay rỗng đang rời bàn.
     private Transform EnsureDepartingTray()
     {
         if (departingTray == null)
@@ -119,6 +132,7 @@ public class FoodQueue : MonoBehaviour
         return departingTray.transform;
     }
 
+    // Sao chép khung khay và đổi tọa độ đường viền để khung di chuyển cùng nhóm khay.
     internal void CopyTrayFrame(GameObject view)
     {
         if (view == null || !view.activeSelf) return;
@@ -132,6 +146,7 @@ public class FoodQueue : MonoBehaviour
         line.SetPositions(positions);
     }
 
+    // Ẩn và hủy nhóm hình ảnh khay rỗng đã rời cột.
     private void RemoveDepartingTray()
     {
         if (departingTray == null) return;
@@ -140,6 +155,7 @@ public class FoodQueue : MonoBehaviour
         departingTray = null;
     }
 
+    // Chạy chuyển động sắp lại nguyên liệu và cập nhật ô đầu, đế trống, vùng nhận chạm.
     public void RefreshRows()
     {
         if (IsPickupPending) return;
@@ -157,6 +173,7 @@ public class FoodQueue : MonoBehaviour
         RefreshCollider();
     }
 
+    // Khóa lượt lấy trong lúc khay rời đi và các hàng còn lại trượt lên lấp chỗ trống.
     internal void AdvanceAfterPickup(int removedRows, float wait)
     {
         columnMoveTween?.Kill();
@@ -227,6 +244,7 @@ public class FoodQueue : MonoBehaviour
             });
     }
 
+    // Hủy chuyển động dồn cột, dọn khay rời và bỏ trạng thái đang chờ lấy.
     private void CancelColumnMovement()
     {
         columnMoveTween?.Kill();
@@ -235,12 +253,14 @@ public class FoodQueue : MonoBehaviour
         IsPickupPending = false;
     }
 
+    // Hoàn tất ngay chuyển động cột và các tween sắp hàng còn chạy.
     internal void CompleteColumnMovement()
     {
         columnMoveTween?.Complete(true);
         DOTween.Complete(rowTweenId);
     }
 
+    // Đặt các đế trống sau nguyên liệu và chỉ hiện đế trong cửa sổ hiển thị.
     private void RefreshEmptyBasesImmediate()
     {
         for (int i = 0; i < emptyBases.Count; i++)
@@ -251,6 +271,7 @@ public class FoodQueue : MonoBehaviour
         }
     }
 
+    // Cập nhật ẩn hiện nguyên liệu và đế trống theo vị trí trong lúc cột di chuyển.
     private void RefreshMovingVisibility()
     {
         foreach (FoodShushi food in foods) food.SetBoardVisible(VisibleRowOf(food) < VisibleRows);
@@ -258,6 +279,7 @@ public class FoodQueue : MonoBehaviour
             emptyBase.gameObject.SetActive(-emptyBase.localPosition.y / rowSpace < VisibleRows - 0.5f);
     }
 
+    // Đặt ngay nguyên liệu về đúng hàng, đồng bộ đế trống, vùng chạm và ô đầu cột.
     private void RefreshRowsImmediate()
     {
         DOTween.Kill(rowTweenId);
@@ -271,6 +293,7 @@ public class FoodQueue : MonoBehaviour
         SetTopVisual(true);
     }
 
+    // Cập nhật kích thước và trạng thái collider theo số hàng nguyên liệu đang hiển thị.
     private void RefreshCollider()
     {
         BoxCollider2D hitArea = GetComponent<BoxCollider2D>();
@@ -281,13 +304,16 @@ public class FoodQueue : MonoBehaviour
         hitArea.offset = Vector2.down * rowSpace * Mathf.Max(0, rows - 1) / 2f;
     }
 
+    // Tính vị trí cục bộ của một hàng theo khoảng cách giữa các ô.
     private Vector3 GetRowPosition(int row) => Vector3.down * rowSpace * row;
+    // Lật nguyên liệu bị che ở đầu cột và cập nhật hình ảnh đế đầu cột.
     private void RevealTopFood()
     {
         GetTopFood()?.Reveal();
         SetTopVisual(true);
     }
 
+    // Chọn hình ảnh đế đầu cột khi nguyên liệu đầu tiên đã nằm đúng vị trí.
     public void SetTopVisual(bool isTop)
     {
         // A new head receives its selected sprite only after reaching the front.
@@ -297,6 +323,7 @@ public class FoodQueue : MonoBehaviour
             if (foods[i] != null) foods[i].SetBoardBaseSprite(showHead && i == 0 ? topSprite : normalSprite);
     }
 
+    // Tìm nguyên liệu trong bốn hàng đầu tại vị trí chạm trong thế giới game.
     public FoodShushi FoodAtWorldPosition(Vector3 position)
     {
         if (IsPickupPending || foods.Count == 0) return null;
@@ -306,6 +333,7 @@ public class FoodQueue : MonoBehaviour
     }
 
     // Build a proposal without moving anything: linked columns must be checked together.
+    // Tạo thứ tự xoay các hàng đang thấy, giữ nguyên các ô thuộc cùng một khay.
     internal List<FoodShushi> BuildSwapRows()
     {
         var result = new List<FoodShushi>(foods);
@@ -325,6 +353,7 @@ public class FoodQueue : MonoBehaviour
         return result;
     }
 
+    // Áp dụng thứ tự hàng mới và chạy hiệu ứng sắp lại khi có thay đổi.
     internal bool ApplySwapRows(List<FoodShushi> rows)
     {
         bool changed = false;
@@ -336,6 +365,7 @@ public class FoodQueue : MonoBehaviour
         return true;
     }
 
+    // Rung nhẹ cột để báo thao tác không hợp lệ, tránh chồng nhiều hiệu ứng rung.
     public void Shake()
     {
         if (shakeTween != null && shakeTween.IsActive()) return;
@@ -344,6 +374,7 @@ public class FoodQueue : MonoBehaviour
             .OnComplete(() => transform.localPosition = origin);
     }
 
+    // Dừng chuyển động, trả toàn bộ nguyên liệu về pool và ẩn các đế trống.
     public void ClearFoods()
     {
         CancelColumnMovement();
@@ -360,6 +391,7 @@ public class FoodQueue : MonoBehaviour
         foreach (Transform emptyBase in emptyBases) emptyBase.gameObject.SetActive(false);
     }
 
+    // Dừng các hiệu ứng của cột và khôi phục bố cục nếu bị tắt giữa lượt lấy.
     private void OnDisable()
     {
         bool wasPending = IsPickupPending;

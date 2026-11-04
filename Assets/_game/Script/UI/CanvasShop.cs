@@ -5,6 +5,7 @@ public sealed class CanvasShop : CanvasHomePage
 {
     public TMP_Text[] inventoryCounts;
 
+    // Hiển thị số lượng hiện có của ba booster trong kho cửa hàng, chặn số âm.
     protected override void Refresh()
     {
         var player = GameDataFragment.cur != null ? GameDataFragment.cur.dataPlayer : null;

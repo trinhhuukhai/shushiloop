@@ -14,6 +14,7 @@ public sealed class SushiIngredientArtLibrary : ScriptableObject
 
     public List<Entry> ingredients = new List<Entry>();
 
+    // Tìm sprite được gán cho loại nguyên liệu, trả về null nếu chưa cấu hình.
     public Sprite GetSprite(PoolType type)
     {
         foreach (Entry entry in ingredients)

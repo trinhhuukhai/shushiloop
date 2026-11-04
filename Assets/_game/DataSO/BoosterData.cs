@@ -8,6 +8,7 @@ using UnityEngine;
 public class BoosterData : ScriptableObject
 {
     public List<BoosterDataModel> dataList = new List<BoosterDataModel>();
+    // Tìm cấu hình hình ảnh, giá và mốc mở khóa theo loại booster.
     public BoosterDataModel GetDataByID(BoosterType boosterType)
     {
         return dataList.Find(x => x.boostertype == boosterType);

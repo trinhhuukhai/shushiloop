@@ -4,6 +4,7 @@ using UnityEngine.UI;
 // Vector UI medallion: crisp at every resolution without enlarging a tiny bitmap.
 public sealed class SushiUICircle : Image
 {
+    // Dựng mesh hình tròn với viền trong suốt một pixel để làm mềm mép UI.
     protected override void OnPopulateMesh(VertexHelper mesh)
     {
         mesh.Clear();

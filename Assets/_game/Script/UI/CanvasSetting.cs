@@ -15,6 +15,7 @@ public class CanvasSetting : UICanvas
     private Tween popTween;
 
 
+    // Mở cài đặt với hiệu ứng, tạm dừng thời gian và chọn các nút phù hợp với ngữ cảnh màn chơi.
     public override void Open()
     {
         base.Open();
@@ -35,13 +36,16 @@ public class CanvasSetting : UICanvas
         }
 
     }
+    // Khôi phục tốc độ thời gian bình thường và đóng cài đặt.
     public void OnResume()
     {
 
         Time.timeScale = 1f;
         CloseDirectly();
     }
+    // Chuyển yêu cầu chơi lại từ nút UI sang xử lý kiểm tra mạng.
     public void OnReplayLevel() => OnReplay();
+    // Chơi lại ngay khi vô hạn mạng hoặc mở popup mạng, cảnh báo tùy số mạng còn lại.
     public void OnReplay()
     {
 
@@ -68,7 +72,9 @@ public class CanvasSetting : UICanvas
         }
 
     }
+    // Đóng cài đặt và yêu cầu kết thúc màn với kết quả thua.
     public void OnGiveUp() { CloseDirectly(); LevelManager.Ins?.LoseLevel(); }
+    // Về trang chủ khi vô hạn mạng và được phép, hoặc mở cảnh báo mất mạng.
     public void OnBackHome()
     {
 
@@ -88,12 +94,17 @@ public class CanvasSetting : UICanvas
         }
 
     }
+    // Mở panel chọn ngôn ngữ trong cài đặt.
     public void OnSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(true); }
+    // Ẩn panel chọn ngôn ngữ.
     public void CloseSettingLanguage() { if (panelSettingLanguage != null) panelSettingLanguage.SetActive(false); }
+    // Khôi phục thời gian và đóng cài đặt khi đang ở trang chủ.
     public void BackInHome()
     {
         Time.timeScale = 1f;CloseDirectly();
     }
+    // Đóng trực tiếp popup cài đặt.
     public void Close() => CloseDirectly();
+    // Đóng cài đặt khi nhận phím quay lại.
     public override void BackKey() => CloseDirectly();
 }

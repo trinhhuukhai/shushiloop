@@ -83,16 +83,19 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     public bool isPlay = false;
     public float totalPlayTime = 0;
 
+    // Khởi tạo singleton quản lý màn chơi qua lớp cơ sở.
     public override void Awake()
     {
         base.Awake();
     }
 
+    // Đăng ký nhận sự kiện khách rush hết thời gian chờ.
     private void OnEnable()
     {
         if (customerManager != null) customerManager.OnRushExpired += HandleRushExpired;
     }
 
+    // Hủy các tutorial đang chạy và bỏ đăng ký sự kiện khách hết giờ.
     private void OnDisable()
     {
         ControlTutorial.Ins?.CancelTutorial();
@@ -100,6 +103,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (customerManager != null) customerManager.OnRushExpired -= HandleRushExpired;
     }
 
+    // Đồng bộ trạng thái chơi, cộng thời gian chơi và cập nhật khách rush khi được phép tương tác.
     private void Update()
     {
         isPlay = CanInteract;
@@ -110,11 +114,13 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         }
     }
 
+    // Kiểm tra thắng, thua và yêu cầu hồi sinh sau các cập nhật gameplay trong frame.
     private void LateUpdate() => CheckLevelState(Time.unscaledDeltaTime);
 
     // =====================================================================
     //  START / CHỌN LEVEL
     // =====================================================================
+    // Chờ dữ liệu sẵn sàng, chuyển về Loading nếu thiếu UI và tự nạp màn cho cảnh chơi độc lập.
     private IEnumerator Start()
     {
         if (showGameplayHud && UIManager.Ins == null)
@@ -165,6 +171,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     // =====================================================================
     //  LOAD LEVEL
     // =====================================================================
+    // Kiểm tra dữ liệu, dọn màn cũ đúng thứ tự và dựng bàn, khách, băng chuyền cho màn mới.
     public void LoadLevel(int levelIndex, bool openGameplayHud = true)
     {
         if (boardManager == null ||
@@ -238,6 +245,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         OnLevelStarted();
     }
 
+    // Đặt lại kết quả, thời gian, hồi sinh và tăng phiên nạp để loại bỏ callback của màn cũ.
     private void ResetRuntimeState()
     {
         rewardClaimed = false;
@@ -256,6 +264,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     }
 
     // Sand: OnPlay -> chỗ gắn tracking / ads / analytics khi level bắt đầu.
+    // Điểm mở rộng sau khi bắt đầu màn; hiện chưa có xử lý bổ sung.
     private void OnLevelStarted()
     {
         //AdsManager.Ins.SetInterLevel(GameDataFragment.cur.dataPlayer.cur_level);
@@ -263,6 +272,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         //AppsflyerEventRegister.af_Level_Start(currentLevelIndex + 1);
     }
 
+    // Mở HUD một lần khi màn sẵn sàng và chuẩn bị tutorial sau lớp chuyển cảnh.
     public void ShowGameplayHud(bool force = false)
     {
         if (!IsPlaying || !showGameplayHud || UIManager.Ins == null || gameplayHudShown ||
@@ -278,6 +288,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     //  POPUP / PAUSE
     // =====================================================================
     // freezeTime = true chỉ dành cho Settings.
+    // Cộng hoặc trừ bộ đếm popup cùng yêu cầu đóng băng thời gian, rồi đồng bộ tạm dừng.
     public void SetPopupOpen(bool open, bool freezeTime = false)
     {
         int delta = open ? 1 : -1;
@@ -286,12 +297,14 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         ApplyPopupPause();
     }
 
+    // Giữ hoặc thả trạng thái tạm dừng gameplay do tutorial yêu cầu.
     public void SetTutorialHold(bool held)
     {
         tutorialHold = held;
         ApplyPopupPause();
     }
 
+    // Đồng bộ dừng băng chuyền khi có popup, tutorial giữ màn hoặc màn không còn chơi.
     private void ApplyPopupPause()
     {
         bool held = IsPopupOpen || tutorialHold;   // pause logic game
@@ -302,6 +315,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     // =====================================================================
     //  REVIVE
     // =====================================================================
+    // Yêu cầu hồi sinh khi khách hết giờ, hoãn xử lý nếu người chơi còn đang dùng booster.
     private void HandleRushExpired(Customer customer)
     {
         if (!IsPlaying || PendingRevive != SushiReviveReason.None) return;
@@ -317,6 +331,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         RequestRevive(SushiReviveReason.RushCustomer);
     }
 
+    // Lưu lý do hồi sinh, dừng gameplay và phát sự kiện cùng popup hồi sinh.
     private void RequestRevive(SushiReviveReason reason)
     {
         PendingRevive = reason;
@@ -325,6 +340,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasRevive>();
     }
 
+    // Thử áp dụng hồi sinh khi đủ điều kiện; hàm này không trực tiếp trừ tiền.
     public bool TryReviveWithCoins()
     {
         if (PendingRevive == SushiReviveReason.None || !CanPurchaseRevive) return false;
@@ -332,12 +348,14 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         return true;
     }
 
+    // Áp dụng yêu cầu hồi sinh đang chờ qua điểm gọi tương thích của UI.
     public void ReVive()
     {
         if (PendingRevive == SushiReviveReason.None) return;
         CompleteRevive();
     }
 
+    // Chờ kết quả quảng cáo thưởng và chỉ hồi sinh nếu callback vẫn thuộc phiên màn hiện tại.
     public void TryReviveWithAd()
     {
         if (PendingRevive == SushiReviveReason.None || !CanWatchReviveAd) return;
@@ -351,6 +369,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         });
     }
 
+    // Gia hạn khách, gom túi hoặc phá băng theo lý do, rồi đóng popup và tiếp tục màn.
     private void CompleteRevive()
     {
         if (!CanApplyRevive) return;
@@ -369,6 +388,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         ApplyPopupPause();
     }
 
+    // Hủy yêu cầu hồi sinh và kết thúc màn với kết quả thua.
     public void DeclineRevive()
     {
         PendingRevive = SushiReviveReason.None;
@@ -381,6 +401,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     // =====================================================================
     //  THẮNG / THUA
     // =====================================================================
+    // Kiểm tra thắng hoặc hết nước đi sau thời gian chờ, bỏ qua lúc tutorial hay booster còn xử lý.
     private void CheckLevelState(float deltaTime)
     {
         if (!CanInteract || SushiLevelOneTutorial.IsInputLocked)
@@ -432,6 +453,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         else LoseLevel();
     }
 
+    // Chốt thắng một lần, lưu tiến trình, mở popup chiến thắng và dừng băng chuyền.
     private void CompleteLevel()
     {
         // Đánh dấu trước để chỉ xử lý thắng một lần.
@@ -460,6 +482,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         Debug.Log("WIN: Tất cả khách đã nhận đủ món.");
     }
 
+    // Lưu mốc tiến trình trước và sau chiến thắng để UI hiển thị phần mở khóa.
     private void CaptureVictoryProgress()
     {
         // Capture before saving: cur_level has already advanced when the Victory canvas opens.
@@ -471,11 +494,13 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     }
 
     // Giữ tên cũ cho nút cheat / debug.
+    // Chuyển yêu cầu thắng từ điểm gọi bên ngoài vào xử lý hoàn tất màn.
     public void OnWIn()
     {
         CompleteLevel();
     }
 
+    // Chốt thua, dừng màn, cập nhật chuỗi thua và mở giao diện thất bại.
     public void LoseLevel()
     {
         if (!IsPlaying)
@@ -505,8 +530,10 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null &&
         (GameManager.ins == null || !GameManager.ins.isPlayTestingLevel);
 
+    // Nhận thưởng chiến thắng với hệ số mặc định bằng 1.
     public bool ClaimVictoryReward() => ClaimVictoryReward(1);
 
+    // Nhận thưởng thắng một lần, giới hạn hệ số từ 1 đến 2 và cộng tiền vào dữ liệu người chơi.
     public bool ClaimVictoryReward(int multiplier)
     {
         if (!HasWon || rewardClaimed) return false;
@@ -519,6 +546,7 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
     //  MAIN MENU / ĐIỀU HƯỚNG LEVEL
     // =====================================================================
     // Sand: OnMainMenu -> dọn toàn bộ gameplay khi về Home.
+    // Hủy tutorial, vô hiệu callback màn cũ và dọn trạng thái, bàn, khách, băng chuyền khi về trang chủ.
     public void EnterMainMenu()
     {
         ControlTutorial.Ins?.CancelTutorial();
@@ -548,11 +576,13 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         if (boardManager != null) boardManager.ClearBoard();
     }
 
+    // Nạp lại dữ liệu màn hiện tại để bắt đầu từ đầu.
     public void ReplayLevel()
     {
         LoadLevel(currentLevelIndex);
     }
 
+    // Nạp màn kế tiếp nếu chưa đến cuối danh sách.
     public void NextLevel()
     {
         int nextIndex = currentLevelIndex + 1;
@@ -566,12 +596,14 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
         LoadLevel(nextIndex);
     }
 
+    // Nạp màn liền trước khi có màn trước đó.
     public void PreviousLevel()
     {
         if (HasPreviousLevel) LoadLevel(currentLevelIndex - 1);
     }
 
     // Sand: GoToLevel
+    // Giới hạn chỉ số yêu cầu và nạp màn tương ứng.
     public void GoToLevel(int index)
     {
         LoadLevel(Mathf.Clamp(index, 0, Mathf.Max(0, LevelCount - 1)));

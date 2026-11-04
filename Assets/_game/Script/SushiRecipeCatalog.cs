@@ -93,6 +93,7 @@ public sealed class SushiRecipe
         Ingredients.Count == 2 ? (HasRice ? SushiRecipeKind.TwoWithRice : SushiRecipeKind.TwoWithoutRice) : SushiRecipeKind.Catalog;
     public string Key { get; }
 
+    // Lưu công thức bất biến và tạo khóa theo nhóm món cùng tập nguyên liệu đã sắp xếp.
     internal SushiRecipe(SushiDishId id, SushiDishFamily family, string name, string baseName,
         string toppingStyle, params PoolType[] ingredients)
     {
@@ -112,6 +113,7 @@ public static class SushiRecipeCatalog
     public static IReadOnlyList<SushiRecipe> All => recipes;
 
     // Use the same source-file labels in built-in enum controls and custom editors.
+    // Lấy tên hiển thị từ InspectorName của enum, dùng tên enum nếu chưa có nhãn.
     public static string AssetName(Enum value)
     {
         var field = value.GetType().GetField(value.ToString());
@@ -119,15 +121,19 @@ public static class SushiRecipeCatalog
         return label != null ? label.displayName : value.ToString();
     }
 
+    // Kiểm tra nguyên liệu có thuộc khoảng topping món ăn được catalog hỗ trợ.
     public static bool IsFoodTopping(PoolType type) => type >= PoolType.Shrimp && type <= PoolType.Seaweed;
 
+    // Kiểm tra topping hợp lệ cho Nigiri, loại các loại sốt và trứng cá không phù hợp.
     public static bool IsNigiriTopping(PoolType type) => IsFoodTopping(type) && type != PoolType.Mayonnaise &&
         type != PoolType.FishRoe && type != PoolType.BlackFishRoe && type != PoolType.GreenFishRoe;
 
+    // Tạo công thức từ hai lựa chọn nguyên liệu bằng biến thể không có nguyên liệu thứ ba.
     public static bool TryCreate(SushiRecipeKind kind, PoolType first, PoolType second,
         out SushiRecipe recipe, out string error)
         => TryCreate(kind, first, second, PoolType.None, out recipe, out error);
 
+    // Kiểm tra tổ hợp nguyên liệu rồi tạo công thức, dùng món có sẵn nếu trùng khóa catalog.
     public static bool TryCreate(SushiRecipeKind kind, PoolType first, PoolType second, PoolType third,
         out SushiRecipe recipe, out string error)
     {
@@ -165,17 +171,20 @@ public static class SushiRecipeCatalog
         return true;
     }
 
+    // Thử tra công thức theo mã món trong catalog.
     public static bool TryGet(SushiDishId id, out SushiRecipe recipe)
     {
         return recipesById.TryGetValue(id, out recipe);
     }
 
+    // Lấy công thức theo mã món và báo lỗi khi mã không tồn tại.
     public static SushiRecipe Get(SushiDishId id)
     {
         if (!TryGet(id, out var recipe)) throw new ArgumentOutOfRangeException(nameof(id), id, "Mã món ăn không có trong catalog.");
         return recipe;
     }
 
+    // Đổi mã nguyên liệu sang tên tiếng Việt dùng trong tên món và giao diện.
     public static string IngredientName(PoolType type)
     {
         switch (type)
@@ -205,6 +214,7 @@ public static class SushiRecipeCatalog
         }
     }
 
+    // Dựng danh sách công thức có sẵn cho các nhóm sushi, sashimi và đồ uống.
     private static List<SushiRecipe> CreateRecipes()
     {
         var result = new List<SushiRecipe>();
@@ -255,6 +265,7 @@ public static class SushiRecipeCatalog
         return result;
     }
 
+    // Tạo tên món sashimi theo thành phần và thêm công thức vào danh sách.
     private static void AddSashimi(List<SushiRecipe> result, params PoolType[] ingredients)
     {
         Add(result, SushiDishFamily.Sashimi,
@@ -262,6 +273,7 @@ public static class SushiRecipeCatalog
             "Đĩa sashimi", "Lát", ingredients);
     }
 
+    // Cấp mã món theo thứ tự catalog và thêm công thức vào danh sách.
     private static void Add(List<SushiRecipe> result, SushiDishFamily family, string name, string baseName,
         string toppingStyle, params PoolType[] ingredients)
     {

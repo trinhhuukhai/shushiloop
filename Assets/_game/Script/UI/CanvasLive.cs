@@ -23,6 +23,7 @@ public class CanvasLive : UICanvas
     private Coroutine coLives;
     private static readonly WaitForSecondsRealtime OneSecondRealtime = new WaitForSecondsRealtime(1f);
 
+    // Mở popup mạng một lần, chạy hiệu ứng xuất hiện và cập nhật giá, tiền cùng bộ đếm hồi mạng.
     public override void Open()
     {
         base.Open();               // chỉ gọi một lần (trước đây gọi hai lần)
@@ -41,20 +42,24 @@ public class CanvasLive : UICanvas
         setGold();
     }
 
+    // Hiển thị tiền hiện tại có phân nhóm hàng nghìn.
     public void setGold()
     {
         txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
     }
 
+    // Xóa cờ popup đang mở rồi đóng trực tiếp.
     public void Close()
     {
         isopen = false;
         CloseDirectly();
     }
 
+    // Đóng popup mạng qua luồng dọn cờ mở khi nhận phím quay lại.
     public override void BackKey() => Close();
 
 
+    // Làm mới số mạng và thời gian hồi mỗi giây theo thời gian thực.
     private IEnumerator IE_Lives()
     {
         while (true)
@@ -64,6 +69,7 @@ public class CanvasLive : UICanvas
         }
     }
 
+    // Đồng bộ số mạng, tiêu đề và vùng đếm thời gian hồi hoặc trạng thái FULL.
     public void ShowLives()
     {
         var data = LivesDataFragment.cur;
@@ -88,6 +94,7 @@ public class CanvasLive : UICanvas
         }
     }
 
+    // Cập nhật giá bổ sung mạng, màu thiếu tiền và hình tim theo trạng thái hết mạng.
     public void setUp()
     {
         priceTxt.text = ReviveLivesPrice.ToString();
@@ -99,6 +106,7 @@ public class CanvasLive : UICanvas
         HeartBlack.SetActive(outOfLives);
     }
 
+    // Đóng popup qua luồng dọn cờ mở; hiện chưa dùng tham số làm mới tim.
     private void RefreshFloatingAndClose(bool refreshHeartOnly = false)
     {
         //if (!UIManager.Ins.IsOpened<CanvasFail>())
@@ -114,6 +122,7 @@ public class CanvasLive : UICanvas
         Close();
     }
 
+    // Trừ tiền mua năm mạng và tiếp tục chơi hoặc chơi lại theo trạng thái game hiện tại.
     public void ButtonUseGold()
     {
         int price = 800;
@@ -186,6 +195,7 @@ public class CanvasLive : UICanvas
         }
     }
 
+    // Gọi nhận thưởng mạng trực tiếp; hiện chưa có bước mở quảng cáo.
     public void BtnWatchAds()
     {
         //AdsManager.Ins.ShowRewardedAd(
@@ -196,6 +206,7 @@ public class CanvasLive : UICanvas
         OnRewarded();
     }
 
+    // Cộng một mạng và tiếp tục luồng chơi hoặc chơi lại theo trạng thái game.
     private void OnRewarded()
     {
         LivesDataFragment.cur.AddLife(1);
@@ -232,6 +243,7 @@ public class CanvasLive : UICanvas
 
     }
 
+    // Nhận quyền miễn phí khi hết mạng trong ngày, cộng 30 phút vô hạn mạng và đóng popup.
     public void btnClaimFreeInDay()
     {
         if (!LivesDataFragment.cur.TryClaimFirstEmptyLivesToday())

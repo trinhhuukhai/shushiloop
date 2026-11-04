@@ -61,6 +61,7 @@ public class CanvasDailyReward : UICanvas
     //    bottomPos = rootPos - Vector2.up * 180;
     //}
 
+    // Mở chuỗi thưởng hằng ngày với hiệu ứng, làm mới các mốc và bắt đầu theo dõi thời gian.
     public override void Open()
     {
         base.Open();
@@ -90,6 +91,7 @@ public class CanvasDailyReward : UICanvas
         CheckTime();
     }
 
+    // Điểm mở rộng hiệu ứng popup; hiện chưa có xử lý đang hoạt động.
     private void Pop()
     {
         //canvasGroup.DOFade(1, .28f);
@@ -98,6 +100,7 @@ public class CanvasDailyReward : UICanvas
         //mainPanelRect.DOAnchorPos(rootPos, .36f).SetEase(Ease.OutSine);
     }
 
+    // Chuyển thao tác đóng popup trực tiếp về lớp cơ sở.
     public override void CloseDirectly()
     {
         base.CloseDirectly();
@@ -114,11 +117,13 @@ public class CanvasDailyReward : UICanvas
         //    });
     }
 
+    // Khởi chạy coroutine cập nhật quà miễn phí và chu kỳ thưởng hằng ngày.
     private void CheckTime()
     {
         StartCoroutine(ie_CheckTime());
         return;
 
+        // Theo dõi mỗi giây để làm mới nút miễn phí, đếm thời gian và đặt lại chuỗi khi sang ngày.
         IEnumerator ie_CheckTime()
         {
             while (true)
@@ -151,6 +156,7 @@ public class CanvasDailyReward : UICanvas
         }
     }
 
+    // Đồng bộ các nút nhận quà, đường tiến trình và thông báo phần thưởng.
     private void RefreshAll()
     {
         HandleFirstButton();
@@ -161,6 +167,7 @@ public class CanvasDailyReward : UICanvas
         RefreshButton();
     }
 
+    // Bật nút nhận miễn phí hoặc hiển thị thời gian chờ tới lượt miễn phí tiếp theo.
     private void HandleFirstButton()
     {
         var isFree = DailyRewardDataFragment.cur.CheckIfItsTimeToFree(out var timeLeft);
@@ -170,6 +177,7 @@ public class CanvasDailyReward : UICanvas
         FrmTimeButton.SetActive(!isFree);
     }
 
+    // Cập nhật nút, dấu đã nhận và nhãn khóa theo điều kiện của một mốc thưởng.
     private void HandleOtherButton(int index) // return if claimable
     {
         var data = DailyRewardDataFragment.cur.gameData;
@@ -200,12 +208,14 @@ public class CanvasDailyReward : UICanvas
         }
     }
 
+    // Kiểm tra mốc thưởng đầu hoặc mốc có phần quà liền trước đã được nhận.
     private bool CheckValid(int index) //return if ads-able
     {
         var data = DailyRewardDataFragment.cur.gameData;
         return index == 0 || data.itemFlags[index - 1];
     }
 
+    // Cập nhật các chấm mốc và lượng fill của thanh tiến trình chuỗi thưởng.
     private void SetupLine()
     {
         int currentIndex = 4;
@@ -224,6 +234,7 @@ public class CanvasDailyReward : UICanvas
 
         return;
 
+        // Chọn trạng thái chấm mốc và ghi nhận mốc hiện tại để tính thanh tiến trình.
         void Handle(int index)
         {
             var data = DailyRewardDataFragment.cur.gameData;
@@ -252,15 +263,18 @@ public class CanvasDailyReward : UICanvas
         }
     }
     public TMP_Text txtGold;
+    // Hiển thị số tiền trong ví trên popup phần thưởng.
     public void setGold()
     {
         txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
     }
+    // Đồng bộ số tiền hiển thị mỗi frame.
     private void Update()
     {
         setGold();
     }
 
+    // Nhận 10 tiền khi đủ thời gian miễn phí, ghi mốc nhận và làm mới giao diện.
     public void OnClickFirstButton()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -289,6 +303,7 @@ public class CanvasDailyReward : UICanvas
         });
     }
 
+    // Kiểm tra thứ tự mốc rồi gọi nhận thưởng trực tiếp; hiện chưa chạy quảng cáo.
     public void OnClickReward(int index)
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -308,10 +323,12 @@ public class CanvasDailyReward : UICanvas
         //              OnFailed
         //          );
         OnCloseAds();
+        // Điểm xử lý quảng cáo thất bại cục bộ; hiện chưa có nội dung.
         void OnFailed()
         {
             //BlockUI.Ins.UnBlock();
         }
+        // Đánh dấu mốc đã nhận, khởi động chu kỳ khi cần và trao tiền hoặc booster tương ứng.
         void OnCloseAds()
         {
             DailyRewardDataFragment.cur.gameData.itemFlags[index] = true;
@@ -374,6 +391,7 @@ public class CanvasDailyReward : UICanvas
 
     }
 
+    // Đóng popup phần thưởng khi nhấn nút thoát.
     public void OnCLickExit()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -386,6 +404,7 @@ public class CanvasDailyReward : UICanvas
 
     //private ConfigHolder.DailyRewardForCampIapConfigData GetConfig() => GameManager.Ins.IsIapCamp() ? ConfigHolder.cur.dailyRewardForCampIap.config : new ConfigHolder.DailyRewardForCampIapConfigData();
 
+    // Điểm làm mới nút được giữ lại; hiện chưa có xử lý đang hoạt động.
     private void RefreshButton()
     {
         //var config = GetConfig();

@@ -58,6 +58,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
     private readonly List<KeyValuePair<Renderer, int>> highlightedRenderers = new List<KeyValuePair<Renderer, int>>();
     private readonly List<RaycastResult> targetUiHits = new List<RaycastResult>();
 
+    // Khởi tạo singleton, lưu bố cục và nội dung gốc của các thành phần tutorial rồi ẩn chúng.
     public override void Awake()
     {
         base.Awake();
@@ -73,6 +74,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         HideVisuals();
     }
 
+    // Tìm ô đầu cột được đánh dấu ClickTut, lấy được và không thuộc liên kết hay khay.
     public FoodShushi getFoodTut()
     {
         var queues = level != null ? level.Board.FoodQueues : BoardShishiManager.Ins != null ? BoardShishiManager.Ins.FoodQueues : null;
@@ -86,8 +88,10 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return null;
     }
 
+    // Chuẩn bị hướng dẫn màn đầu cho LevelManager hiện tại.
     public void setUpTutLevel1() => Prepare(LevelManager.Ins);
 
+    // Chọn nguyên liệu cùng đơn món cho hướng dẫn màn đầu chưa hoàn thành và giữ gameplay.
     public void Prepare(LevelManager owner)
     {
         // A booster/item lesson may have started while the HUD was opening.
@@ -128,6 +132,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         level.SetTutorialHold(true);
     }
 
+    // Chọn ô mục tiêu cho bài hướng dẫn đũa và giữ màn ở bước nhấn nút booster.
     public bool BeginClickBooster(LevelManager owner, System.Action hideSpotlight)
     {
         if (!CanBegin(owner)) return false;
@@ -145,6 +150,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Tạm cho phép chọn đũa rồi chuyển từ spotlight nút booster sang bước gắp nguyên liệu.
     public bool ConfirmClickBooster()
     {
         if (Lesson != TutorialLesson.ClickBooster || Step != TutorialStep.Booster || input == null || level == null || level.IsPopupOpen ||
@@ -160,6 +166,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Chọn khách cùng món có thể hút và bắt đầu bài hướng dẫn nam châm.
     public bool BeginMagnetBooster(LevelManager owner, System.Action hideSpotlight)
     {
         if (!CanBegin(owner)) return false;
@@ -176,6 +183,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Tìm món đang hiển thị của khách tại ghế có đủ điều kiện dùng nam châm.
     private bool FindMagnetTarget()
     {
         foreach (Customer customer in level.Conveyor.Customers.ActiveCustomers)
@@ -198,6 +206,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return false;
     }
 
+    // Bật nam châm trong phạm vi tutorial rồi chuyển sang bước chọn đơn món mục tiêu.
     public bool ConfirmMagnetBooster()
     {
         if (Lesson != TutorialLesson.MagnetBooster || Step != TutorialStep.Booster || input == null ||
@@ -216,6 +225,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Chuẩn bị hướng dẫn cơ chế mới hoặc chuyển sang bài khách rush khi gặp loại Time.
     public bool BeginItem(LevelManager owner, FoodState item)
     {
         if (item == FoodState.Time) return BeginRushCustomer(owner);
@@ -235,6 +245,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Kiểm tra màn còn khách rush đang ngồi, chưa hoàn thành và chưa hết giờ.
     public static bool HasRushCustomer(LevelManager owner)
     {
         if (owner == null || !owner.IsPlaying || owner.Conveyor == null || owner.Conveyor.Customers == null) return false;
@@ -244,6 +255,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return false;
     }
 
+    // Chọn đơn của khách vội và giữ màn để giới thiệu giới hạn thời gian phục vụ.
     private bool BeginRushCustomer(LevelManager owner)
     {
         if (!CanBegin(owner) || !HasRushCustomer(owner)) return false;
@@ -280,10 +292,12 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Kiểm tra màn và các thành phần hướng dẫn sẵn sàng, đồng thời chưa có tutorial khác chạy.
     private bool CanBegin(LevelManager owner) => owner != null && owner.IsPlaying &&
         img_lop_phu_duoi != null && objDesOrder != null && handOrder != null && objDesFood != null &&
         handFood != null && Step == TutorialStep.Inactive;
 
+    // Tìm ô ClickTut nhìn thấy, không bị UI che và hợp lệ cho thao tác chạm hoặc đũa.
     private FoodShushi FindMarkedFood(bool chopsticks)
     {
         // Respect the level author's marker. Prefer the shallowest marked tile if
@@ -303,6 +317,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return null;
     }
 
+    // Kiểm tra nguyên liệu nằm trong camera và không bị thành phần UI chặn thao tác.
     private bool IsVisibleFood(FoodShushi food)
     {
         Camera camera = Camera.main;
@@ -316,6 +331,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return targetUiHits.Count == 0;
     }
 
+    // Đánh giá mức liên quan của ô với cơ chế đang hướng dẫn để chọn nội dung gợi ý.
     private int ItemPriority(FoodQueue queue, FoodShushi food)
     {
         if (tutorialItem == FoodState.Ice)
@@ -328,6 +344,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return 0;
     }
 
+    // Chọn lời hướng dẫn phù hợp với ô bí ẩn, băng, liên kết hoặc khay nguyên liệu.
     private void SetItemDescription()
     {
         switch (tutorialItem)
@@ -350,6 +367,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         }
     }
 
+    // Ghép nhãn, tiêu đề và gợi ý thành nội dung có định dạng cho bảng mô tả nguyên liệu.
     private void SetFoodDescription(string label, string title, string hint)
     {
         if (foodDescription != null)
@@ -357,6 +375,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
                 "</b>\n<size=78%>" + hint + "</size>";
     }
 
+    // Theo dõi tính hợp lệ của màn và mục tiêu, bắt đầu bước hướng dẫn khi popup cùng chuyển cảnh đã xong.
     private void Update()
     {
         if (Step == TutorialStep.Inactive) return;
@@ -380,6 +399,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         SetStep(Lesson == TutorialLesson.LevelOne || isRush ? TutorialStep.Order : TutorialStep.Food);
     }
 
+    // Chuyển bước tutorial, bật bảng mô tả cùng bàn tay tương ứng và làm nổi mục tiêu.
     private void SetStep(TutorialStep next)
     {
         Step = next;
@@ -400,6 +420,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
     }
 
     // Called before normal input while the level is held. An outside tap is simply consumed.
+    // Chặn thao tác ngoài mục tiêu và xử lý nhấn đúng đơn món hoặc nguyên liệu của tutorial.
     public bool TryHandlePress(Vector2 screenPosition, Camera camera)
     {
         if (!IsInputLocked) return false;
@@ -433,17 +454,21 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         return true;
     }
 
+    // Chỉ cho phép lấy đúng cột mục tiêu trong thời điểm tutorial đang xác nhận thao tác.
     public static bool AllowsQueue(FoodQueue queue) => Ins != null && Ins.confirmingPickup &&
         Ins.Step == TutorialStep.Food && Ins.Lesson != TutorialLesson.ClickBooster &&
         queue != null && queue == Ins.targetQueue && queue.GetTopFood() == Ins.TargetFood;
 
+    // Chỉ cho phép đũa lấy đúng nguyên liệu mục tiêu của bài hướng dẫn booster Click.
     public static bool AllowsChopsticks(FoodShushi food) => IsConfirmingPickup && Ins.Step == TutorialStep.Food &&
         Ins.Lesson == TutorialLesson.ClickBooster && food != null && food == Ins.TargetFood;
 
+    // Chỉ cho phép nam châm áp dụng lên đúng khách và món mục tiêu đang được xác nhận.
     public static bool AllowsMagnet(Customer customer, SushiDishOrder dish) => IsConfirmingPickup &&
         Ins.Step == TutorialStep.Order && Ins.Lesson == TutorialLesson.MagnetBooster &&
         customer != null && customer == Ins.TargetCustomer && dish != null && dish == Ins.TargetDish;
 
+    // Tạm thả giữ màn để dùng nam châm, lưu hoàn thành tutorial khi hút thành công.
     private void TryCompleteMagnet()
     {
         if (confirmingPickup || input == null) return;
@@ -462,6 +487,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         CancelTutorial();
     }
 
+    // Thực hiện lượt lấy nguyên liệu được chỉ, chỉ lưu hoàn thành khi giao thao tác thành công.
     private void TryPickTarget()
     {
         bool isClick = Lesson == TutorialLesson.ClickBooster;
@@ -500,11 +526,13 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         CancelTutorial();
     }
 
+    // Cập nhật vị trí các thành phần hướng dẫn sau khi mục tiêu đã di chuyển trong frame.
     private void LateUpdate()
     {
         RefreshLayout();
     }
 
+    // Căn lớp phủ theo camera và đặt bảng mô tả, bàn tay theo mục tiêu cùng hiệu ứng chỉ dẫn.
     public void RefreshLayout()
     {
         if (Step != TutorialStep.Order && Step != TutorialStep.Food) return;
@@ -553,6 +581,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
             new Vector3(pointerTravel, -pointerTravel, 0) * (1 + pulse);
     }
 
+    // Lưu thứ tự vẽ và đưa các renderer của nguyên liệu mục tiêu lên trên lớp phủ.
     private void HighlightFood()
     {
         if (TargetFood == null || highlightedRenderers.Count > 0) return;
@@ -567,6 +596,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         }
     }
 
+    // Khôi phục thứ tự vẽ ban đầu của nguyên liệu đã được làm nổi.
     private void RestoreHighlight()
     {
         foreach (var entry in highlightedRenderers)
@@ -574,6 +604,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         highlightedRenderers.Clear();
     }
 
+    // Dừng bài hướng dẫn, phục hồi hình ảnh và nội dung, bỏ khóa input cùng trạng thái giữ màn.
     public void CancelTutorial()
     {
         bool cancelBooster = Lesson == TutorialLesson.ClickBooster || Lesson == TutorialLesson.MagnetBooster;
@@ -600,6 +631,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         tutorialItem = FoodState.Normal;
     }
 
+    // Gọi và xóa callback đóng spotlight booster để tránh gọi lại.
     private void HideBoosterSpotlight()
     {
         var cleanup = closeBoosterSpotlight;
@@ -607,6 +639,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         cleanup?.Invoke();
     }
 
+    // Ẩn lớp phủ, bàn tay và bảng mô tả, đồng thời khôi phục tỉ lệ ban đầu.
     private void HideVisuals()
     {
         if (img_lop_phu_duoi != null) img_lop_phu_duoi.gameObject.SetActive(false);
@@ -616,6 +649,7 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         ResetVisual(objDesFood, foodPanelScale);
     }
 
+    // Dừng tween, phục hồi kích thước và ẩn một thành phần hình ảnh của tutorial.
     private static void ResetVisual(GameObject visual, Vector3 scale)
     {
         if (visual == null) return;
@@ -624,13 +658,16 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
         visual.SetActive(false);
     }
 
+    // Báo thiếu mục tiêu hợp lệ cho tutorial màn đầu và hủy bài hướng dẫn.
     private void InvalidTarget()
     {
         Debug.LogWarning("Level 1 tutorial needs a usable ClickTut head tile and a seated order using that ingredient.", this);
         CancelTutorial();
     }
 
+    // Hủy bài hướng dẫn khi đối tượng điều khiển bị tắt.
     private void OnDisable() => CancelTutorial();
+    // Dọn tutorial và xóa singleton khi đối tượng điều khiển bị hủy.
     private void OnDestroy()
     {
         CancelTutorial();

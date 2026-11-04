@@ -20,22 +20,26 @@ public class NoffSpin : MonoBehaviour
     //[SerializeField] private Sprite normIconSprite;
     //[SerializeField] private Sprite adsIconSprite;
 
+    // Lưu đối tượng thông báo vòng quay và kích thước biểu tượng ban đầu.
     private void Awake()
     {
         cur = this;
         noffRootScale = noffRect.localScale;
     }
 
+    // Cập nhật thông báo lượt quay khi đối tượng được bật.
     private void OnEnable()
     {
         UpdateNoff();
     }
 
+    // Dừng hiệu ứng nhịp của biểu tượng thông báo.
     private void OnDisable()
     {
         noffTween?.Kill();
     }
 
+    // Bật thông báo khi đủ tiến trình quay hoặc có lượt quảng cáo và cập nhật bộ chờ chu kỳ.
     private void UpdateNoff()
     {
         var require = SpinDataFragment.cur.GetRequiredPassedLevel();
@@ -54,12 +58,14 @@ public class NoffSpin : MonoBehaviour
         CheckTimeLeftTillFree();
     }
 
+    // Cho thành phần khác yêu cầu làm mới thông báo vòng quay hiện tại.
     public static void UpdateNoffStatic()
     {
         if (cur == null) return;
         cur.UpdateNoff();
     }
 
+    // Chạy hiệu ứng phóng to thu nhỏ lặp cho biểu tượng lượt quay.
     private void NoffBubble()
     {
         noffTween?.Kill();
@@ -69,12 +75,14 @@ public class NoffSpin : MonoBehaviour
 
     private static WaitUntil waitForValidTime = new WaitUntil(() => UnbiasedTime.IsValidTime);
 
+    // Khởi động lại coroutine chờ chu kỳ lượt quay quảng cáo mới.
     public void CheckTimeLeftTillFree()
     {
         if (timeCor != null) StopCoroutine(timeCor);
         timeCor = StartCoroutine(ie_Check());
         return;
 
+        // Chờ giờ hợp lệ và làm mới thông báo khi đến chu kỳ lượt quay tiếp theo.
         IEnumerator ie_Check()
         {
             if (SpinDataFragment.cur.IsAdsAble()) yield break;

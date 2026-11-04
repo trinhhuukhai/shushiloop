@@ -19,6 +19,7 @@ public partial class ConveyorManager
     public int PreparingDishCount => assemblyFoods.Values.Count(foods => foods.Count > 0);
     public IReadOnlyDictionary<Transform, SushiPreparedDish> PlatedDishes => slotDishes;
 
+    // Kiểm tra băng chuyền và túi có đủ nguyên liệu để bắt đầu một món của khách đang ngồi.
     public bool HasCompleteRecipeOnBelt()
     {
         if (preparedDishPrefab == null) return false;
@@ -42,6 +43,7 @@ public partial class ConveyorManager
         return false;
     }
 
+    // Chọn nguyên liệu đi qua điểm giao, giữ chỗ món phù hợp và đưa lên đĩa ghép.
     private void AssembleAvailableDishes(float previousProgress)
     {
         if (preparedDishPrefab == null || slotFoods.Count == 0) return;
@@ -63,6 +65,7 @@ public partial class ConveyorManager
         }
     }
 
+    // Tìm đĩa cùng khách có phần nền chuyển được sang món đích, ưu tiên tiến độ cao hơn.
     private SushiPreparedDish FindReusableFoundation(Customer customer, SushiDishOrder target, PoolType type)
     {
         if (type == target.FoundationType || target.FindAvailableIngredient(type) == null) return null;
@@ -83,6 +86,7 @@ public partial class ConveyorManager
         return best;
     }
 
+    // Chọn món nhận nguyên liệu theo nguồn đang có, chuyển phần nền nếu cần rồi giữ chỗ nhận.
     private bool TryReserveAvailablePreparedIngredient(Customer customer, PoolType type,
         out SushiDishOrder order, out Transform destination)
     {
@@ -94,6 +98,7 @@ public partial class ConveyorManager
             available.TryGetValue(food.Type, out int count);
             available[food.Type] = count + 1;
         }
+        // Đếm lượng nguyên liệu cùng loại đang có trên băng chuyền hoặc trong túi cho bước chọn món.
         int Count(PoolType ingredient) => available.TryGetValue(ingredient, out int count) ? count : 0;
         var reusable = new Dictionary<SushiDishOrder, SushiPreparedDish>();
         foreach (SushiDishOrder dish in customer.Dishes)
@@ -101,6 +106,7 @@ public partial class ConveyorManager
             SushiPreparedDish plated = FindReusableFoundation(customer, dish, type);
             if (plated != null) reusable.Add(dish, plated);
         }
+        // Lấy đơn món đang giữ phần nền có thể tái sử dụng cho món được xét.
         SushiDishOrder Foundation(SushiDishOrder dish) => reusable.TryGetValue(dish, out var plated) ? plated.Order : null;
         int start = Random.Range(0, customer.Dishes.Count);
         order = SushiDishSelection.Select(customer.Dishes, type,
@@ -119,6 +125,7 @@ public partial class ConveyorManager
         return customer.TryReservePreparedIngredient(order, type, out destination);
     }
 
+    // Gán đĩa sang đơn món mới và đồng bộ hình ảnh nguyên liệu đang bay tới.
     private void ReassignPreparedPlate(SushiPreparedDish plated, SushiDishOrder order)
     {
         plated.ReassignOrder(order);
@@ -126,6 +133,7 @@ public partial class ConveyorManager
             foreach (FoodShushi food in flights) plated.ApplyIngredientArtwork(food, true);
     }
 
+    // Kiểm tra đoạn di chuyển vừa qua của vị trí băng chuyền có chạm vùng giao cho khách.
     private bool IsAtCustomerDeliveryPoint(Customer customer, Transform slot, float previousProgress)
     {
         int customerIndex = -1;
@@ -148,6 +156,7 @@ public partial class ConveyorManager
         return DistanceToSegment(gatePosition, previousPosition, currentPosition) <= deliveryRange;
     }
 
+    // Tính khoảng cách ngắn nhất từ một điểm tới đoạn thẳng chuyển động.
     private static float DistanceToSegment(Vector2 point, Vector2 start, Vector2 end)
     {
         Vector2 segment = end - start;
@@ -157,6 +166,7 @@ public partial class ConveyorManager
         return Vector2.Distance(point, start + segment * t);
     }
 
+    // Lấy đĩa đã giữ chỗ hoặc tạo đĩa mới trên bàn và bắt đầu theo dõi ghép món.
     private SushiPreparedDish GetOrCreatePreparedDish(Customer customer, SushiDishOrder order, Transform destination)
     {
         if (slotDishes.TryGetValue(destination, out SushiPreparedDish existing)) return existing;
@@ -170,6 +180,7 @@ public partial class ConveyorManager
         return plated;
     }
 
+    // Tách nguyên liệu khỏi băng chuyền, thêm vào danh sách chờ và thử khởi động chuyến bay.
     private void StartPreparedIngredientFlight(SushiPreparedDish plated, FoodShushi food, Transform destination)
     {
         if (food.Location == FoodLocation.MovingToConveyor) food.ArriveAtConveyor();
@@ -180,6 +191,7 @@ public partial class ConveyorManager
         LaunchReadyPreparedIngredients(plated);
     }
 
+    // Cho các nguyên liệu đủ điều kiện thứ tự ghép bay lên đĩa với độ trễ so le.
     private void LaunchReadyPreparedIngredients(SushiPreparedDish plated)
     {
         if (!assemblyFoods.TryGetValue(plated, out var flights)) return;
@@ -192,6 +204,7 @@ public partial class ConveyorManager
         }
     }
 
+    // Đưa một nguyên liệu lên đĩa, chốt lượt nhận và chuyển món đủ thành phần sang bước phục vụ.
     private void LaunchPreparedIngredient(SushiPreparedDish plated, FoodShushi food, List<FoodShushi> flights, float delay)
     {
         if (!food.TryMoveToCustomerPlate()) return;
@@ -219,6 +232,7 @@ public partial class ConveyorManager
         });
     }
 
+    // Giải phóng chỗ trên bàn và cho món hoàn chỉnh bay tới thẻ đơn để xác nhận giao xong.
     private void SendDishToOrder(SushiPreparedDish plated)
     {
         if (plated == null || plated.Owner == null) return;
@@ -236,6 +250,7 @@ public partial class ConveyorManager
         });
     }
 
+    // Chạy chuyển động vòng cung và đổi kích thước đĩa món tới điểm nhận.
     private void JumpDish(SushiPreparedDish plated, Transform target, float duration, float height, float scale, System.Action complete)
     {
         Transform subject = plated.transform;
@@ -248,6 +263,7 @@ public partial class ConveyorManager
         }).SetEase(Ease.InOutSine).SetId(dishTweenId).OnComplete(() => complete());
     }
 
+    // Hủy hiệu ứng món, thu hồi nguyên liệu đang ghép và hủy các đĩa cùng lượt giữ chỗ.
     private void ClearPreparedDishes()
     {
         DOTween.Kill(dishTweenId);
@@ -268,6 +284,7 @@ public partial class ConveyorManager
         slotDishes.Clear(); servingDishes.Clear();
     }
 
+    // Dùng nam châm giao đĩa sẵn có hoặc gom đủ nguyên liệu để hoàn thành món được chọn.
     private bool TryMagnetPreparedDish(BoardShishiManager board, Customer customer, SushiDishOrder order)
     {
         SushiPreparedDish existingDish = null;

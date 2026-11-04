@@ -27,6 +27,7 @@ public class CanvasMoreBooster : UICanvas
     public RectTransform contentRectTF;
 
 
+    // Mở popup bổ sung booster, cập nhật tiền, cờ trạng thái và hiệu ứng phóng to.
     public override void Open()
     {
         base.Open();
@@ -43,6 +44,7 @@ public class CanvasMoreBooster : UICanvas
     }
 
 
+    // Gán loại booster, lấy giá từ dữ liệu và chọn hình ảnh, tiêu đề, mô tả tương ứng.
     public void Innit(BoosterType type)
     {
         DisableAll();
@@ -94,6 +96,7 @@ public class CanvasMoreBooster : UICanvas
         }
     }
 
+    // Đọc lại giá booster và đổi màu giá theo khả năng chi trả của người chơi.
     public void CheckGoldAgain()
     {
         BoosterData boosterDataSO = DataManager.ins.BoosterData;
@@ -128,6 +131,7 @@ public class CanvasMoreBooster : UICanvas
     //    txtTotalGoal.text = GameDataFragment.cur.dataPlayer.money.ToString();
     //}
 
+    // Ẩn toàn bộ nhóm hình booster trước khi chọn loại cần hiển thị.
     private void DisableAll()
     {
         clear.SetActive(false);
@@ -136,11 +140,13 @@ public class CanvasMoreBooster : UICanvas
 
     }
 
+    // Chuyển thao tác đóng popup trực tiếp về lớp cơ sở.
     public override void CloseDirectly()
     {
         base.CloseDirectly();
     }
 
+    // Đồng bộ tiền trên UI nổi và popup theo dữ liệu thực tế.
     public void UpdateGold(int gold)
     {
         //UIManager.Ins.GetUI<CanvasFloating>().AnimGold(gold, false);
@@ -149,6 +155,7 @@ public class CanvasMoreBooster : UICanvas
 
     }
 
+    // Chuyển thẳng sang xử lý thưởng booster; hiện chưa có bước chạy quảng cáo.
     public void ButtonWatchAds()
     {
         //AdsManager.Ins.ShowRewardedAd(
@@ -162,6 +169,7 @@ public class CanvasMoreBooster : UICanvas
         //    OnFail
         //);
         OnAdsClosed();
+        // Điểm xử lý quảng cáo thất bại được khai báo cục bộ; hiện chưa có nội dung.
         void OnFail()
         {
             //UIManager.Ins.GetUI<CanvasFloating>().showBtnSettingInGame(true);
@@ -169,6 +177,7 @@ public class CanvasMoreBooster : UICanvas
         }
     }
 
+    // Cộng một booster, kích hoạt loại vừa nhận, đóng popup và cập nhật HUD gameplay.
     public void OnAdsClosed()
     {
 
@@ -217,6 +226,7 @@ public class CanvasMoreBooster : UICanvas
 
     }
 
+    // Kiểm tra tiền, mua một booster rồi kích hoạt và cập nhật các số tài nguyên trên UI.
     public void ButtonUseGold()
     {
         bool isEnough = false;
@@ -316,6 +326,7 @@ public class CanvasMoreBooster : UICanvas
         }
     }
 
+    // Trả cờ chơi về true và đóng popup bổ sung booster.
     public void BackBtn()
     {
         LevelManager.Ins.isPlay = true;
@@ -324,6 +335,7 @@ public class CanvasMoreBooster : UICanvas
 
     }
 
+    // Yêu cầu HUD gameplay làm mới toàn bộ số lượng booster.
     public void RefreshResource()
     {
         UIManager.Ins.GetUI<CanvasGamePlay>().RefeshCoountAllBooster();

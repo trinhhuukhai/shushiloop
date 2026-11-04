@@ -23,6 +23,7 @@ public class CanvasRevive : UICanvas
     public RectTransform mainPanelRect;
     private Tween popTween;
 
+    // Hiện cảnh báo lý do kẹt trước khi mở popup hồi sinh, sau đó cập nhật giá và nội dung.
     public override void Open()
     {
 
@@ -47,6 +48,7 @@ public class CanvasRevive : UICanvas
         Refresh();
     }
     //private void Update() => Refresh();
+    // Chọn nhóm nội dung theo lý do hồi sinh và mô tả phá băng nếu hồi sinh đầy băng chuyền có kèm phá băng.
     private void Refresh()
     {
         LevelManager level = LevelManager.Ins;
@@ -83,10 +85,12 @@ public class CanvasRevive : UICanvas
     //    CloseDirectly();
     //}
 
+    // Hiển thị số tiền hiện có trên popup hồi sinh.
     public void SetGold()
     {
         txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString();
     }
+    // Cập nhật giá hồi sinh ở các nhóm nội dung và tô đỏ khi tiền không đủ.
     public void setUp()
     {
         int price = RevivePrice;
@@ -109,6 +113,7 @@ public class CanvasRevive : UICanvas
     }
 
 
+    // Kiểm tra tiền, trừ phí rồi gọi hồi sinh và đồng bộ số tiền trên UI.
     public void BtnRevive()
     {
         if (LevelManager.Ins == null || !LevelManager.Ins.IsPlaying ||
@@ -147,14 +152,18 @@ public class CanvasRevive : UICanvas
         }
     }
 
+    // Gọi hồi sinh trực tiếp rồi đóng popup; hiện hàm chưa chờ kết quả quảng cáo.
     public void ReviveWithAd()
     {
         if (LevelManager.Ins != null)
             LevelManager.Ins.ReVive();
         CloseDirectly();
     }
+    // Giảm độ rõ của nhóm giao diện khi người chơi giữ tay trên panel.
     public void OnHandTouchPanel() { if (grandCg != null) grandCg.alpha = 0.2f; }
+    // Khôi phục độ rõ của nhóm giao diện khi người chơi thả tay.
     public void OnHAndReleasePanel() { if (grandCg != null) grandCg.alpha = 1; }
+    // Mở popup thất bại và đóng popup hồi sinh.
     public void Close()
     {
         UIManager.Ins.OpenUI<CanvasFail>();
@@ -162,6 +171,7 @@ public class CanvasRevive : UICanvas
     }
 
 
+    // Xử lý bỏ hồi sinh, chọn cảnh báo mất mạng hoặc popup thất bại theo tiến trình và chế độ mạng.
     public void backBtn()
     {
         SoundManager.PlayEfx(SoundID.sfx_click);

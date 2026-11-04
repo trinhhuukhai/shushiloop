@@ -24,6 +24,7 @@ public class Customer : MonoBehaviour
     [SerializeField] private Transform[] servingSlots;
     private readonly Dictionary<SushiDishOrder, int> tableReservations = new Dictionary<SushiDishOrder, int>();
 
+    // Kiểm tra món của khách còn nguyên trạng và đủ điều kiện bắt đầu chuẩn bị.
     public bool CanPrepareDish(SushiDishOrder dish)
     {
         if (dish == null || !dishes.Contains(dish) || completed || RushExpired || dish.IsComplete || dish.IsPrepared) return false;
@@ -32,12 +33,14 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Kiểm tra khách đã ngồi, chưa hết giờ và món vẫn có thể được ghép nguyên liệu.
     public bool CanAssembleDish(SushiDishOrder dish)
     {
         return IsSeated && !completed && !RushExpired && dish != null && dishes.Contains(dish) &&
             !dish.IsComplete && !dish.IsOnTable;
     }
 
+    // Kiểm tra thứ tự nguyên liệu, nhu cầu món và chỗ trống trên bàn trước khi nhận.
     public bool CanReceivePreparedIngredient(SushiDishOrder dish, PoolType type, bool includeIncomingFoundation = false)
     {
         if (!CanAssembleDish(dish) || !dish.CanStartIngredient(type, includeIncomingFoundation) ||
@@ -47,6 +50,7 @@ public class Customer : MonoBehaviour
             (tableReservations.ContainsKey(dish) || FindFreeServingSlot() >= 0);
     }
 
+    // Giữ chỗ trên bàn và tăng số nguyên liệu đang bay tới cho món lẫn đơn tổng.
     public bool TryReservePreparedIngredient(SushiDishOrder dish, PoolType type, out Transform target,
         bool includeIncomingFoundation = false)
     {
@@ -70,10 +74,12 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Kiểm tra hai món có thể chuyển phần nền đã chuẩn bị và đổi chỗ giữ trên bàn.
     internal bool CanTransferPreparedFoundation(SushiDishOrder source, SushiDishOrder target) =>
         CanAssembleDish(source) && CanAssembleDish(target) && tableReservations.ContainsKey(source) &&
         tableReservations.ContainsKey(target) == target.IsPrepared && source.CanTransferFoundationTo(target);
 
+    // Chuyển phần nền giữa hai món, đồng bộ chỗ giữ trên bàn và báo thay đổi đơn.
     internal bool TryTransferPreparedFoundation(SushiDishOrder source, SushiDishOrder target)
     {
         if (!CanTransferPreparedFoundation(source, target)) return false;
@@ -88,6 +94,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Hủy một nguyên liệu đang tới và giải phóng đĩa nếu món không còn nguyên liệu nào.
     public bool CancelPreparedIngredientReservation(SushiDishOrder dish, PoolType type)
     {
         if (dish == null || !dish.IsPrepared) return false;
@@ -112,6 +119,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Ghi nhận nguyên liệu đã đáp lên đĩa và báo món đã đủ thành phần hay chưa.
     public bool CompletePreparedIngredient(SushiDishOrder dish, PoolType type, out bool dishComplete)
     {
         dishComplete = false;
@@ -132,6 +140,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Đánh dấu toàn bộ nguyên liệu của món sẽ được giao để tránh đặt trùng.
     public bool ReservePreparedDish(SushiDishOrder dish)
     {
         if (!CanPrepareDish(dish)) return false;
@@ -145,6 +154,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Giữ một vị trí đĩa trống trên bàn cho món đã bắt đầu chuẩn bị.
     public bool TryReserveTable(SushiDishOrder dish, out Transform target)
     {
         target = null;
@@ -156,6 +166,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Tìm vị trí đĩa phục vụ còn trống trên bàn khách.
     private int FindFreeServingSlot()
     {
         if (servingSlots == null) return -1;
@@ -164,8 +175,10 @@ public class Customer : MonoBehaviour
         return -1;
     }
 
+    // Lấy điểm nhận món hoàn chỉnh trên thẻ đơn hàng tương ứng.
     public Transform DishOrderTarget(SushiDishOrder dish) => recipeView.CardAt(dish.Index).DishDeliverySlot;
 
+    // Hủy tiến độ chuẩn bị món, hoàn lại bộ đếm nguyên liệu và giải phóng chỗ trên bàn.
     public void CancelPreparedDish(SushiDishOrder dish)
     {
         if (dish == null || !dish.IsPrepared || dish.IsComplete) return;
@@ -182,6 +195,7 @@ public class Customer : MonoBehaviour
         OnOrderChanged?.Invoke(this);
     }
 
+    // Xác nhận món đã giao đủ, hoàn tất đơn món và báo khách hoàn thành nếu đã nhận hết.
     public bool CompletePreparedDish(SushiDishOrder dish)
     {
         if (dish == null || !dish.IsPrepared || dish.IsComplete || !dish.HasAllIngredients() ||
@@ -223,6 +237,7 @@ public class Customer : MonoBehaviour
     public float RushDuration { get; private set; }
     public bool IsCompleted => completed;
     public float ReceivingFoodScale => dishes.Count > 0 ? recipeView.CardAt(0).IngredientAt(0).ReceivingFoodScale : 0.42f;
+    // Lấy tỉ lệ hiển thị nguyên liệu tại ô nhận của món hoặc dùng tỉ lệ mặc định.
     public float GetReceivingFoodScale(FoodShushi food)
     {
         if (reservations.TryGetValue(food, out Reservation reservation) && reservation.dish != null)
@@ -233,6 +248,7 @@ public class Customer : MonoBehaviour
         }
         return ReceivingFoodScale;
     }
+    // Lấy sprite nguyên liệu của khách, dùng thư viện hình ảnh chung nếu chưa có.
     public Sprite GetIngredientSprite(PoolType type)
     {
         Sprite sprite = ingredientArt != null ? ingredientArt.GetSprite(type) : null;
@@ -244,6 +260,7 @@ public class Customer : MonoBehaviour
     public event Action<Customer> OnRushExpired;
     public event Action<Customer, SushiDishOrder> OnDishCompleted;
 
+    // Khởi tạo khách theo dữ liệu đơn món, dựng ô nhận nguyên liệu, đĩa phục vụ và thời gian rush.
     public void Setup(int customerId, Sprite avatarSprite, CustomerOrderData data, SushiDishArtLibrary art = null)
     {
         Setup(customerId, avatarSprite, data.CreateFoodList());
@@ -266,6 +283,7 @@ public class Customer : MonoBehaviour
         OnOrderChanged?.Invoke(this);
     }
 
+    // Bổ sung, sắp xếp và ẩn hiện các đĩa phục vụ theo số phần món của khách.
     private void ConfigureServingSlots(int count)
     {
         if (servingRoot == null) return;
@@ -302,6 +320,7 @@ public class Customer : MonoBehaviour
         }
     }
 
+    // Thiết lập trạng thái khách vội và thời hạn chờ theo dữ liệu hoặc số nguyên liệu.
     public void ConfigureRush(CustomerOrderData data)
     {
         IsRush = data.rushCustomer;
@@ -313,6 +332,7 @@ public class Customer : MonoBehaviour
         RushRemaining = RushDuration;
     }
 
+    // Đánh dấu khách đã vào ghế và bật phần đơn món cùng bàn phục vụ.
     public void SitDown()
     {
         IsSeated = true;
@@ -320,6 +340,7 @@ public class Customer : MonoBehaviour
         if (servingRoot != null) servingRoot.gameObject.SetActive(true);
     }
 
+    // Giảm thời gian chờ của khách vội đang ngồi và phát sự kiện khi hết giờ.
     public void TickRush(float deltaTime)
     {
         if (!IsRush || !IsSeated || completed || RushExpired || deltaTime <= 0) return;
@@ -329,6 +350,7 @@ public class Customer : MonoBehaviour
         OnRushExpired?.Invoke(this);
     }
 
+    // Gia hạn thêm 30 giây cho khách vội đã hết thời gian chờ.
     public void ReviveRush()
     {
         if (!IsRush || !RushExpired || completed) return;
@@ -347,6 +369,7 @@ public class Customer : MonoBehaviour
     }
 
     // Gọi trên Customer mới được tạo.
+    // Dọn trạng thái khách cũ, gán avatar và gom danh sách nguyên liệu thành các mục đơn hàng.
     public void Setup( int customerId, Sprite avatarSprite, List<PoolType> requestedFoods)
     {
         id = customerId;
@@ -395,6 +418,7 @@ public class Customer : MonoBehaviour
         OnOrderChanged?.Invoke(this);
     }
 
+    // Kiểm tra khách còn cần loại nguyên liệu này và còn ô nhận phù hợp.
     public bool CanReceive(PoolType type)
     {
         if (completed || RushExpired || !isActiveAndEnabled)  return false;
@@ -406,11 +430,14 @@ public class Customer : MonoBehaviour
             && FindFreeSlot() >= 0;
     }
 
+    // Thử giữ ô nhận phù hợp cho nguyên liệu đang ở trên băng chuyền.
     public bool TryReserveFood(FoodShushi food, out Transform target) => TryReserveFood(food, null, false, out target);
 
+    // Giữ ô nhận cho một món cụ thể, cho phép lấy cả nguyên liệu đang bay lên băng chuyền.
     internal bool TryReserveFoodForDish(FoodShushi food, SushiDishOrder dish, out Transform target) =>
         TryReserveFood(food, dish, true, out target);
 
+    // Giữ ô nhận và bộ đếm cho nguyên liệu, đồng thời chuyển nó sang trạng thái đang giao.
     private bool TryReserveFood(FoodShushi food, SushiDishOrder requestedDish, bool allowPickupFlight, out Transform target)
     {
         target = null;
@@ -463,6 +490,7 @@ public class Customer : MonoBehaviour
     }
 
     // Chỉ gọi khi Food đã bay tới đĩa.
+    // Chốt nguyên liệu đã đến đĩa, cập nhật đơn món và kiểm tra khách đã nhận đủ.
     public bool CompleteReceive(FoodShushi food)
     {
         if (food == null || food.Location != FoodLocation.MovingToCustomerPlate || !reservations.TryGetValue(food, out Reservation reservation))
@@ -519,6 +547,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Tìm mục đơn tổng ứng với một loại nguyên liệu.
     private OrderItem FindOrder(PoolType type)
     {
         for (int i = 0; i < orders.Count; i++)
@@ -530,6 +559,7 @@ public class Customer : MonoBehaviour
         return null;
     }
 
+    // Tìm ô nhận chưa bị giữ, giới hạn theo món và loại nguyên liệu nếu được chỉ định.
     private int FindFreeSlot(SushiDishOrder targetDish = null, PoolType type = PoolType.None)
     {
         int start = 0, end = CurrentSlots.Count;
@@ -552,6 +582,7 @@ public class Customer : MonoBehaviour
         return -1;
     }
 
+    // Kiểm tra toàn bộ món hoặc đơn nguyên liệu của khách đã hoàn tất.
     private bool IsOrderComplete()
     {
         if (dishes.Count > 0)
@@ -568,6 +599,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Đánh dấu món hoàn thành, thu hồi nguyên liệu đã nhận và phát sự kiện hoàn tất món.
     private void CompleteDish(SushiDishOrder dish)
     {
         if (dish.IsComplete) return;

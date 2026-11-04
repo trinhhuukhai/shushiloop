@@ -25,6 +25,7 @@ public partial class ConveyorManager
         }
     }
 
+    // Gom một nhóm nguyên liệu trên băng chuyền vào túi hồi sinh để giải phóng vị trí.
     public bool TryReviveFullConveyor()
     {
         if (!CanReviveFullConveyor) return false;
@@ -56,8 +57,10 @@ public partial class ConveyorManager
         return true;
     }
 
+    // Kiểm tra vị trí đang chứa nguyên liệu lẻ hoặc túi hồi sinh.
     private bool IsSlotOccupied(Transform slot) => slotFoods.ContainsKey(slot) || slotBags.ContainsKey(slot);
 
+    // Duyệt cả nguyên liệu lẻ trên băng chuyền lẫn nguyên liệu chứa trong túi hồi sinh.
     private IEnumerable<FoodShushi> BeltIngredients()
     {
         foreach (FoodShushi food in slotFoods.Values) yield return food;
@@ -65,6 +68,7 @@ public partial class ConveyorManager
             foreach (FoodShushi food in bag.Foods) yield return food;
     }
 
+    // Kiểm tra có túi nào đang chờ nguyên liệu bay vào hoàn tất.
     private bool IsPackingBags()
     {
         foreach (SushiReviveBag bag in slotBags.Values) if (bag.IsPacking) return true;
@@ -72,6 +76,7 @@ public partial class ConveyorManager
     }
 
     // Both Magnet implementations use the same sources, including stored bag ingredients.
+    // Chọn nguyên liệu cùng loại từ băng chuyền và túi đã đóng xong, trả về lượng còn thiếu.
     private int CollectBeltIngredients(PoolType type, int remaining, List<KeyValuePair<Transform, FoodShushi>> plan)
     {
         foreach (Transform slot in slots)
@@ -95,6 +100,7 @@ public partial class ConveyorManager
         return remaining;
     }
 
+    // Lấy nguyên liệu khỏi vị trí hoặc túi, khôi phục hình ảnh và hủy túi khi đã rỗng.
     private void RemoveBeltIngredient(Transform slot, FoodShushi food)
     {
         if (slotFoods.TryGetValue(slot, out FoodShushi loose) && loose == food)
@@ -117,6 +123,7 @@ public partial class ConveyorManager
         }
     }
 
+    // Thử giao nguyên liệu trong túi đã sẵn sàng cho khách theo thứ tự ưu tiên.
     private void DeliverBagIngredients()
     {
         if (customerManager == null || slotBags.Count == 0) return;
@@ -154,6 +161,7 @@ public partial class ConveyorManager
         }
     }
 
+    // Dừng hiệu ứng đóng túi, trả nguyên liệu về pool và hủy toàn bộ túi hồi sinh.
     private void ClearReviveBags()
     {
         DOTween.Kill(bagTweenId);

@@ -28,6 +28,7 @@ public class SushiLevelData : ScriptableObject
     public List<FoodQueueData> boardColumns = new List<FoodQueueData>();
     public int CustomerCount => customers == null ? 0 : customers.Count;
 
+    // Tính tổng số phần nguyên liệu cần phục vụ cho toàn bộ khách trong màn.
     public int GetTotalFoodCount()
     {
         int total = 0;
@@ -38,6 +39,7 @@ public class SushiLevelData : ScriptableObject
         return total;
     }
 
+    // Kiểm tra cấu hình rồi tạo bản dữ liệu bàn riêng cho lần chơi.
     public List<FoodQueueData> CreateBoardData()
     {
         string error = ValidateData();
@@ -45,6 +47,7 @@ public class SushiLevelData : ScriptableObject
         return BuildBoard();
     }
 
+    // Sao chép bàn thiết kế sẵn hoặc sinh các cột nguyên liệu theo đơn khách và thiết lập màn.
     private List<FoodQueueData> BuildBoard()
     {
         var board = new List<FoodQueueData>();
@@ -101,6 +104,7 @@ public class SushiLevelData : ScriptableObject
         return board;
     }
 
+    // Kiểm tra tham số màn, đơn khách và cấu hình bàn trước khi cho phép nạp.
     public string ValidateData()
     {
         if (number < 1) return "Số level phải >= 1.";
@@ -140,6 +144,7 @@ public class SushiLevelData : ScriptableObject
         return ValidateBoard(BuildBoard());
     }
 
+    // Đối chiếu nguyên liệu với đơn khách và kiểm tra ràng buộc ô băng, cặp liên kết, khay.
     private string ValidateBoard(List<FoodQueueData> board)
     {
         var expected = new Dictionary<PoolType, int>();
@@ -217,6 +222,7 @@ public class SushiLevelData : ScriptableObject
         return ValidateLinkPaths(board);
     }
 
+    // Mô phỏng lấy đầu cột để phát hiện các cặp liên kết chặn đường lên của nhau.
     private static string ValidateLinkPaths(List<FoodQueueData> board)
     {
         // Mô phỏng bỏ ô thường/băng và lấy cặp nối đồng thời để phát hiện dây khóa chéo.
@@ -245,11 +251,13 @@ public class SushiLevelData : ScriptableObject
         return null;
     }
 
+    // Thêm tọa độ ô vào nhóm có cùng mã liên kết hoặc mã khay.
     private static void AddGroup(Dictionary<int, List<Vector2Int>> groups, int id, Vector2Int position)
     {
         if (!groups.TryGetValue(id, out var group)) groups[id] = group = new List<Vector2Int>();
         group.Add(position);
     }
 
+    // Kiểm tra mã nguyên liệu có trong enum và khác giá trị None.
     private static bool IsFoodType(PoolType type) => type != PoolType.None && Enum.IsDefined(typeof(PoolType), type);
 }

@@ -27,8 +27,10 @@ public class CustomerRecipeView : MonoBehaviour
     private Image orderBoardImage;
     private bool hasCachedOrderBoard;
 
+    // Lấy thẻ hiển thị tương ứng với chỉ số đơn món, kể cả các phần dùng chung thẻ.
     public SushiDishCardView CardAt(int index) => dishCards[index];
 
+    // Bỏ đăng ký sự kiện khách, phục hồi bảng đơn gốc và hủy các thẻ món đã tạo.
     public void Clear()
     {
         if (customer != null) customer.OnOrderChanged -= Refresh;
@@ -41,6 +43,7 @@ public class CustomerRecipeView : MonoBehaviour
         dishCards.Clear(); groups.Clear();
     }
 
+    // Gom các phần cùng công thức, dựng thẻ món theo cột và đăng ký cập nhật đơn khách.
     public void Setup(Customer owner, SushiDishArtLibrary library)
     {
         Clear();
@@ -76,8 +79,10 @@ public class CustomerRecipeView : MonoBehaviour
         Refresh(customer);
     }
 
+    // Lấy điểm nhận nguyên liệu trên thẻ của một món.
     public Transform DeliverySlot(int dishIndex, int ingredientIndex) => dishCards[dishIndex].DeliverySlot(ingredientIndex);
 
+    // Hiện đơn khi khách đã ngồi và thu gọn chi tiết công thức khi khách rời ghế.
     public void SetSeated(bool seated)
     {
         if (orderRoot != null) orderRoot.gameObject.SetActive(seated);
@@ -91,6 +96,7 @@ public class CustomerRecipeView : MonoBehaviour
         if (!seated) RefreshOrderLayout();
     }
 
+    // Tìm phần món chưa hoàn thành tại vị trí chạm, ưu tiên phần chưa bắt đầu chuẩn bị.
     public SushiDishOrder DishAtWorldPosition(Vector3 position)
     {
         if (customer == null || !customer.IsSeated || customer.IsCompleted || customer.RushExpired) return null;
@@ -105,6 +111,7 @@ public class CustomerRecipeView : MonoBehaviour
         return null;
     }
 
+    // Đóng hoặc mở chi tiết thẻ món được chạm và thu gọn các thẻ khác.
     public bool ToggleRecipeDetailsAtWorldPosition(Vector3 position)
     {
         if (customer == null || !customer.IsSeated || customer.IsCompleted || customer.RushExpired) return false;
@@ -123,6 +130,7 @@ public class CustomerRecipeView : MonoBehaviour
         return false;
     }
 
+    // Mở chi tiết duy nhất cho thẻ mục tiêu hợp lệ rồi tính lại bố cục bảng đơn.
     public bool ShowRecipeDetails(SushiDishCardView target)
     {
         if (customer == null || !customer.IsSeated || target == null || target.IsOrderComplete || !cards.Contains(target))
@@ -132,6 +140,7 @@ public class CustomerRecipeView : MonoBehaviour
         return true;
     }
 
+    // Đổi trạng thái chọn mục tiêu nam châm và cập nhật màu các thẻ món.
     public void SetMagnetTargeting(bool active)
     {
         if (magnetTargeting == active) return;
@@ -139,6 +148,7 @@ public class CustomerRecipeView : MonoBehaviour
         if (customer != null) Refresh(customer);
     }
 
+    // Làm mới hình món, nguyên liệu và trạng thái thẻ theo thư viện hình ảnh hiện tại.
     public void RefreshArtwork()
     {
         if (customer == null) return;
@@ -148,6 +158,7 @@ public class CustomerRecipeView : MonoBehaviour
         Refresh(customer);
     }
 
+    // Đồng bộ thẻ món theo đơn khách và cập nhật bố cục khi một thẻ tự thu gọn.
     private void Refresh(Customer owner)
     {
         SetSeated(owner.IsSeated);
@@ -161,6 +172,7 @@ public class CustomerRecipeView : MonoBehaviour
         if (layoutChanged) RefreshOrderLayout();
     }
 
+    // Tính chiều cao bảng đơn từ cột cao nhất và dựng lại bố cục UI.
     private void RefreshOrderLayout()
     {
         if (orderRoot == null) return;
@@ -172,6 +184,7 @@ public class CustomerRecipeView : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
     }
 
+    // Tính chiều cao các thẻ đang bật trong cột, gồm khoảng cách và lề bố cục.
     private float GetColumnHeight(Transform column)
     {
         if (column == null) return 0;
@@ -189,6 +202,7 @@ public class CustomerRecipeView : MonoBehaviour
         return height;
     }
 
+    // Lưu sprite, vị trí và kích thước bảng đơn gốc để có thể phục hồi.
     private void CacheDefaultOrderBoard()
     {
         if (orderRoot == null)
@@ -209,6 +223,7 @@ public class CustomerRecipeView : MonoBehaviour
         hasCachedOrderBoard = true;
     }
 
+    // Chọn hình bảng và kích thước phù hợp với số nhóm món của khách.
     private void ConfigureOrderBoard(int orderCount)
     {
         if (!hasCachedOrderBoard)
@@ -251,6 +266,7 @@ public class CustomerRecipeView : MonoBehaviour
         hasCachedOrderHeight = true;
     }
 
+    // Phục hồi hình ảnh và bố cục bảng đơn về cấu hình ban đầu.
     private void RestoreOrderBoard()
     {
         if (!hasCachedOrderBoard || orderRoot == null) return;
@@ -262,5 +278,6 @@ public class CustomerRecipeView : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
     }
 
+    // Bỏ đăng ký cập nhật đơn khách khi thành phần hiển thị bị hủy.
     private void OnDestroy() { if (customer != null) customer.OnOrderChanged -= Refresh; }
 }

@@ -54,6 +54,7 @@ public class CanvasDailyLogin : UICanvas
     //    bottomPos = rootPos - Vector2.up * 180;
     //}
     public TMP_Text txtGold;
+    // Mở quà đăng nhập, chạy hiệu ứng và cập nhật danh sách quà khi cần hoặc khi sang ngày mới.
     public override void Open()
     {
         base.Open();
@@ -92,6 +93,7 @@ public class CanvasDailyLogin : UICanvas
         CheckTime();
     }
 
+    // Điểm mở rộng hiệu ứng popup; phần xử lý hiện đang được để trống.
     private void Pop()
     {
         //canvasGroup.DOFade(1, .28f);
@@ -100,16 +102,19 @@ public class CanvasDailyLogin : UICanvas
         //mainPanelRect.DOAnchorPos(rootPos, .36f).SetEase(Ease.OutSine);
     }
 
+    // Hiển thị tiền hiện tại có phân nhóm hàng nghìn.
     public void setGold()
     {
         txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
     }
+    // Đồng bộ số tiền trên popup mỗi frame.
     private void Update()
     {
         setGold();
     }
 
 
+    // Xóa cờ popup đang mở rồi gọi đóng trực tiếp ở lớp cơ sở.
     public override void CloseDirectly()
     {
         IsOpen = false;
@@ -126,6 +131,7 @@ public class CanvasDailyLogin : UICanvas
         //    });
     }
 
+    // Đóng popup quà đăng nhập khi nhấn nút thoát.
     public void OnCLickExit()
     {
         //if (DailyLoginDataFragment.cur.gameData.isClaimedToday) AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -137,6 +143,7 @@ public class CanvasDailyLogin : UICanvas
 
     }
 
+    // Đánh dấu đã nhận hôm nay, trao quà và cập nhật nút cùng thông báo quà đăng nhập.
     public void OnClickClaim()
     {
         //AudioManager.ins.PlaySound(SoundType.UIClick);
@@ -160,11 +167,13 @@ public class CanvasDailyLogin : UICanvas
     //     });
     // }
 
+    // Khởi chạy coroutine theo dõi thời điểm sang ngày mới.
     private void CheckTime()
     {
         StartCoroutine(ie_Check());
         return;
 
+        // Chờ nguồn thời gian hợp lệ rồi kiểm tra ngày mới mỗi giây để làm mới quà.
         IEnumerator ie_Check()
         {
             yield return new WaitUntil(() => UnbiasedTime.IsValidTime);
@@ -182,6 +191,7 @@ public class CanvasDailyLogin : UICanvas
         }
     }
 
+    // Cộng tiền hoặc booster theo ngày đăng nhập hiện tại và phát particle phần thưởng.
     private void ClaimHandle()
     {
         //BlockUI.Ins.Block();
@@ -269,6 +279,7 @@ public class CanvasDailyLogin : UICanvas
         });
     }
 
+    // Cập nhật dấu nhận, hình nền, phần quà và khả năng nhấn cho từng ngày trong chuỗi.
     private void RefreshItem()
     {
         var index = DailyLoginDataFragment.cur.GetCurrentDayIndex();
@@ -300,6 +311,7 @@ public class CanvasDailyLogin : UICanvas
         }
     }
 
+    // Chỉ hiện nút nhận chính khi quà đăng nhập hôm nay chưa được nhận.
     private void SetClaimButton()
     {
         if (!DailyLoginDataFragment.cur.gameData.isClaimedToday)

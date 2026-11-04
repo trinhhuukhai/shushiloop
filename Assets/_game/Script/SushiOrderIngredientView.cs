@@ -34,8 +34,10 @@ public sealed class SushiOrderIngredientView : MonoBehaviour
         }
     }
 
+    // Gán sprite nguyên liệu và chỉ bật ảnh khi có sprite hợp lệ.
     public void SetSprite(Sprite sprite) { image.sprite = sprite; image.enabled = sprite != null; }
 
+    // Hiển thị lượng đã nhận, lượng đang tới và màu trạng thái của nguyên liệu.
     public void SetProgress(OrderItem item)
     {
         isComplete = item.IsComplete;
@@ -46,6 +48,7 @@ public sealed class SushiOrderIngredientView : MonoBehaviour
         progress.color = item.IsComplete ? completedTextColor : item.incomingAmount > 0 ? incomingTextColor : pendingTextColor;
     }
 
+    // Chuyển sang chế độ xem công thức, ẩn tiến độ và điều chỉnh chiều cao biểu tượng.
     public void SetRecipeDisplay(bool active)
     {
         recipeDisplay = active;
@@ -68,6 +71,7 @@ public sealed class SushiOrderIngredientView : MonoBehaviour
         RefreshImageColor();
     }
 
+    // Chọn màu theo tiến độ nguyên liệu, giữ ảnh rõ khi đang xem chi tiết công thức.
     private void RefreshImageColor()
     {
         Color color = isComplete ? completedImageColor : isIncoming ? incomingImageColor : pendingImageColor;

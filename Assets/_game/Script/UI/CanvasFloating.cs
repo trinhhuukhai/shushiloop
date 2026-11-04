@@ -48,6 +48,7 @@ public class CanvasFloating : UICanvas
 
     //
     public ParticleImage pI;
+    // Căn vùng an toàn và lưu vị trí gốc của nhóm UI phía trên.
     private void Awake()
     {
         if (rootPanel != null) rootPanel.SafeAreaParentAdoption(GetComponent<Canvas>());
@@ -56,6 +57,7 @@ public class CanvasFloating : UICanvas
     }
 
 
+    // Ẩn hoặc hiện nhóm UI nổi, đồng bộ khả năng nhận và chặn thao tác.
     public void HideUIFloat(bool ck)
     {
         UiFloat.interactable = UiFloat.blocksRaycasts = !ck;
@@ -67,6 +69,7 @@ public class CanvasFloating : UICanvas
     }
 
 
+    // Dừng tween tiền và các coroutine cập nhật mạng khi UI nổi bị tắt.
     protected override void OnDisable()
     {
         base.OnDisable();
@@ -80,6 +83,7 @@ public class CanvasFloating : UICanvas
 
 
 
+    // Mở UI nổi, nhận tiền tạm, cập nhật ví và chọn các nhóm hiển thị cho gameplay.
     public override void Open()
     {
         base.Open();
@@ -98,6 +102,7 @@ public class CanvasFloating : UICanvas
         //ShowSettingButton(true);
         //StartCoroutine(IE_Lives());
     }
+    // Cộng tiền thưởng tạm còn tồn vào ví rồi xóa khoản tạm.
     public void CheckMoneyTemp()
     {
         var data = GameDataFragment.cur;
@@ -108,6 +113,7 @@ public class CanvasFloating : UICanvas
     }
 
 
+    // Ẩn cả khung mạng và khung tiền.
     public void HideGold_Heart()
     {
         //FrmHeartUnlimited.SetActive(false);
@@ -115,12 +121,14 @@ public class CanvasFloating : UICanvas
         GoldFr.SetActive(false);
     }
 
+    // Hiện cả khung tiền và khung mạng.
     public void ShowGoldAndHeart()
     {
         //FrmHeartUnlimited.SetActive(false);
         HeartFr.SetActive(true);
         GoldFr.SetActive(true);
     }
+    // Hiện khung tiền; hàm hiện không đổi trạng thái khung mạng.
     public void ShowGold_Heart()
     {
         GoldFr.SetActive(true);
@@ -131,6 +139,7 @@ public class CanvasFloating : UICanvas
 
     //}
 
+    // Điểm gọi hiển thị mạng được giữ lại; hiện chưa có xử lý đang hoạt động.
     public void showHeart()
     {
         //HeartFr.SetActive(true);
@@ -147,12 +156,14 @@ public class CanvasFloating : UICanvas
 
         //}
     }
+    // Ẩn khung mạng trên UI nổi.
     public void HideHeart()
     {
         HeartFr.SetActive(false);
     }
 
 
+    // Chọn hiển thị nút cài đặt trong game hoặc nút cài đặt thông thường.
     public void showBtnSettingInGame(bool check)
     {
         btnSettingIngame.SetActive(check);
@@ -160,11 +171,13 @@ public class CanvasFloating : UICanvas
     }
 
 
+    // Trượt nhóm UI phía trên lên thêm 300 đơn vị bằng tween.
     public void AnimTopGroup()
     {
         TopGroup.DOAnchorPosY(TopGroup.anchoredPosition.y + 300, 0.6f).SetEase(Ease.OutSine);
     }
 
+    // Đặt nhóm UI phía trên về vị trí gốc đã lưu.
     public void Resfesh()
     {
         TopGroup.anchoredPosition = posTopGroupOr;
@@ -173,6 +186,7 @@ public class CanvasFloating : UICanvas
     private Coroutine coLives;
     private Coroutine coLivesUnlimited;
 
+    // Gọi cập nhật hiển thị mạng theo nhịp một giây.
     IEnumerator IE_Lives()
     {
         while (true)
@@ -183,6 +197,7 @@ public class CanvasFloating : UICanvas
         }
     }
 
+    // Gọi cập nhật mạng vô hạn theo nhịp một giây.
     IEnumerator IE_LivesUnlimited()
     {
         while (true)
@@ -192,6 +207,7 @@ public class CanvasFloating : UICanvas
         }
     }
 
+    // Điểm cập nhật UI mạng thường; phần xử lý hiện đang được để trống.
     public void ShowLives()
     {
         //var data = LivesDataFragment.cur;
@@ -217,6 +233,7 @@ public class CanvasFloating : UICanvas
         //}
     }
 
+    // Điểm cập nhật UI vô hạn mạng; phần xử lý hiện đang được để trống.
     public void ShowLivesUnlimited()
     {
         //var data = LivesDataFragment.cur;
@@ -247,11 +264,13 @@ public class CanvasFloating : UICanvas
         //}
     }
 
+    // Bật hoặc tắt khung biểu tượng mạng theo yêu cầu.
     public void showIconLives(bool check)
     {
         HeartFr.SetActive(check);
     }
 
+    // Phát hiệu ứng tiền khi đã gán particle tương ứng.
     public void PlayEffGold()
     {
         if (effGold != null) effGold.Play();
@@ -260,6 +279,7 @@ public class CanvasFloating : UICanvas
 
     private Tween goldTween;
 
+    // Chạy bộ đếm từ tiền trước thay đổi tới tiền hiện tại và mở khóa UI khi cần.
     public void AnimGold(int deltaGold, bool victory)
     {
         goldTween?.Kill();
@@ -311,29 +331,34 @@ public class CanvasFloating : UICanvas
     //    });
     //}
 
+    // Chuyển xử lý khởi tạo UI nổi về lớp canvas cơ sở.
     protected override void OnInit()
     {
         base.OnInit();
     }
 
+    // Hiển thị số tiền hiện có và lưu giá trị để phát hiện thay đổi.
     public void ShowGold()
     {
         displayedGold = GameDataFragment.cur != null && GameDataFragment.cur.dataPlayer != null ? GameDataFragment.cur.dataPlayer.money : 0;
         if (txtGold != null) txtGold.text = displayedGold.ToString("N0");
     }
 
+    // Đặt UI nổi tại vị trí của Transform được chỉ định.
     public void MoveToPosition(Transform tf)
     {
         transform.position = tf.position;
     }
 
 
+    // Chọn nút cài đặt thường hoặc nút cài đặt gameplay theo giá trị yêu cầu.
     public void ShowSettingButton(bool check)
     {
         settingBt.gameObject.SetActive(check);
         btnSettingIngame.SetActive(!check);
     }
 
+    // Ẩn cả hai nút cài đặt trên UI nổi.
     public void HideAllSetting()
     {
         settingBt.gameObject.SetActive(false);
@@ -341,6 +366,7 @@ public class CanvasFloating : UICanvas
     }
 
     //------------------------
+    // Tìm hiệu ứng theo loại phần thưởng và chạy coroutine hiển thị tại vị trí nhận.
     public void ShowItemEffect(ItemT itemT, int amount = 100, Vector3? wpos = null)
     {
         //Debug.Log("---------------");
@@ -356,6 +382,7 @@ public class CanvasFloating : UICanvas
 
         if (cur_Fx != null) StartCoroutine(ie_ShowItemEffect(itemT, cur_Fx, wpos));
 
+        // Chờ hiệu ứng dùng chung rảnh, phát tại vị trí yêu cầu rồi ẩn và phục hồi vị trí UI.
         IEnumerator ie_ShowItemEffect(ItemT _itemT, TripleValue<ItemT, ParticleImage, float> fx, Vector3? worldPos)
         {
             if (fx.value2.gameObject.activeSelf)
@@ -391,12 +418,14 @@ public class CanvasFloating : UICanvas
         }
     }
 
+    // Mở cài đặt nếu màn hiện tại đang cho phép tương tác.
     public void OnSetting()
     {
         if (UIManager.Ins != null && LevelManager.Ins != null && LevelManager.Ins.CanInteract)
             UIManager.Ins.OpenUI<CanvasSetting>();
     }
 
+    // Đồng bộ tiền khi không chạy tween và khóa nút cài đặt theo trạng thái tương tác của màn.
     private void Update()
     {
         if (GameDataFragment.cur == null || GameDataFragment.cur.dataPlayer == null) return;
@@ -406,6 +435,7 @@ public class CanvasFloating : UICanvas
         if (btnSettingIngame != null && btnSettingIngame.TryGetComponent(out Button button)) button.interactable = available;
     }
 
+    // Điểm gọi mở thêm mạng; hiện chưa có xử lý đang hoạt động.
     public void OnMoreLives()
     {
         //if (UIManager.Ins.IsOpened<CanvasGetMoreLives>())
@@ -416,12 +446,14 @@ public class CanvasFloating : UICanvas
         //UIManager.Ins.OpenUI<CanvasGetMoreLives>();
     }
 
+    // Đóng UI nổi với thời gian trễ 0,26 giây qua lớp cơ sở.
     public void Close()
     {
 
         base.Close(0.26f);
     }
 
+    // Điểm gọi mở cửa hàng từ UI nổi; hiện chưa có xử lý đang hoạt động.
     public void openShop()
     {
         //SoundManager.PlayEfx(SoundID.sfx_click);
@@ -432,6 +464,7 @@ public class CanvasFloating : UICanvas
 
 
     #region SPAM nhiều particle
+    // Tìm hiệu ứng phần thưởng phù hợp và tạo một lượt phát độc lập.
     public void ShowItemEffectMulti(ItemT itemT, int amount = 100, Vector3? wpos = null)
     {
         // Tìm effect template tương ứng item
@@ -451,6 +484,7 @@ public class CanvasFloating : UICanvas
         StartCoroutine(IE_ShowItemEffectMulti(fx, wpos));
     }
 
+    // Nhân bản particle, phát tại vị trí nhận thưởng rồi hủy bản sao khi hết thời lượng.
     private IEnumerator IE_ShowItemEffectMulti(TripleValue<ItemT, ParticleImage, float> fx, Vector3? worldPos)
     {
         // fx.value2 đóng vai trò prefab template, nên tốt nhất để inactive sẵn trong prefab

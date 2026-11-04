@@ -17,6 +17,7 @@ public class CanvasUnlockBooster : UICanvas
 
     private Action onClosed;
 
+    // Mở giới thiệu booster và chạy hiệu ứng phóng panel lên kích thước chuẩn.
     public override void Open()
     {
         base.Open();
@@ -25,6 +26,7 @@ public class CanvasUnlockBooster : UICanvas
         popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
     }
 
+    // Dừng tween và xóa callback tiếp tục khi popup bị tắt.
     protected override void OnDisable()
     {
         popTween?.Kill();
@@ -33,6 +35,7 @@ public class CanvasUnlockBooster : UICanvas
         base.OnDisable();
     }
 
+    // Gán callback đóng và chọn hình ảnh, tiêu đề cùng mô tả cho booster vừa mở khóa.
     public void Setupp(BoosterType type, Action onClosed)
     {
         this.onClosed = onClosed;
@@ -62,9 +65,12 @@ public class CanvasUnlockBooster : UICanvas
         }
     }
 
+    // Xác nhận giới thiệu, đóng popup rồi tiếp tục hướng dẫn.
     public void btnOk() => CloseAndContinue();
+    // Đóng popup và gọi callback tiếp tục khi nhận phím quay lại.
     public override void BackKey() => CloseAndContinue();
 
+    // Tách callback khỏi popup trước khi đóng và gọi tiếp để tránh thực hiện lặp.
     private void CloseAndContinue()
     {
         var callback = onClosed;
@@ -73,5 +79,6 @@ public class CanvasUnlockBooster : UICanvas
         callback?.Invoke();
     }
 
+    // Đóng popup qua luồng có gọi callback tiếp tục.
     public void Close() => CloseAndContinue();
 }

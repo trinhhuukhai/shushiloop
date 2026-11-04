@@ -12,6 +12,7 @@ public sealed class SushiDishOrder
     public bool IsOnTable { get; internal set; }
     private readonly List<OrderItem> ingredients = new List<OrderItem>();
 
+    // Tạo đơn món runtime từ công thức và gom lượng cần của từng loại nguyên liệu.
     public SushiDishOrder(int index, SushiRecipe recipe)
     {
         Index = index; Recipe = recipe;
@@ -35,6 +36,7 @@ public sealed class SushiDishOrder
         }
     }
 
+    // Kiểm tra phần nền đã đủ để ghép nguyên liệu tiếp theo, tùy chọn tính cả phần đang bay tới.
     public bool CanStartIngredient(PoolType type, bool includeIncomingFoundation = false)
     {
         PoolType foundation = FoundationType;
@@ -45,18 +47,21 @@ public sealed class SushiDishOrder
         return false;
     }
 
+    // Tìm mục nguyên liệu còn thiếu và chưa được giữ đủ lượt giao.
     public OrderItem FindAvailableIngredient(PoolType type)
     {
         if (IsComplete) return null;
         return ingredients.Find(item => item.typeFood == type && item.CanReceive);
     }
 
+    // Kiểm tra tất cả nguyên liệu của món đã được nhận đủ.
     internal bool HasAllIngredients()
     {
         foreach (var ingredient in ingredients) if (!ingredient.IsComplete) return false;
         return ingredients.Count > 0;
     }
 
+    // Kiểm tra hai món có thể trao đổi phần nền chung mà không làm sai tiến độ nguyên liệu.
     internal bool CanTransferFoundationTo(SushiDishOrder target)
     {
         PoolType foundation = FoundationType;
@@ -89,11 +94,13 @@ public sealed class SushiDishOrder
         return sourceProgress > targetProgress;
     }
 
+    // Xác định nguyên liệu thuộc phần nền dùng chung, gồm cơm và rong biển ở nhóm món phù hợp.
     internal bool IsSharedBaseIngredient(PoolType type) => type == FoundationType ||
         (type == PoolType.Seaweed && FoundationType == PoolType.SushiRice &&
             (Recipe.Family == SushiDishFamily.Maki || Recipe.Family == SushiDishFamily.Gunkan) &&
             ingredients.Exists(item => item.typeFood == PoolType.Seaweed));
 
+    // Lấy tiến độ nguyên liệu dự kiến sau khi dùng phần nền từ món nguồn.
     internal OrderItem ProjectedIngredient(PoolType type, SushiDishOrder foundationSource)
     {
         if (foundationSource != null && IsSharedBaseIngredient(type) && foundationSource.IsSharedBaseIngredient(type))
@@ -104,6 +111,7 @@ public sealed class SushiDishOrder
         return ingredients.Find(item => item.typeFood == type);
     }
 
+    // Trao đổi bộ đếm nguyên liệu phần nền giữa hai món và đồng bộ trạng thái chuẩn bị.
     internal bool TryTransferFoundationTo(SushiDishOrder target)
     {
         if (!CanTransferFoundationTo(target)) return false;
@@ -127,6 +135,7 @@ public sealed class SushiDishOrder
 internal static class SushiDishSelection
 {
     // Available ingredients decide the recipe. The card's position only identifies its delivery target.
+    // Chọn món nhận nguyên liệu với lượng thiếu ngoài nguồn hiện có ít nhất, rồi ưu tiên phần còn lại ít hơn.
     internal static SushiDishOrder Select(IReadOnlyList<SushiDishOrder> dishes, PoolType supplied,
         Predicate<SushiDishOrder> canReceive, Func<PoolType, int> available, int start,
         Func<SushiDishOrder, SushiDishOrder> foundationSource = null)

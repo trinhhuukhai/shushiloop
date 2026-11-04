@@ -13,6 +13,7 @@ public class UIChooseAvatar : MonoBehaviour
     public int idAvatar;
     public int idFrame;
 
+    // Gán sprite avatar cùng khung cho một ô lựa chọn và đặt kích thước ảnh gốc.
     public void SetUp()
     {
         img_avatar.sprite = ProfileDataFragment.cur.spr_avatars[idAvatar];
@@ -21,6 +22,7 @@ public class UIChooseAvatar : MonoBehaviour
         img_avatar.SetNativeSize(); 
     }
 
+    // Lưu lựa chọn avatar, khung và đồng bộ hình ảnh hồ sơ ở trang chủ cùng popup.
     public void Btn_clickChooseThis()
     {
         ProfileDataFragment.cur.gameData.idChoose = id;

@@ -7,6 +7,7 @@ public sealed class FoodPickup
 {
     public readonly FoodShushi food;
     public readonly int amount;
+    // Lưu nguyên liệu và số lượng cần lấy trong một kế hoạch gắp.
     public FoodPickup(FoodShushi food, int amount) { this.food = food; this.amount = amount; }
 }
 
@@ -27,6 +28,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
 
     public IReadOnlyList<FoodQueue> FoodQueues => foodQueues;
 
+    // Dọn bàn cũ, đăng ký pool nguyên liệu và dựng các cột theo dữ liệu màn chơi.
     public void Init(List<FoodQueueData> boardData)
     {
         ClearBoard();
@@ -46,12 +48,14 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         }
     }
 
+    // Kiểm tra bàn đã hết nguyên liệu và không còn cột đang chờ hoàn tất lượt lấy.
     public bool IsEmpty()
     {
         foreach (FoodQueue column in foodQueues) if (column.IsPickupPending || !column.IsEmpty()) return false;
         return true;
     }
 
+    // Đăng ký prefab nguyên liệu dùng chung cho mọi loại thực phẩm trong pool.
     private void EnsureIngredientPool()
     {
         if (ingredientPrefab == null)
@@ -61,6 +65,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             if (type != PoolType.None) SimplePool.RegisterPrefab(type, ingredientPrefab);
     }
 
+    // Kiểm tra còn nguyên liệu nhưng toàn bộ đầu cột đều bị đóng băng và đã đứng yên.
     public bool AllRemainingHeadsFrozen()
     {
         bool hasFood = false;
@@ -86,6 +91,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         }
     }
 
+    // Tìm lượt chạm hợp lệ có số nguyên liệu vừa với chỗ trống trên băng chuyền.
     public bool HasAvailableTap(int freeSlots)
     {
         foreach (FoodQueue column in foodQueues)
@@ -94,16 +100,19 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return false;
     }
 
+    // Tạo kế hoạch lấy nguyên liệu đầu cột, kèm phản hồi khi thao tác không hợp lệ.
     public bool TryBuildTap(FoodQueue column, out List<FoodPickup> plan)
     {
         plan = new List<FoodPickup>();
         return TryBuildTap(column, plan, true, out _);
     }
 
+    // Kiểm tra cột có thể được lấy bằng thao tác chạm với số chỗ trống hiện có.
     public bool CanTap(FoodQueue column, int freeSlots) =>
         TryBuildTap(column, null, false, out int requiredSlots) && requiredSlots <= freeSlots;
 
     // A null plan checks the same pickup rules without allocations or click feedback.
+    // Kiểm tra quy tắc lấy ô thường, cặp liên kết hoặc khay và tính số chỗ cần dùng.
     private bool TryBuildTap(FoodQueue column, List<FoodPickup> plan, bool showFeedback, out int requiredSlots)
     {
         requiredSlots = 0;
@@ -150,6 +159,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return true;
     }
 
+    // Lập kế hoạch dùng đũa lấy một ô hợp lệ trong bốn hàng đang hiển thị.
     public bool TryBuildChopsticks(FoodShushi food, out List<FoodPickup> plan)
     {
         plan = new List<FoodPickup>();
@@ -159,6 +169,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return true;
     }
 
+    // Chọn nguyên liệu cùng loại cho nam châm theo mức ưu tiên và giới hạn số lượng.
     public List<FoodPickup> BuildMagnet(PoolType type, int limit)
     {
         var candidates = new List<FoodShushi>();
@@ -183,9 +194,11 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return plan;
     }
 
+    // Xếp ưu tiên hút ô thường trước ô liên kết hoặc khay, rồi đến ô đóng băng.
     private static int MagnetPriority(FoodShushi food) => food.IceLayers > 0 ? 2 :
         food.LinkId > 0 || food.TrayId > 0 ? 1 : 0;
 
+    // Tìm ô còn lại có cùng mã liên kết với nguyên liệu đã chọn.
     private FoodShushi FindLinkPartner(FoodShushi food)
     {
         foreach (FoodQueue column in foodQueues)
@@ -195,6 +208,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
     }
 
     // Chỉ commit sau khi băng chuyền đã giữ đủ slot và tạo đủ từng nguyên liệu.
+    // Trừ nguyên liệu sau khi giữ đủ chỗ, xử lý liên kết, khay, sát thương băng và dồn cột.
     internal void CommitPickup(IReadOnlyList<FoodPickup> plan, FoodPickMode mode, float takeoffDelay)
     {
         var removedRows = new Dictionary<FoodQueue, int>();
@@ -255,6 +269,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             else column.RefreshRows();
     }
 
+    // Loại bỏ các ô của khay đã hết nguyên liệu và trả về số hàng được giải phóng.
     private int ClearEmptyTrays(FoodQueue column)
     {
         var occupiedTrays = new HashSet<int>();
@@ -274,6 +289,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return removedRows;
     }
 
+    // Sao chép khung khay sang phần hình ảnh rời bàn để chạy hiệu ứng lấy khay.
     private void CopyDepartingTrayFrame(FoodQueue column, int trayId)
     {
         string key = "tray:" + trayId;
@@ -289,6 +305,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         }
     }
 
+    // Rung các cột trong kế hoạch lấy và nháy liên kết để báo thao tác bị chặn.
     public void ShakePickup(IReadOnlyList<FoodPickup> plan)
     {
         var shaken = new HashSet<FoodQueue>();
@@ -297,6 +314,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         linkFlashUntil = Time.unscaledTime + 0.3f;
     }
 
+    // Hoán đổi các hàng đang thấy, giữ nguyên khối khay và tránh làm các cặp liên kết kẹt nhau.
     public bool SwapRow()
     {
         foreach (FoodQueue column in foodQueues) column.CompleteColumnMovement();
@@ -324,6 +342,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return changed;
     }
 
+    // Mô phỏng lấy lần lượt các đầu cột để phát hiện các cặp liên kết chặn lẫn nhau.
     private static bool CanCollectAllLinks(List<List<FoodShushi>> rows)
     {
         // Ignore ice/hidden state here; only verify that link pairs cannot block each other.
@@ -362,6 +381,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         }
     }
 
+    // Phá toàn bộ lớp băng còn lại trên bàn nguyên liệu.
     public void BreakAllIce()
     {
         foreach (FoodQueue column in foodQueues)
@@ -369,6 +389,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
                 food.BreakIce(food.IceLayers);
     }
 
+    // Cập nhật vị trí, kích thước và trạng thái hiển thị của dây liên kết cùng khung khay.
     private void LateUpdate()
     {
         var groups = new Dictionary<string, List<FoodShushi>>();
@@ -452,6 +473,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         }
     }
 
+    // Quy đổi vị trí ô về phạm vi bốn hàng hiển thị để vẽ liên kết và khay.
     private static Vector3 VisiblePosition(FoodShushi food)
     {
         int row = Mathf.Min(3, food.Owner.VisibleRowOf(food));
@@ -459,6 +481,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
         return (visible != null ? visible.transform.position : food.transform.position) + Vector3.back * 0.1f;
     }
 
+    // Dọn hình ảnh nhóm, trả nguyên liệu về pool và hủy các cột của bàn hiện tại.
     public void ClearBoard()
     {
         foreach (var view in groupViews.Values) if (view != null) Destroy(view.gameObject);

@@ -10,6 +10,7 @@ public class UIWatch : MonoBehaviour
     private float elapsedTime = 0f;
     private bool isRunning = false;
 
+    // Tăng thời gian khi đồng hồ đang chạy và hiển thị phút, giây cùng tổng số giây.
     void FixedUpdate()
     {
         if (isRunning)

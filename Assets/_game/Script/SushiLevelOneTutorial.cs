@@ -26,14 +26,17 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
     private CanvasTutorial overlay;
     private bool acceptingTarget;
 
+    // Lưu đối tượng điều khiển hướng dẫn màn đầu hiện tại.
     private void Awake() => Instance = this;
 
     // The target is accepted only inside the overlay's confirmed click, never by a world tap behind it.
+    // Cho phép lấy cột được tutorial xác nhận hoặc cột mục tiêu của hướng dẫn màn đầu.
     public static bool AllowsQueue(FoodQueue queue) => ControlTutorial.AllowsQueue(queue) ||
         Instance != null && Instance.acceptingTarget &&
         Instance.Stage == TutorialStage.Ingredient && queue != null && queue == Instance.TargetQueue &&
         queue.GetTopFood() == Instance.TargetFood;
 
+    // Kiểm tra tiến trình chưa học, chọn mục tiêu và chờ mở lớp hướng dẫn màn đầu.
     public void Prepare(LevelManager owner)
     {
         Cancel();
@@ -49,6 +52,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         FindFirstObjectByType<FoodInputController>()?.CancelBooster();
     }
 
+    // Ghép ô đầu cột ClickTut hợp lệ với một món của khách đang ngồi cần nguyên liệu đó.
     private bool FindMarkedTarget()
     {
         foreach (FoodQueue queue in level.Board.FoodQueues)
@@ -82,6 +86,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         return false;
     }
 
+    // Hủy khi màn hoặc mục tiêu mất hiệu lực; mở overlay khi popup và chuyển cảnh đã kết thúc.
     private void Update()
     {
         if (Stage == TutorialStage.Inactive) return;
@@ -103,6 +108,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         }
     }
 
+    // Chuyển từ xem công thức sang chọn nguyên liệu, rồi lưu hoàn thành khi lấy đúng ô thành công.
     public void ConfirmTarget()
     {
         if (level == null || !level.IsPlaying || level.IsPopupOpen ||
@@ -139,6 +145,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         Cancel();
     }
 
+    // Đưa tutorial về trạng thái nghỉ, đóng overlay và xóa các tham chiếu màn cùng mục tiêu.
     public void Cancel()
     {
         Stage = TutorialStage.Inactive;
@@ -153,6 +160,7 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         RecipeTarget = null;
     }
 
+    // Hủy tutorial khi overlay đang gắn với nó được đóng từ bên ngoài.
     public void OverlayClosed(CanvasTutorial view)
     {
         if (view != overlay) return;
@@ -160,12 +168,15 @@ public sealed class SushiLevelOneTutorial : MonoBehaviour
         Cancel();
     }
 
+    // Cảnh báo không tìm thấy ô cùng đơn món phù hợp và dừng tutorial.
     private void InvalidConfiguration()
     {
         Debug.LogWarning("Level 1 tutorial needs a usable ClickTut head tile matching a seated order.", this);
         Cancel();
     }
 
+    // Dọn tutorial khi component bị tắt.
     private void OnDisable() => Cancel();
+    // Dọn tutorial và xóa đối tượng điều khiển hiện tại khi bị hủy.
     private void OnDestroy() { Cancel(); if (Instance == this) Instance = null; }
 }

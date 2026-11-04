@@ -4,7 +4,9 @@ using UnityEngine;
 [ExecuteAlways, RequireComponent(typeof(RectTransform))]
 public sealed class SushiUIFitContent : MonoBehaviour
 {
+    // Cập nhật tỉ lệ nội dung sau các thay đổi bố cục trong frame.
     private void LateUpdate() => Refresh();
+    // Thu phóng nội dung theo khung chuẩn để vừa chiều rộng lẫn chiều cao của đối tượng cha.
     public void Refresh()
     {
         var rect = (RectTransform)transform;

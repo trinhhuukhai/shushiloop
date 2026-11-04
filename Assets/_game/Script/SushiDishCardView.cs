@@ -44,11 +44,14 @@ public sealed class SushiDishCardView : MonoBehaviour
     public Image DishImage => finished;
     public string PortionProgress => portionCount != null ? portionCount.text : "";
     public Transform DishDeliverySlot => dishDeliverySlot != null ? dishDeliverySlot : finished.transform;
+    // Lấy thành phần UI hiển thị một mục nguyên liệu trên thẻ món.
     public SushiOrderIngredientView IngredientAt(int index) => ingredients[index];
+    // Lấy điểm đích của nguyên liệu bay tới mục tương ứng trên thẻ.
     public Transform DeliverySlot(int index) => ingredients[index].DeliverySlot;
     public bool IsRecipeExpanded => recipeExpanded;
     public bool IsOrderComplete => orderComplete;
 
+    // Tạo nhịp phóng to và lắc cho biểu tượng nhắc xem món chưa hoàn thành.
     private void LateUpdate()
     {
         if (incompleteNotification == null || !incompleteNotification.gameObject.activeSelf) return;
@@ -57,6 +60,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         incompleteNotification.localRotation = Quaternion.Euler(0, 0, 7f * Mathf.Sin(phase * 1.4f));
     }
 
+    // Hiện biểu tượng nhắc khi món chưa xong và chi tiết công thức đang đóng.
     private void RefreshNotification()
     {
         if (incompleteNotification == null) return;
@@ -64,6 +68,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         incompleteNotification.gameObject.SetActive(!orderComplete && !recipeExpanded);
     }
 
+    // Gắn dữ liệu món vào thẻ, lưu bố cục gốc và khởi tạo hình ảnh cùng tiến độ.
     public void Bind(Customer customer, SushiDishOrder dish, SushiDishArtLibrary art)
     {
         if (dish.Ingredients.Count > ingredients.Length)
@@ -103,12 +108,14 @@ public sealed class SushiDishCardView : MonoBehaviour
         Refresh(dish, false);
     }
 
+    // Gắn nhóm các phần cùng công thức vào một thẻ món dùng chung.
     public void BindGroup(Customer customer, IReadOnlyList<SushiDishOrder> group, SushiDishArtLibrary art)
     {
         portions = group;
         Bind(customer, group[0], art);
     }
 
+    // Cập nhật sprite món hoàn chỉnh, các lớp ghép dự phòng và biểu tượng nguyên liệu.
     public void RefreshArtwork(Customer customer, SushiDishOrder dish, SushiDishArtLibrary art)
     {
         finished.sprite = art != null ? art.GetSprite(dish.Recipe) : null;
@@ -118,6 +125,7 @@ public sealed class SushiDishCardView : MonoBehaviour
             ingredients[i].SetSprite(customer.GetIngredientSprite(dish.Ingredients[i].typeFood));
     }
 
+    // Ghép hình món từ đĩa và từng lớp nguyên liệu khi chưa có sprite món hoàn chỉnh.
     private void RefreshRecipeLayers(Customer customer, SushiRecipe recipe)
     {
         foreach (Image layer in recipeLayers) layer.gameObject.SetActive(false);
@@ -171,6 +179,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         }
     }
 
+    // Cập nhật số phần đã nhận, dấu hoàn thành, màu mục tiêu và tiến độ từng nguyên liệu.
     public void Refresh(SushiDishOrder dish, bool targeting)
     {
         int received = 0, total = portions != null ? portions.Count : 1;
@@ -191,6 +200,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         for (int i = 0; i < dish.Ingredients.Count; i++) ingredients[i].SetProgress(dish.Ingredients[i]);
     }
 
+    // Chuyển giữa hình món thu gọn và chi tiết nguyên liệu, đồng bộ kích thước cùng bố cục.
     public void SetRecipeExpanded(bool expanded)
     {
         if (expanded && orderComplete) return;
@@ -258,5 +268,6 @@ public sealed class SushiDishCardView : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate(ingredientDetailsRect);
     }
 
+    // Kiểm tra một vị trí thế giới có nằm trong vùng chữ nhật của thẻ món.
     public bool Contains(Vector3 worldPosition) => Rect.rect.Contains(Rect.InverseTransformPoint(worldPosition));
 }

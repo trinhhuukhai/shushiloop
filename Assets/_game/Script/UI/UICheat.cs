@@ -20,12 +20,14 @@ public class UICheat : MonoBehaviour
 
     public Toggle toggleCheat;
 
+    // Lưu singleton UI cheat và giữ đối tượng khi đổi scene.
     private void Awake()
     {
         Ins = this;
         DontDestroyOnLoad(gameObject);
     }
 
+    // Hiện bảng cheat, nạp thông tin đầu vào và đồng bộ công tắc bật cheat.
     public void OpenCheat()
     {
         canvasCheat.SetActive(true);
@@ -42,6 +44,7 @@ public class UICheat : MonoBehaviour
             toggleCheat.isOn = GameManager.ins.isCheat;
     }
 
+    // Ghi giá trị công tắc cheat vào GameManager.
     public void OnToggleCheatChanged()
     {
         bool check = toggleCheat.isOn;
@@ -55,6 +58,7 @@ public class UICheat : MonoBehaviour
         // PlayerPrefs.Save();
     }
 
+    // Điền level hiện tại theo cách đánh số từ 1 vào ô nhập cheat.
     private void RefreshInputsFromData()
     {
         if (GameDataFragment.cur == null) return;
@@ -67,6 +71,7 @@ public class UICheat : MonoBehaviour
 
     }
 
+    // Lưu dữ liệu, yêu cầu nạp lại cảnh chơi và cập nhật ô nhập.
     public void ApplyUpgradeLevels()
     {
         if (GameDataFragment.cur == null) return;
@@ -76,11 +81,13 @@ public class UICheat : MonoBehaviour
         RefreshInputsFromData();
     }
 
+    // Ẩn bảng điều khiển cheat.
     public void CloseCheat()
     {
         canvasCheat.SetActive(false);
     }
 
+    // Ẩn UIManager cùng bảng cheat bằng trạng thái hiển thị và alpha.
     public void HideUI()
     {
         if (UIManager.Ins != null)
@@ -93,33 +100,39 @@ public class UICheat : MonoBehaviour
         //MaxManager.Ins.HideBanner();
     }
 
+    // Buộc màn hiện tại thắng qua LevelManager rồi đóng bảng cheat.
     public void Win()
     {
         LevelManager.Ins.OnWIn();
         CloseCheat();
     }
 
+    // Tạm dừng đồng hồ đếm thời gian của UI cheat.
     public void PauseTimer()
     {
         clock.PauseTimer();
     }
 
+    // Đặt lại đồng hồ đếm thời gian của UI cheat.
     public void ResetTimer()
     {
         clock.ResetTimer();
     }
 
+    // Cho đồng hồ UI cheat tiếp tục đếm.
     public void StartTimer()
     {
         clock.StartTimer();
     }
 
+    // Buộc màn hiện tại thua qua LevelManager rồi đóng bảng cheat.
     public void Lose()
     {
         LevelManager.Ins.LoseLevel();
         CloseCheat();
     }
 
+    // Ẩn bảng cheat và làm trong suốt nhóm điều khiển cheat.
     public void CloseProcessBar()
     {
         canvasCheat.SetActive(false);
@@ -129,6 +142,7 @@ public class UICheat : MonoBehaviour
 
     private bool check = false;
 
+    // Đảo trạng thái ẩn UI nổi và đóng lớp điều khiển cheat.
     public void HideUIVer2()
     {
         check = !check; 
@@ -140,6 +154,7 @@ public class UICheat : MonoBehaviour
 
     // ================== CHEAT CORE ======================
     // Nút “Apply (Level + Money) & Reload Main Menu”
+    // Áp dụng các ô nhập level, tiền và booster rồi đồng bộ ô nhập và đóng cheat.
     public void ApplyAndReload()
     {
         ApplyLevelFromInput();
@@ -155,6 +170,7 @@ public class UICheat : MonoBehaviour
     }
 
     // Nút “Chỉ Apply Level & Reload” (nếu bạn muốn tách nút)
+    // Áp dụng level từ ô nhập rồi yêu cầu nạp lại cảnh gameplay.
     public void ApplyLevelOnly()
     {
         ApplyLevelFromInput();
@@ -163,6 +179,7 @@ public class UICheat : MonoBehaviour
         //CloseCheat();
     }
 
+    // Trì hoãn hai nhịp trước khi bắt đầu coroutine nạp lại cảnh GamePlay.
     public void ToLevel()
     {
         //LevelManager.Ins.OnHome();
@@ -172,6 +189,7 @@ public class UICheat : MonoBehaviour
             {
                 StartCoroutine(ieBackHome());
 
+                // Nạp bất đồng bộ cảnh GamePlay và chờ thao tác hoàn tất.
                 IEnumerator ieBackHome()
                 {
                     var sync = SceneManager.LoadSceneAsync("GamePlay");
@@ -182,6 +200,7 @@ public class UICheat : MonoBehaviour
     }
 
     // Nút “Chỉ Apply Money” (không reload màn, chỉ cập nhật UI tiền)
+    // Áp dụng lượng thay đổi tiền từ ô nhập cheat.
     public void ApplyMoneyOnly()
     {
         ApplyMoneyFromInput();
@@ -189,6 +208,7 @@ public class UICheat : MonoBehaviour
     }
 
     // ------- Helpers -------
+    // Đọc level dạng số từ 1, đổi về chỉ số từ 0 và lưu dữ liệu người chơi.
     private void ApplyLevelFromInput()
     {
         if (GameDataFragment.cur == null) return;
@@ -205,6 +225,7 @@ public class UICheat : MonoBehaviour
     }
 
 
+    // Đọc số từ ô nhập và cộng lượng đó vào ví qua hệ thống dữ liệu.
     private void ApplyMoneyFromInput()
     {
         if (GameDataFragment.cur == null) return;
@@ -216,6 +237,7 @@ public class UICheat : MonoBehaviour
         }
     }
 
+    // Đọc lượng thay đổi và cộng vào số booster đũa.
     private void ApplyBoosterClickFromInput()
     {
         if (GameDataFragment.cur == null) return;
@@ -227,6 +249,7 @@ public class UICheat : MonoBehaviour
         }
     }
 
+    // Đọc lượng thay đổi và cộng vào số booster hoán đổi.
     private void ApplyBoosterShuffleFromInput()
     {
         if (GameDataFragment.cur == null) return;
@@ -238,6 +261,7 @@ public class UICheat : MonoBehaviour
         }
     }
 
+    // Đọc lượng thay đổi và cộng vào số booster nam châm.
     private void ApplyBoosterMagnetFromInput()
     {
         if (GameDataFragment.cur == null) return;

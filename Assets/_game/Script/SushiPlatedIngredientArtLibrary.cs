@@ -54,6 +54,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
     public PlateEntry sashimiTwoIngredientPlate = new PlateEntry();
     public PlateEntry sashimiThreeIngredientPlate = new PlateEntry();
 
+    // Lấy cấu hình đĩa sashimi hai hoặc ba nguyên liệu khi đã có sprite phù hợp.
     public PlateEntry GetPlate(SushiRecipe recipe)
     {
         if (recipe.Family != SushiDishFamily.Sashimi) return null;
@@ -63,6 +64,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
     }
 
 #if UNITY_EDITOR
+    // Lên lịch cập nhật hình ảnh gameplay sau khi chỉnh thư viện trong Inspector.
     private void OnValidate()
     {
         // Inspector validation can run off the main thread; refresh scene objects later.
@@ -70,8 +72,10 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
         UnityEditor.EditorApplication.delayCall += RefreshEditorArtwork;
     }
 
+    // Hủy callback làm mới hình ảnh trong Editor khi thư viện bị tắt.
     private void OnDisable() => UnityEditor.EditorApplication.delayCall -= RefreshEditorArtwork;
 
+    // Áp dụng thay đổi thư viện lên các đĩa cùng thẻ món đang chạy trong Editor.
     private void RefreshEditorArtwork()
     {
         if (this == null || !UnityEditor.EditorApplication.isPlaying) return;
@@ -85,6 +89,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
     }
 #endif
 
+    // Tìm hình nguyên liệu theo món cụ thể, kiểu công thức rồi đến nhóm món và mặc định.
     public Entry Find(PoolType type, SushiRecipe recipe)
     {
         if (!recipe.IsCustom)
@@ -96,6 +101,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
     }
 
     // Shared by serving plates and order previews, so the recipe looks the same in both places.
+    // Tính vị trí nguyên liệu trên đĩa theo cấu hình riêng và cách bố trí của loại công thức.
     public Vector2 GetPosition(PoolType type, SushiRecipe recipe)
     {
         Entry entry = Find(type, recipe);
@@ -122,6 +128,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
         return position + new Vector2(toppingCount > 1 ? (toppingIndex == 0 ? -0.17f : 0.17f) : 0, 0.1f);
     }
 
+    // Lấy lớp vẽ nguyên liệu từ cấu hình hoặc suy ra thứ tự lớp theo công thức.
     public int GetSortingOrder(PoolType type, SushiRecipe recipe)
     {
         // Keep the authored order with the selected recipe/family/ingredient artwork.
@@ -136,6 +143,7 @@ public sealed class SushiPlatedIngredientArtLibrary : ScriptableObject
         return 2;
     }
 
+    // Tìm cấu hình nguyên liệu theo nhóm món, dùng cấu hình chung nếu không có ghi đè.
     public Entry Find(PoolType type, SushiDishFamily family)
     {
         foreach (FamilyEntry entry in familyOverrides)

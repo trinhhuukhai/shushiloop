@@ -51,6 +51,7 @@ public class FoodShushi : GameUnit
     private Sprite defaultBoardBase;
     private Vector2 platedSize;
     private int platedSortingOrder;
+    // Lưu thông số hình ảnh ban đầu của nguyên liệu để phục hồi khi đổi trạng thái.
     private void Awake()
     {
         if (tileBackground != null) defaultBoardBase = tileBackground.sprite;
@@ -63,12 +64,14 @@ public class FoodShushi : GameUnit
         }
     }
 
+    // Cập nhật hình ảnh nguyên liệu khi đối tượng được kích hoạt.
     private void OnEnable()
     {
         if (Type != PoolType.None) ApplyIngredientArt();
     }
 
 #if UNITY_EDITOR
+    // Chọn loại cơm mặc định nếu chưa có loại nguyên liệu và lên lịch làm mới hình ảnh trong Editor.
     private void Reset()
     {
         if (Application.isPlaying) return;
@@ -76,8 +79,10 @@ public class FoodShushi : GameUnit
         QueueEditorArtRefresh();
     }
 
+    // Lên lịch làm mới hình ảnh khi chỉnh dữ liệu nguyên liệu trong Inspector.
     private void OnValidate() { QueueEditorArtRefresh(); }
 
+    // Đăng ký cập nhật hình ảnh trễ trong Editor để tránh sửa đối tượng lúc đang kiểm tra dữ liệu.
     private void QueueEditorArtRefresh()
     {
         // OnValidate có thể chạy khi import trên luồng phụ; đổi Sprite ở delayCall của Editor.
@@ -85,6 +90,7 @@ public class FoodShushi : GameUnit
         UnityEditor.EditorApplication.delayCall += RefreshEditorArt;
     }
 
+    // Làm mới hình ảnh nguyên liệu trong Editor khi đối tượng còn hợp lệ.
     private void RefreshEditorArt()
     {
         if (this == null || UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) return;
@@ -133,6 +139,7 @@ public class FoodShushi : GameUnit
     public bool CanUseChopsticks => foodLocation == FoodLocation.Board &&
         iceLayers == 0 && amount > 0 && !IsRevealing;
 
+    // Khôi phục trạng thái ô trên bàn từ dữ liệu, gồm loại, số lượng, lớp che, băng, liên kết và khay.
     public void SetupFromData(FoodData data)
     {
         transform.DOKill();
@@ -155,11 +162,13 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Khởi tạo nhanh nguyên liệu từ loại thực phẩm và trạng thái ô.
     public void Setup(PoolType type, FoodState state = FoodState.Normal)
     {
         SetupFromData(new FoodData { typeFood = type, foodState = state });
     }
 
+    // Chọn sprite nguyên liệu hoặc sprite trên đĩa, rồi căn tâm và kích thước hiển thị.
     private void ApplyIngredientArt()
     {
         if (foodRenderer == null) foodRenderer = GetComponentInChildren<SpriteRenderer>(true);
@@ -183,6 +192,7 @@ public class FoodShushi : GameUnit
         foodRenderer.transform.localPosition = -Vector3.Scale(bounds.center, scale);
     }
 
+    // Gán hình ảnh, kích thước và thứ tự vẽ của nguyên liệu khi đặt lên đĩa.
     public void SetPlatedArtwork(Sprite sprite, Vector2 size, int sortingOrder)
     {
         platedSprite = sprite;
@@ -192,12 +202,14 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Kiểm tra nguyên liệu trên bàn có thể lấy thường: còn số lượng, không bị che, đóng băng hay đang lật.
     public bool CanPick()
     {
         return foodLocation == FoodLocation.Board && !hidden && iceLayers == 0 &&
             amount > 0 && !IsRevealing;
     }
 
+    // Chạy hiệu ứng lật lớp che để lộ nguyên liệu.
     public void Reveal()
     {
         if (!hidden || IsRevealing) return;
@@ -208,6 +220,7 @@ public class FoodShushi : GameUnit
             .OnComplete(() => { revealTween = null; cover.transform.localScale = coverScale; });
     }
 
+    // Giảm lớp băng, phát hiệu ứng khi băng vỡ hết và cập nhật hình ảnh ô.
     public void BreakIce(int damage = 1)
     {
         if (damage <= 0 || iceLayers == 0) return;
@@ -216,19 +229,24 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Gỡ liên kết khi mã mở khóa khớp với mã của nguyên liệu.
     public void Unlock(int keyId)
     {
         if (linkId != keyId) return;
         BreakLink();
     }
 
+    // Xóa mã liên kết và cập nhật trạng thái hiển thị.
     public void BreakLink() { linkId = 0; RefreshVisual(); }
+    // Cập nhật số lượng nguyên liệu, chặn giá trị âm và làm mới nhãn số lượng.
     internal void SetAmount(int value) { amount = Mathf.Max(0, value); RefreshVisual(); }
+    // Đổi sprite đế ô, dùng đế mặc định khi không có sprite thay thế.
     internal void SetBoardBaseSprite(Sprite sprite)
     {
         if (tileBackground != null) tileBackground.sprite = sprite != null ? sprite : defaultBoardBase;
     }
 
+    // Đổi trạng thái hiển thị ô trên bàn và đồng bộ các thành phần hình ảnh.
     internal void SetBoardVisible(bool value)
     {
         if (boardVisible == value) return;
@@ -236,6 +254,7 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Sao chép đế ô sang nhóm cha để giữ hình ảnh khay trống khi nguyên liệu rời đi.
     internal void CopyBoardBase(Transform parent)
     {
         if (tileBackground == null) return;
@@ -244,6 +263,7 @@ public class FoodShushi : GameUnit
         view.SetActive(boardVisible);
     }
 
+    // Đồng bộ sprite, lớp che, số lượng và thứ tự vẽ theo vị trí cùng trạng thái nguyên liệu.
     private void RefreshVisual()
     {
         foodState = hidden ? FoodState.HoiCham : iceLayers > 0 ? FoodState.Ice :
@@ -283,12 +303,14 @@ public class FoodShushi : GameUnit
         stateLabel.gameObject.SetActive(showCover && stateLabel.text.Length > 0);
     }
 
+    // Làm mới sprite nguyên liệu và cập nhật hình ảnh trạng thái khi đang chơi.
     public void RefreshArtwork()
     {
         ApplyIngredientArt();
         if (Application.isPlaying && quantityLabel != null) RefreshVisual();
     }
 
+    // Tách nguyên liệu khỏi cột, chuẩn hóa thành một phần và chuyển sang trạng thái bay tới băng chuyền.
     internal void BeginConveyorMove(bool revealHidden)
     {
         Owner = null;
@@ -300,6 +322,7 @@ public class FoodShushi : GameUnit
         if (hidden) Reveal();
     }
 
+    // Thử đưa ô đơn lấy được lên băng chuyền khi không thuộc liên kết hoặc khay.
     public bool TryMoveToConveyor()
     {
         if (!CanPick() || linkId > 0 || trayId > 0 || amount != 1) return false;
@@ -307,6 +330,7 @@ public class FoodShushi : GameUnit
         return true;
     }
 
+    // Xác nhận nguyên liệu đã đáp xuống băng chuyền và cập nhật hình ảnh.
     public void ArriveAtConveyor()
     {
         if (foodLocation != FoodLocation.MovingToConveyor) return;
@@ -314,6 +338,7 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Thử chuyển nguyên liệu sang trạng thái bay tới đĩa khách từ vị trí được phép.
     public bool TryMoveToCustomerPlate(bool allowPickupFlight = false)
     {
         if (foodLocation != FoodLocation.Conveyor && !(allowPickupFlight && foodLocation == FoodLocation.MovingToConveyor)) return false;
@@ -322,6 +347,7 @@ public class FoodShushi : GameUnit
         return true;
     }
 
+    // Xác nhận nguyên liệu đã đến đĩa khách và cập nhật thứ tự hiển thị.
     public void ArriveAtCustomerPlate()
     {
         if (foodLocation != FoodLocation.MovingToCustomerPlate) return;
@@ -329,6 +355,7 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Hủy chuyến giao tới khách và khôi phục trạng thái vị trí trước đó.
     public void CancelMoveToCustomerPlate(FoodLocation previousLocation = FoodLocation.Conveyor)
     {
         if (foodLocation != FoodLocation.MovingToCustomerPlate) return;
@@ -336,6 +363,7 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Bỏ lớp che ngay khi dùng nam châm và dừng hiệu ứng lật còn chạy.
     internal void RevealForMagnet()
     {
         revealTween?.Kill();
@@ -345,6 +373,7 @@ public class FoodShushi : GameUnit
         RefreshVisual();
     }
 
+    // Hủy tween di chuyển và lật ô khi nguyên liệu bị tắt hoặc trả về pool.
     private void OnDisable()
     {
         transform.DOKill();

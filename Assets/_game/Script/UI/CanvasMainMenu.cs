@@ -36,6 +36,7 @@ public class CanvasMainMenu : UICanvas
 
     public TMP_Text txtLive;
 
+    // Mở trang chủ, chọn tab chính và cập nhật tiền, level cùng trạng thái mạng.
     public override void Open()
     {
         base.Open();
@@ -57,6 +58,7 @@ public class CanvasMainMenu : UICanvas
 
     }
 
+    // Lưu cấu hình CanvasScaler gốc và cho menu co giãn theo chiều rộng màn hình.
     private void ApplyMenuCanvasScale()
     {
         if (menuRootScaler != null) return;
@@ -69,6 +71,7 @@ public class CanvasMainMenu : UICanvas
         menuRootScaler.matchWidthOrHeight = 0;
     }
 
+    // Phục hồi chế độ co giãn canvas đã lưu khi rời menu.
     private void RestoreCanvasScale()
     {
         if (menuRootScaler == null) return;
@@ -77,6 +80,7 @@ public class CanvasMainMenu : UICanvas
         menuRootScaler = null;
     }
 
+    // Lưu và tắt canvas cùng raycaster của lớp cheat.
     private void HideCheatOverlay()
     {
         if (hiddenCheatCanvas != null || UICheat.Ins == null) return;
@@ -90,6 +94,7 @@ public class CanvasMainMenu : UICanvas
         if (hiddenCheatRaycaster != null) hiddenCheatRaycaster.enabled = false;
     }
 
+    // Khôi phục trạng thái canvas và raycaster cheat đã lưu.
     private void RestoreCheatOverlay()
     {
         if (hiddenCheatCanvas != null) hiddenCheatCanvas.enabled = cheatCanvasWasEnabled;
@@ -98,8 +103,10 @@ public class CanvasMainMenu : UICanvas
         hiddenCheatRaycaster = null;
     }
 
+    // Đồng bộ thông tin level và tài nguyên trên trang chủ mỗi frame.
     private void Update() => RefreshLevelMap();
 
+    // Cập nhật nhãn level, tiền, số màn đã hoàn thành và điều kiện bật nút chơi.
     public void RefreshLevelMap()
     {
         var player = GameDataFragment.cur != null ? GameDataFragment.cur.dataPlayer : null;
@@ -115,6 +122,7 @@ public class CanvasMainMenu : UICanvas
         if (playButton != null) playButton.interactable = !starting && DataManager.ins != null && DataManager.ins.isLoaded && count > 0;
     }
 
+    // Kiểm tra mạng và trạng thái nạp trước khi yêu cầu bắt đầu màn hiện tại.
     public void Play()
     {
         if (starting || GameManager.ins == null || playButton != null && !playButton.interactable) return;
@@ -136,6 +144,7 @@ public class CanvasMainMenu : UICanvas
         CloseDirectly();
     }
 
+    // Xử lý chọn tab hợp lệ, đóng panel hồ sơ và chuyển trang nếu cần.
     public void SelectTab(int index)
     {
         if (starting || index < 0 || index > 2) return;
@@ -144,6 +153,7 @@ public class CanvasMainMenu : UICanvas
         SwitchPage(index);
     }
 
+    // Trượt trang cũ và trang mới theo hướng tab, khóa thao tác trong lúc chuyển.
     private void SwitchPage(int index)
     {
         // Complete a previous transition first so rapid alternating taps cannot orphan a page.
@@ -175,6 +185,7 @@ public class CanvasMainMenu : UICanvas
         PositionTabs(true, direction);
     }
 
+    // Bật hoặc tắt tương tác cùng chặn raycast của nội dung trang qua CanvasGroup.
     private static void SetInteraction(RectTransform content, bool value)
     {
         if (content == null) return;
@@ -182,6 +193,7 @@ public class CanvasMainMenu : UICanvas
         if (group != null) group.interactable = group.blocksRaycasts = value;
     }
 
+    // Lấy canvas trang con tương ứng với chỉ số tab cửa hàng, bảng xếp hạng hoặc trang trí.
     private CanvasHomePage Page(int index)
     {
         if (UIManager.Ins == null) return null;
@@ -190,8 +202,10 @@ public class CanvasMainMenu : UICanvas
         if (index == 3) return UIManager.Ins.GetUI<CanvasDecoration>();
         return null;
     }
+    // Lấy RectTransform nội dung trang chủ hoặc trang con ứng với tab.
     private RectTransform PageContent(int index) => index == 1 ? homeContent : Page(index)?.pageContent;
 
+    // Căn dấu chọn, biểu tượng và màu nhãn theo tab hiện tại, tùy chọn chạy tween.
     private void PositionTabs(bool animate, int direction = 0)
     {
         int selected = selectedTab == 3 ? 1 : selectedTab;
@@ -221,15 +235,25 @@ public class CanvasMainMenu : UICanvas
         }
     }
 
+    // Chọn tab cửa hàng.
     public void OpenShop() => SelectTab(0);
+    // Chọn tab trang chủ.
     public void OpenHome() => SelectTab(1);
+    // Chọn tab bảng xếp hạng.
     public void OpenLeaderboard() => SelectTab(2);
+    // Chuyển sang trang trang trí khi chưa bắt đầu nạp màn.
     public void OpenDecoration() { if (!starting && selectedTab != 3) SwitchPage(3); }
+    // Mở popup cài đặt từ trang chủ.
     public void OpenSettings() => UIManager.Ins?.OpenUI<CanvasSetting>();
+    // Mở popup quà đăng nhập hằng ngày.
     public void OpenDailYLogin() => UIManager.Ins?.OpenUI<CanvasDailyLogin>();
+    // Mở popup chuỗi phần thưởng hằng ngày.
     public void OpenDailyReward() => UIManager.Ins?.OpenUI<CanvasDailyReward>();
+    // Mở popup vòng quay thưởng.
     public void OpenDailySpin() => UIManager.Ins?.OpenUI<CanvasSpin>();
+    // Mở popup hồ sơ người chơi.
     public void OpenProfile() => UIManager.Ins?.OpenUI<CanvasProfile>();
+    // Mở popup mạng trừ trường hợp vừa vô hạn mạng vừa đã đủ năm mạng.
     public void OpenLive()
     {
         bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
@@ -237,13 +261,16 @@ public class CanvasMainMenu : UICanvas
         UIManager.Ins?.OpenUI<CanvasLive>();
 
     }
+    // Ẩn panel hồ sơ gắn trong menu.
     public void CloseProfile() { if (profilePanel != null) profilePanel.SetActive(false); }
+    // Đóng panel hồ sơ nếu đang mở, nếu không thì quay về tab trang chủ.
     public override void BackKey()
     {
         if (profilePanel != null && profilePanel.activeSelf) CloseProfile();
         else SelectTab(1);
     }
 
+    // Đóng các canvas trang con thuộc menu.
     private void ClosePages()
     {
         if (UIManager.Ins == null) return;
@@ -251,6 +278,7 @@ public class CanvasMainMenu : UICanvas
         UIManager.Ins.CloseUI<CanvasLeadBoard>();
         UIManager.Ins.CloseUI<CanvasDecoration>();
     }
+    // Dừng hiệu ứng tab, đóng trang con, phục hồi co giãn canvas và dừng cập nhật mạng.
     protected override void OnDisable()
     {
         tabTween?.Kill();
@@ -268,6 +296,7 @@ public class CanvasMainMenu : UICanvas
     
 
 }
+    // Chuyển thưởng tiền tạm chưa nhận vào ví và xóa khoản tạm để tránh nhận lại.
     public void CheckMoneyTemp()
     {
         var data = GameDataFragment.cur;
@@ -276,10 +305,15 @@ public class CanvasMainMenu : UICanvas
         data.dataPlayer.moneyTemp = 0;
         data.ChangeMoney(reward, "home");
     }
+    // Đóng trực tiếp trang chủ.
     public void Close() => CloseDirectly();
+    // Chuyển điểm gọi UI cũ sang thao tác mở cửa hàng.
     public void openShop() => OpenShop();
+    // Chuyển điểm gọi thư viện cũ sang trang trang trí.
     public void openGalary() => OpenDecoration();
+    // Làm mới thông tin level sau khi người chơi thắng màn.
     public void OnWinLevel() => RefreshLevelMap();
+    // Đồng bộ thông tin menu theo level hiện tại; hiện không có thao tác cuộn bản đồ.
     public void RecenterToCurrentLevel() => RefreshLevelMap();
 
     [Header("Lives")]
@@ -297,6 +331,7 @@ public class CanvasMainMenu : UICanvas
     private Coroutine coLives;
     private Coroutine coLivesUnlimited;
 
+    // Cập nhật số mạng và thời gian hồi mạng mỗi giây.
     IEnumerator IE_Lives()
     {
         while (true)
@@ -307,6 +342,7 @@ public class CanvasMainMenu : UICanvas
         }
     }
 
+    // Cập nhật trạng thái cùng thời gian vô hạn mạng mỗi giây.
     IEnumerator IE_LivesUnlimited()
     {
         while (true)
@@ -316,6 +352,7 @@ public class CanvasMainMenu : UICanvas
         }
     }
 
+    // Làm mới số mạng, nhãn FULL hoặc thời gian hồi và trạng thái nút bổ sung mạng.
     public void ShowLives()
     {
         var data = LivesDataFragment.cur;
@@ -341,6 +378,7 @@ public class CanvasMainMenu : UICanvas
         }
     }
 
+    // Chọn khung mạng thường hoặc vô hạn và hiển thị thời gian vô hạn còn lại.
     public void ShowLivesUnlimited()
     {
         var data = LivesDataFragment.cur;

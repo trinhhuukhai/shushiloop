@@ -25,6 +25,7 @@ public sealed class CanvasTutorial : UICanvas
     private bool debugCanvasWasEnabled;
     private bool debugRaycasterWasEnabled;
 
+    // Mở overlay hướng dẫn và tạm ẩn canvas debug riêng để không che mục tiêu.
     public override void Open()
     {
         base.Open();
@@ -40,6 +41,7 @@ public sealed class CanvasTutorial : UICanvas
         if (hiddenDebugRaycaster != null) hiddenDebugRaycaster.enabled = false;
     }
 
+    // Gắn tutorial điều khiển và cập nhật tiêu đề, gợi ý cho bước xem món hoặc chọn nguyên liệu.
     public void Present(SushiLevelOneTutorial tutorial)
     {
         owner = tutorial;
@@ -53,8 +55,10 @@ public sealed class CanvasTutorial : UICanvas
         RefreshLayout();
     }
 
+    // Căn lại overlay theo vị trí mới nhất của mục tiêu sau mỗi frame.
     private void LateUpdate() => RefreshLayout();
 
+    // Chiếu mục tiêu sang tọa độ UI, đặt vùng sáng cùng lớp che và bảng hướng dẫn trong màn hình.
     public void RefreshLayout()
     {
         if (owner == null || overlayRoot == null) return;
@@ -118,6 +122,7 @@ public sealed class CanvasTutorial : UICanvas
         instructionPanel.anchoredPosition = new Vector2(area.width * 0.5f, panelY);
     }
 
+    // Đặt vị trí và kích thước một vùng chữ nhật của overlay theo gốc dưới trái.
     private static void Place(RectTransform rect, float x, float y, float width, float height)
     {
         rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.zero;
@@ -125,8 +130,11 @@ public sealed class CanvasTutorial : UICanvas
         rect.sizeDelta = new Vector2(width, height);
     }
 
+    // Chuyển nhấn vùng sáng sang bước xác nhận của tutorial đang điều khiển.
     public void OnTargetClick() => owner?.ConfirmTarget();
+    // Bỏ liên kết tutorial và đóng trực tiếp overlay.
     public void Dismiss() { owner = null; CloseDirectly(); }
+    // Báo overlay đã đóng, phục hồi canvas debug và gọi xử lý tắt UI của lớp cơ sở.
     protected override void OnDisable()
     {
         var previous = owner;
@@ -138,5 +146,6 @@ public sealed class CanvasTutorial : UICanvas
         hiddenDebugRaycaster = null;
         base.OnDisable();
     }
+    // Giữ overlay hướng dẫn mở khi nhận phím quay lại.
     public override void BackKey() { }
 }

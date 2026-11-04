@@ -11,18 +11,21 @@ public class CanvasTransit : UICanvas
     public List<GameObject> tutorials;
     public TMP_Text txtLevel;
 
+    // Tính tỉ lệ màn hình so với khung dọc chuẩn; hiện kết quả chưa được dùng.
     private void Awake()
     {
 
         var ratio = ((float)Screen.width / Screen.height) / (1080f / 1920);
     }
 
+    // Mở lớp chuyển cảnh và hiển thị level theo tiến trình đang lưu.
     public override void Open()
     {
         base.Open();
         txtLevel.text = "LEVEL " + (GameDataFragment.cur.dataPlayer.cur_level + 1).ToString();
     }
 
+    // Tìm ước chung lớn nhất bằng phép trừ lặp, trả 0 nếu vượt giới hạn vòng lặp.
     private int UCLN(int a, int b)
     {
         int maxNum = 100;
@@ -39,6 +42,7 @@ public class CanvasTransit : UICanvas
 
         return a; // or return b; a = b
     }
+    // Chọn gợi ý chuyển cảnh theo mốc level, ngẫu nhiên trong nhóm đã được phép hiển thị.
     private void SelectTut(int currentLevel)
     {
         if (tutorials == null || tutorials.Count == 0) return;
@@ -92,11 +96,13 @@ public class CanvasTransit : UICanvas
 
 #if UNITY_EDITOR
     [ContextMenu("AAA")]
+    // Chuyển điểm gọi UI sang thao tác kết thúc lớp chuyển cảnh.
     public void Trns()
     {
         MakeTransit();
     }
 #endif
+    // Gọi callback nếu có rồi đóng trực tiếp lớp chuyển cảnh.
     public void MakeTransit(Action onDone = null)
     {
 
@@ -105,6 +111,7 @@ public class CanvasTransit : UICanvas
     }
 
     public Image fill;
+    // Chạy thanh tải và âm thanh trong thời gian chờ, sau đó gọi callback và đóng lớp chuyển cảnh.
     public void MakeDelayTransit(Action action, float delay = 1.44f)
     {
         //SelectTut(LevelDataFragment.cur.gameData.level);

@@ -28,6 +28,7 @@ public class DishOrderData
     public PoolType thirdIngredient = PoolType.Tuna;
     [Min(1)] public int amount = 1;
 
+    // Tra món có sẵn hoặc tạo công thức tùy chỉnh, trả thông báo nếu dữ liệu không hợp lệ.
     public bool TryGetRecipe(out SushiRecipe recipe, out string error)
     {
         if (recipeKind != SushiRecipeKind.Catalog)
@@ -37,12 +38,14 @@ public class DishOrderData
         return valid;
     }
 
+    // Lấy công thức món và phát sinh lỗi nếu cấu hình đơn món không hợp lệ.
     public SushiRecipe GetRecipe()
     {
         if (!TryGetRecipe(out var recipe, out string error)) throw new InvalidOperationException(error);
         return recipe;
     }
 
+    // Sao chép dữ liệu một mục đơn món để chỉnh sửa độc lập.
     public DishOrderData Copy() => (DishOrderData)MemberwiseClone();
 }
 
@@ -59,6 +62,7 @@ public class CustomerOrderData
     public bool UsesRecipes => dishes != null && dishes.Count > 0;
 
     // Chuyển thành danh sách mà Customer.Setup() đang sử dụng.
+    // Trải đơn nguyên liệu thành danh sách từng phần thực phẩm riêng lẻ.
     public List<PoolType> CreateFoodList()
     {
         List<PoolType> result = new List<PoolType>();
@@ -72,6 +76,7 @@ public class CustomerOrderData
         return result;
     }
 
+    // Quy đổi số phần của các món thành tổng số lượng cần cho từng loại nguyên liệu.
     public List<FoodOrderData> CreateIngredientOrders()
     {
         var result = new List<FoodOrderData>();
@@ -90,6 +95,7 @@ public class CustomerOrderData
         return result;
     }
 
+    // Kiểm tra danh sách món, số phần, công thức và giới hạn tổng lượng nguyên liệu.
     public string ValidateOrders()
     {
         if (!UsesRecipes) return "Khách chưa có món trong dishes.";
@@ -119,6 +125,7 @@ public class FoodData
     // Giữ dữ liệu cũ: Lock/lockId được đọc như linked_tile/linkId.
     public int lockId;
 
+    // Sao chép dữ liệu một ô nguyên liệu để trạng thái runtime không sửa dữ liệu gốc.
     public FoodData Copy()
     {
         return (FoodData)MemberwiseClone();

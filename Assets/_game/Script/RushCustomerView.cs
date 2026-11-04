@@ -22,12 +22,14 @@ public class RushCustomerView : MonoBehaviour
     private Customer customer;
     private float nextTick;
 
+    // Lấy dữ liệu khách trên đối tượng và ẩn chỉ báo rush ban đầu.
     private void Awake()
     {
         customer = GetComponent<Customer>();
         indicator.SetActive(false);
     }
 
+    // Cập nhật thanh thời gian, màu cảnh báo và tiếng tích tắc khi khách vội sắp hết giờ.
     private void Update()
     {
         bool visible = customer.IsSeated && customer.IsRush && !customer.IsCompleted;
@@ -55,6 +57,7 @@ public class RushCustomerView : MonoBehaviour
         audioSource.PlayOneShot(tickingClip, 0.15f);
     }
 
+    // Tạo âm tích tắc ngắn bằng sóng sin khi chưa gán clip cảnh báo.
     private static AudioClip CreateTick()
     {
         const int sampleRate = 22050;
