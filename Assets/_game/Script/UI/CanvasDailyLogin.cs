@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using AssetKits.ParticleImage;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -52,7 +53,7 @@ public class CanvasDailyLogin : UICanvas
     //    upperPos = rootPos + Vector2.up * 220;
     //    bottomPos = rootPos - Vector2.up * 180;
     //}
-
+    public TMP_Text txtGold;
     public override void Open()
     {
         base.Open();
@@ -97,6 +98,15 @@ public class CanvasDailyLogin : UICanvas
 
         //mainPanelObject.SetActive(true);
         //mainPanelRect.DOAnchorPos(rootPos, .36f).SetEase(Ease.OutSine);
+    }
+
+    public void setGold()
+    {
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
+    }
+    private void Update()
+    {
+        setGold();
     }
 
 

@@ -76,7 +76,7 @@ public class CanvasSpin : UICanvas
     //
 
     public CanvasGroup canvasGroup;
-
+    public TMP_Text txtGold;
     //public GameObject mainPanelObject;
     //public RectTransform mainPanelRect;
 
@@ -122,6 +122,14 @@ public class CanvasSpin : UICanvas
         StartSpinWheelLightsBlink();
     }
 
+    public void setGold()
+    {
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
+    }
+    private void Update()
+    {
+        setGold();
+    }
     private void Pop()
     {
         //canvasGroup.DOFade(1, .28f);

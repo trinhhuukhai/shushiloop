@@ -251,6 +251,15 @@ public class CanvasDailyReward : UICanvas
             }
         }
     }
+    public TMP_Text txtGold;
+    public void setGold()
+    {
+        txtGold.text = GameDataFragment.cur.dataPlayer.money.ToString("N0");
+    }
+    private void Update()
+    {
+        setGold();
+    }
 
     public void OnClickFirstButton()
     {
