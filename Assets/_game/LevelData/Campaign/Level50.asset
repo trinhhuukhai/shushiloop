@@ -130,7 +130,7 @@ MonoBehaviour:
       amount: 1
     - dish: 31
       amount: 1
-    - dish: 43
+    - dish: 45
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0

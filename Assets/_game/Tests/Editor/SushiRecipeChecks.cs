@@ -30,7 +30,7 @@ public static class SushiRecipeChecks
             foreach (PoolType ingredient in recipe.Ingredients)
                 Check(ingredient != PoolType.None && Enum.IsDefined(typeof(PoolType), ingredient), "Invalid ingredient");
         }
-        PoolType[] toppings = { PoolType.Tuna, PoolType.Salmon, PoolType.Flounder, PoolType.Mackerel,
+        PoolType[] toppings = { PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel, PoolType.Flounder,
             PoolType.Shrimp, PoolType.Octopus, PoolType.Avocado, PoolType.Egg, PoolType.Mayonnaise,
             PoolType.FishRoe, PoolType.BlackFishRoe, PoolType.GreenFishRoe };
         for (int i = 0; i < 8; i++) Expect(i + 1, PoolType.SushiRice, toppings[i]);
@@ -185,10 +185,10 @@ public static class SushiRecipeChecks
             Check(dish.FoundationType == PoolType.None && recipe.Ingredients.All(type => dish.CanStartIngredient(type)),
                 "Sashimi should accept any ingredient first");
         }
-        // Source images 49 and 53 have a deliberately different order from the old pair IDs.
-        Expect(49, PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel);
-        Expect(53, PoolType.Tuna, PoolType.Salmon, PoolType.Flounder);
-        Expect(68, PoolType.Mackerel, PoolType.Shrimp, PoolType.Octopus);
+        // Source images 49 and 53 have a deliberately different order from the old pair IDs (ca_bon art is mackerel).
+        Expect(49, PoolType.Tuna, PoolType.Salmon, PoolType.Flounder);
+        Expect(53, PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel);
+        Expect(68, PoolType.Flounder, PoolType.Shrimp, PoolType.Octopus);
         var customer = new CustomerOrderData { dishes = new List<DishOrderData> {
             new DishOrderData { dish = SushiDishId.SashimiTunaSalmonMackerel, amount = 2 },
             new DishOrderData { dish = SushiDishId.SashimiSalmonShrimpOctopus, amount = 1 } } };

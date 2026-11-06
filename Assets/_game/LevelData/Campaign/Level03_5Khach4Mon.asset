@@ -29,9 +29,9 @@ MonoBehaviour:
     dishes:
     - dish: 1
       amount: 1
-    - dish: 3
-      amount: 1
     - dish: 4
+      amount: 1
+    - dish: 3
       amount: 1
     - dish: 6
       amount: 1
@@ -64,9 +64,9 @@ MonoBehaviour:
       amount: 1
     - dish: 6
       amount: 1
-    - dish: 3
-      amount: 1
     - dish: 4
+      amount: 1
+    - dish: 3
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0

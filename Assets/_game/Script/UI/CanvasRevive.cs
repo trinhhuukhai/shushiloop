@@ -177,7 +177,7 @@ public class CanvasRevive : UICanvas
         SoundManager.PlayEfx(SoundID.sfx_click);
 
         bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
-        if (GameDataFragment.cur.dataPlayer.cur_level > 9)
+        if (GameDataFragment.cur.dataPlayer.cur_level > 0)
         {
             if (!isUnlimited)
             {

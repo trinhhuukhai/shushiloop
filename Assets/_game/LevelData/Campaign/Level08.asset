@@ -36,12 +36,12 @@ MonoBehaviour:
     dishes:
     - dish: 19
       amount: 1
-    - dish: 3
+    - dish: 4
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 4
+    - dish: 3
       amount: 1
     - dish: 20
       amount: 1

@@ -49,7 +49,7 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 3
+      dish: 4
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -73,7 +73,7 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 4
+      dish: 3
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10

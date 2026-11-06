@@ -45,7 +45,7 @@ MonoBehaviour:
     dishes:
     - dish: 22
       amount: 1
-    - dish: 3
+    - dish: 4
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
@@ -124,7 +124,7 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 38
+    - dish: 37
       amount: 1
     - dish: 19
       amount: 1

@@ -39,13 +39,13 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 3
+      dish: 4
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 4
+      dish: 3
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -93,13 +93,13 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 15
+      dish: 16
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 16
+      dish: 15
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -147,13 +147,13 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 23
+      dish: 24
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 24
+      dish: 23
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -216,13 +216,13 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 33
+      dish: 34
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 34
+      dish: 33
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -243,13 +243,13 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 37
+      dish: 38
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 38
+      dish: 37
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -276,19 +276,19 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 42
-      firstIngredient: 2
-      secondIngredient: 14
-      thirdIngredient: 10
-      amount: 1
-    - recipeKind: 0
-      dish: 43
-      firstIngredient: 2
-      secondIngredient: 14
-      thirdIngredient: 10
-      amount: 1
-    - recipeKind: 0
       dish: 44
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 45
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 42
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -297,7 +297,7 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 45
+      dish: 43
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -324,7 +324,7 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 49
+      dish: 53
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -336,13 +336,13 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 51
+      dish: 55
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 52
+      dish: 57
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -351,7 +351,7 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 53
+      dish: 49
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -363,7 +363,7 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 55
+      dish: 51
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -378,7 +378,7 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 57
+      dish: 52
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -396,7 +396,7 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 60
+      dish: 61
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -405,7 +405,7 @@ MonoBehaviour:
     rushSeconds: 0
     dishes:
     - recipeKind: 0
-      dish: 61
+      dish: 60
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -417,13 +417,13 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 63
+      dish: 64
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 64
+      dish: 63
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
@@ -444,13 +444,13 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 67
+      dish: 68
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 68
+      dish: 67
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10

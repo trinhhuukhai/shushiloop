@@ -139,7 +139,7 @@ MonoBehaviour:
       thirdIngredient: 10
       amount: 1
     - recipeKind: 0
-      dish: 4
+      dish: 3
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10

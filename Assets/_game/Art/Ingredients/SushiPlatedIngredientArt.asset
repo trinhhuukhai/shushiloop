@@ -464,7 +464,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 0
     dish: 3
-  - type: 12
+  - type: 13
     sprite: {fileID: 1907289211329817316, guid: 558bd7759e57a564b9bdf014ccf05a6b, type: 3}
     position: {x: -0.04, y: 0.17}
     size: {x: 0.686667, y: 0.474806}
@@ -478,7 +478,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 0
     dish: 4
-  - type: 13
+  - type: 12
     sprite: {fileID: 5446503226304355414, guid: a6f0b5be6e1e9434dbed0300df5ee696, type: 3}
     position: {x: -0.04, y: 0.17}
     size: {x: 0.703333, y: 0.482946}
@@ -597,7 +597,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 15
-  - type: 12
+  - type: 13
     sprite: {fileID: 21300000, guid: b79cf92a4da236f479a9104c8eb0d9ea, type: 3}
     position: {x: 0, y: 0.06}
     size: {x: 0.859999, y: 0.699999}
@@ -618,7 +618,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 16
-  - type: 13
+  - type: 12
     sprite: {fileID: 21300000, guid: 2e4a56b562751d54b8c03d6c5a1e54ad, type: 3}
     position: {x: 0, y: 0.06}
     size: {x: 0.859999, y: 0.699999}
@@ -765,7 +765,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 23
-  - type: 12
+  - type: 13
     sprite: {fileID: 2882403625053738345, guid: 6724492f357dc9e4ea4c69ab6f7e3ecd, type: 3}
     position: {x: 0, y: 0.18}
     size: {x: 0.626947, y: 0.432824}
@@ -786,7 +786,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 24
-  - type: 13
+  - type: 12
     sprite: {fileID: 4993833770760833800, guid: ef099884bea826342a8dc7051db5f1d6, type: 3}
     position: {x: 0, y: 0.19}
     size: {x: 0.607252, y: 0.416794}
@@ -961,7 +961,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 2
     dish: 33
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 461eb774ac837c44ba04655d352b62e2, type: 3}
     position: {x: -0.030234, y: 0.030078}
     size: {x: 0.517344, y: 0.366406}
@@ -975,7 +975,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 2
     dish: 34
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: 39eded85e2f128c4bafaff988942827d, type: 3}
     position: {x: -0.013438, y: 0.027344}
     size: {x: 0.517344, y: 0.371875}
@@ -1017,7 +1017,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 2
     dish: 37
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 461eb774ac837c44ba04655d352b62e2, type: 3}
     position: {x: -0.030234, y: 0.030078}
     size: {x: 0.517344, y: 0.366406}
@@ -1031,7 +1031,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 2
     dish: 38
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: 39eded85e2f128c4bafaff988942827d, type: 3}
     position: {x: -0.013438, y: 0.027344}
     size: {x: 0.517344, y: 0.371875}
@@ -1066,21 +1066,21 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 40
-  - type: 12
+  - type: 13
     sprite: {fileID: -5325802784369593465, guid: c9a11c4c86d49044a81676149f28ff06, type: 3}
     position: {x: -0.144453, y: -0.062891}
     size: {x: 0.517344, y: 0.366406}
     rotation: 0
     sortingOrder: 2
     dish: 41
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: 39eded85e2f128c4bafaff988942827d, type: 3}
     position: {x: -0.013438, y: 0.027344}
     size: {x: 0.517344, y: 0.371875}
     rotation: 0
     sortingOrder: 1
     dish: 41
-  - type: 12
+  - type: 13
     sprite: {fileID: -5325802784369593465, guid: c9a11c4c86d49044a81676149f28ff06, type: 3}
     position: {x: -0.144453, y: -0.062891}
     size: {x: 0.517344, y: 0.366406}
@@ -1094,7 +1094,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 42
-  - type: 12
+  - type: 13
     sprite: {fileID: -5325802784369593465, guid: c9a11c4c86d49044a81676149f28ff06, type: 3}
     position: {x: -0.144453, y: -0.062891}
     size: {x: 0.517344, y: 0.366406}
@@ -1108,7 +1108,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 43
-  - type: 13
+  - type: 12
     sprite: {fileID: 4847325840570769087, guid: 6e2721466b9014c46a1bb0e445415528, type: 3}
     position: {x: -0.149492, y: -0.05332}
     size: {x: 0.513984, y: 0.369141}
@@ -1122,7 +1122,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 44
-  - type: 13
+  - type: 12
     sprite: {fileID: 4847325840570769087, guid: 6e2721466b9014c46a1bb0e445415528, type: 3}
     position: {x: -0.149492, y: -0.05332}
     size: {x: 0.513984, y: 0.369141}
@@ -1199,7 +1199,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 2
     dish: 49
-  - type: 13
+  - type: 12
     sprite: {fileID: 6533158058000890592, guid: 1de45c0f75b3a494f8020d144c32b2e2, type: 3}
     position: {x: 0.151172, y: -0.004102}
     size: {x: 0.497188, y: 0.358203}
@@ -1234,7 +1234,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 51
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: b1ead99f1727c5f4085893d95f74c17e, type: 3}
     position: {x: 0, y: -0.04375}
     size: {x: 0.497188, y: 0.360938}
@@ -1255,7 +1255,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 52
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: b1ead99f1727c5f4085893d95f74c17e, type: 3}
     position: {x: 0, y: -0.04375}
     size: {x: 0.497188, y: 0.360938}
@@ -1283,7 +1283,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 2
     dish: 53
-  - type: 12
+  - type: 13
     sprite: {fileID: -5125607235610086988, guid: ba37b742cb0feb64e9554e10a03b6ff4, type: 3}
     position: {x: 0.154531, y: -0.008203}
     size: {x: 0.497188, y: 0.355469}
@@ -1297,14 +1297,14 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 54
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 6ee594ee4a1d691449ae0bd601659e1f, type: 3}
     position: {x: -0.010078, y: -0.050586}
     size: {x: 0.497188, y: 0.352734}
     rotation: 0
     sortingOrder: 2
     dish: 54
-  - type: 13
+  - type: 12
     sprite: {fileID: 6533158058000890592, guid: 1de45c0f75b3a494f8020d144c32b2e2, type: 3}
     position: {x: 0.151172, y: -0.004102}
     size: {x: 0.497188, y: 0.358203}
@@ -1318,7 +1318,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 55
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 6ee594ee4a1d691449ae0bd601659e1f, type: 3}
     position: {x: -0.010078, y: -0.050586}
     size: {x: 0.497188, y: 0.352734}
@@ -1339,14 +1339,14 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 56
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 6ee594ee4a1d691449ae0bd601659e1f, type: 3}
     position: {x: -0.010078, y: -0.050586}
     size: {x: 0.497188, y: 0.352734}
     rotation: 0
     sortingOrder: 2
     dish: 56
-  - type: 13
+  - type: 12
     sprite: {fileID: 6533158058000890592, guid: 1de45c0f75b3a494f8020d144c32b2e2, type: 3}
     position: {x: 0.151172, y: -0.004102}
     size: {x: 0.497188, y: 0.358203}
@@ -1360,7 +1360,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 57
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 6ee594ee4a1d691449ae0bd601659e1f, type: 3}
     position: {x: -0.010078, y: -0.050586}
     size: {x: 0.497188, y: 0.352734}
@@ -1374,14 +1374,14 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 57
-  - type: 12
+  - type: 13
     sprite: {fileID: -5325802784369593465, guid: 20fe8ce0a0549b346a6fdf35b82714ec, type: 3}
     position: {x: -0.183086, y: -0.075195}
     size: {x: 0.493828, y: 0.352734}
     rotation: 0
     sortingOrder: 3
     dish: 58
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: b1ead99f1727c5f4085893d95f74c17e, type: 3}
     position: {x: 0, y: -0.04375}
     size: {x: 0.497188, y: 0.360938}
@@ -1423,7 +1423,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 60
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 6ee594ee4a1d691449ae0bd601659e1f, type: 3}
     position: {x: -0.010078, y: -0.050586}
     size: {x: 0.497188, y: 0.352734}
@@ -1444,7 +1444,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 61
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: b1ead99f1727c5f4085893d95f74c17e, type: 3}
     position: {x: 0, y: -0.04375}
     size: {x: 0.497188, y: 0.360938}
@@ -1486,7 +1486,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 63
-  - type: 12
+  - type: 13
     sprite: {fileID: 7484547993422936564, guid: 6ee594ee4a1d691449ae0bd601659e1f, type: 3}
     position: {x: -0.010078, y: -0.050586}
     size: {x: 0.497188, y: 0.352734}
@@ -1507,7 +1507,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 3
     dish: 64
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: b1ead99f1727c5f4085893d95f74c17e, type: 3}
     position: {x: 0, y: -0.04375}
     size: {x: 0.497188, y: 0.360938}
@@ -1542,14 +1542,14 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 65
-  - type: 12
+  - type: 13
     sprite: {fileID: -5325802784369593465, guid: 20fe8ce0a0549b346a6fdf35b82714ec, type: 3}
     position: {x: -0.183086, y: -0.075195}
     size: {x: 0.493828, y: 0.352734}
     rotation: 0
     sortingOrder: 3
     dish: 66
-  - type: 13
+  - type: 12
     sprite: {fileID: -7868012627601439153, guid: b1ead99f1727c5f4085893d95f74c17e, type: 3}
     position: {x: 0, y: -0.04375}
     size: {x: 0.497188, y: 0.360938}
@@ -1563,7 +1563,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 66
-  - type: 12
+  - type: 13
     sprite: {fileID: -5325802784369593465, guid: 20fe8ce0a0549b346a6fdf35b82714ec, type: 3}
     position: {x: -0.183086, y: -0.075195}
     size: {x: 0.493828, y: 0.352734}
@@ -1584,7 +1584,7 @@ MonoBehaviour:
     rotation: 0
     sortingOrder: 1
     dish: 67
-  - type: 13
+  - type: 12
     sprite: {fileID: 4847325840570769087, guid: 4b60963e4262c074395d733fa6a92cad, type: 3}
     position: {x: -0.183086, y: -0.069727}
     size: {x: 0.493828, y: 0.358203}

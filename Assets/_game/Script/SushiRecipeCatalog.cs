@@ -9,24 +9,24 @@ public enum SushiDishId
     None = 0,
     [InspectorName("nigiri_ca_ngu")] NigiriTuna = 1,
     [InspectorName("nigiri_ca_hoi")] NigiriSalmon = 2,
-    [InspectorName("nigiri_ca_bon")] NigiriFlounder = 3,
-    [InspectorName("nigiri_ca_thu")] NigiriMackerel = 4,
+    [InspectorName("nigiri_ca_bon")] NigiriMackerel = 3,
+    [InspectorName("nigiri_ca_thu")] NigiriFlounder = 4,
     [InspectorName("nigiri_tom")] NigiriShrimp = 5,
     [InspectorName("nigiri_muc")] NigiriOctopus = 6,
     [InspectorName("nigiri_bo")] NigiriAvocado = 7,
     [InspectorName("nigiri_trung")] NigiriEgg = 8,
     [InspectorName("maiki_ca_ngu")] MakiTuna = 13,
     [InspectorName("maiki_ca_hoi")] MakiSalmon = 14,
-    [InspectorName("maiki_ca_bon")] MakiFlounder = 15,
-    [InspectorName("maiki_ca_thu")] MakiMackerel = 16,
+    [InspectorName("maiki_ca_bon")] MakiMackerel = 15,
+    [InspectorName("maiki_ca_thu")] MakiFlounder = 16,
     [InspectorName("maiki_tom")] MakiShrimp = 17,
     [InspectorName("maiki_bach_tuoc")] MakiOctopus = 18,
     [InspectorName("miaki_bo")] MakiAvocado = 19,
     [InspectorName("maiki_trung")] MakiEgg = 20,
     [InspectorName("gunkan_ca_ngu")] GunkanTuna = 21,
     [InspectorName("gunkan_ca_hoi")] GunkanSalmon = 22,
-    [InspectorName("gunkan_ca_bon")] GunkanFlounder = 23,
-    [InspectorName("gunkan_ca_thu")] GunkanMackerel = 24,
+    [InspectorName("gunkan_ca_bon")] GunkanMackerel = 23,
+    [InspectorName("gunkan_ca_thu")] GunkanFlounder = 24,
     [InspectorName("gunkan_tom")] GunkanShrimp = 25,
     [InspectorName("gunkan_bach_tuoc")] GunkanOctopus = 26,
     [InspectorName("gunkan_bo")] GunkanAvocado = 27,
@@ -35,42 +35,42 @@ public enum SushiDishId
     [InspectorName("gunkan_roe_den")] GunkanBlackRoe = 30,
     [InspectorName("gunkan_roe_xanh")] GunkanGreenRoe = 31,
     [InspectorName("sashimi_x2/32")] SashimiTunaSalmon = 32,
-    [InspectorName("sashimi_x2/33")] SashimiTunaFlounder = 33,
-    [InspectorName("sashimi_x2/34")] SashimiTunaMackerel = 34,
+    [InspectorName("sashimi_x2/33")] SashimiTunaMackerel = 33,
+    [InspectorName("sashimi_x2/34")] SashimiTunaFlounder = 34,
     [InspectorName("sashimi_x2/35")] SashimiTunaShrimp = 35,
     [InspectorName("sashimi_x2/36")] SashimiTunaOctopus = 36,
-    [InspectorName("sashimi_x2/37")] SashimiSalmonFlounder = 37,
-    [InspectorName("sashimi_x2/38")] SashimiSalmonMackerel = 38,
+    [InspectorName("sashimi_x2/37")] SashimiSalmonMackerel = 37,
+    [InspectorName("sashimi_x2/38")] SashimiSalmonFlounder = 38,
     [InspectorName("sashimi_x2/39")] SashimiSalmonShrimp = 39,
     [InspectorName("sashimi_x2/40")] SashimiSalmonOctopus = 40,
     [InspectorName("sashimi_x2/41")] SashimiFlounderMackerel = 41,
-    [InspectorName("sashimi_x2/42")] SashimiFlounderShrimp = 42,
-    [InspectorName("sashimi_x2/43")] SashimiFlounderOctopus = 43,
-    [InspectorName("sashimi_x2/44")] SashimiMackerelShrimp = 44,
-    [InspectorName("sashimi_x2/45")] SashimiMackerelOctopus = 45,
+    [InspectorName("sashimi_x2/42")] SashimiMackerelShrimp = 42,
+    [InspectorName("sashimi_x2/43")] SashimiMackerelOctopus = 43,
+    [InspectorName("sashimi_x2/44")] SashimiFlounderShrimp = 44,
+    [InspectorName("sashimi_x2/45")] SashimiFlounderOctopus = 45,
     [InspectorName("sashimi_x2/46")] SashimiShrimpOctopus = 46,
     [InspectorName("tra_nong")] GreenTea = 47,
     [InspectorName("tra_da")] IcedGreenTea = 48,
-    [InspectorName("sashimi_x3/49")] SashimiTunaSalmonMackerel = 49,
+    [InspectorName("sashimi_x3/49")] SashimiTunaSalmonFlounder = 49,
     [InspectorName("sashimi_x3/50")] SashimiTunaSalmonShrimp = 50,
-    [InspectorName("sashimi_x3/51")] SashimiTunaMackerelShrimp = 51,
-    [InspectorName("sashimi_x3/52")] SashimiSalmonMackerelShrimp = 52,
-    [InspectorName("sashimi_x3/53")] SashimiTunaSalmonFlounder = 53,
+    [InspectorName("sashimi_x3/51")] SashimiTunaFlounderShrimp = 51,
+    [InspectorName("sashimi_x3/52")] SashimiSalmonFlounderShrimp = 52,
+    [InspectorName("sashimi_x3/53")] SashimiTunaSalmonMackerel = 53,
     [InspectorName("sashimi_x3/54")] SashimiTunaFlounderMackerel = 54,
-    [InspectorName("sashimi_x3/55")] SashimiTunaFlounderShrimp = 55,
+    [InspectorName("sashimi_x3/55")] SashimiTunaMackerelShrimp = 55,
     [InspectorName("sashimi_x3/56")] SashimiSalmonFlounderMackerel = 56,
-    [InspectorName("sashimi_x3/57")] SashimiSalmonFlounderShrimp = 57,
+    [InspectorName("sashimi_x3/57")] SashimiSalmonMackerelShrimp = 57,
     [InspectorName("sashimi_x3/58")] SashimiFlounderMackerelShrimp = 58,
     [InspectorName("sashimi_x3/59")] SashimiTunaSalmonOctopus = 59,
-    [InspectorName("sashimi_x3/60")] SashimiTunaFlounderOctopus = 60,
-    [InspectorName("sashimi_x3/61")] SashimiTunaMackerelOctopus = 61,
+    [InspectorName("sashimi_x3/60")] SashimiTunaMackerelOctopus = 60,
+    [InspectorName("sashimi_x3/61")] SashimiTunaFlounderOctopus = 61,
     [InspectorName("sashimi_x3/62")] SashimiTunaShrimpOctopus = 62,
-    [InspectorName("sashimi_x3/63")] SashimiSalmonFlounderOctopus = 63,
-    [InspectorName("sashimi_x3/64")] SashimiSalmonMackerelOctopus = 64,
+    [InspectorName("sashimi_x3/63")] SashimiSalmonMackerelOctopus = 63,
+    [InspectorName("sashimi_x3/64")] SashimiSalmonFlounderOctopus = 64,
     [InspectorName("sashimi_x3/65")] SashimiSalmonShrimpOctopus = 65,
     [InspectorName("sashimi_x3/66")] SashimiFlounderMackerelOctopus = 66,
-    [InspectorName("sashimi_x3/67")] SashimiFlounderShrimpOctopus = 67,
-    [InspectorName("sashimi_x3/68")] SashimiMackerelShrimpOctopus = 68
+    [InspectorName("sashimi_x3/67")] SashimiMackerelShrimpOctopus = 67,
+    [InspectorName("sashimi_x3/68")] SashimiFlounderShrimpOctopus = 68
 }
 
 public enum SushiDishFamily { Nigiri, Maki, Gunkan, Sashimi, Tea }
@@ -218,7 +218,9 @@ public static class SushiRecipeCatalog
     private static List<SushiRecipe> CreateRecipes()
     {
         var result = new List<SushiRecipe>();
-        PoolType[] toppings = { PoolType.Tuna, PoolType.Salmon, PoolType.Flounder, PoolType.Mackerel,
+        // Ảnh nguồn đặt tên ngược: *_ca_bon/ca_bon* vẽ cá thu, *_ca_thu/ca_thu* vẽ cá bơn.
+        // Mã món gắn với tên file ảnh, nên công thức đặt cá thu trước cá bơn để khớp hình.
+        PoolType[] toppings = { PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel, PoolType.Flounder,
             PoolType.Shrimp, PoolType.Octopus, PoolType.Avocado, PoolType.Egg };
         PoolType[] roe = { PoolType.FishRoe, PoolType.BlackFishRoe, PoolType.GreenFishRoe };
         foreach (PoolType topping in toppings)
@@ -242,30 +244,31 @@ public static class SushiRecipeCatalog
         Add(result, SushiDishFamily.Tea, "Trà nóng", "Tách trà", "", PoolType.TeaPot, PoolType.EmptyCup);
         Add(result, SushiDishFamily.Tea, "Trà đá", "Tách trà", "", PoolType.TeaPot, PoolType.EmptyCup, PoolType.IceCube);
         // Explicit source-image order: x3 is not a lexicographic list of combinations.
-        AddSashimi(result, PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel);       // 49.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Salmon, PoolType.Flounder);       // 49.png
         AddSashimi(result, PoolType.Tuna, PoolType.Salmon, PoolType.Shrimp);         // 50.png
-        AddSashimi(result, PoolType.Tuna, PoolType.Mackerel, PoolType.Shrimp);       // 51.png
-        AddSashimi(result, PoolType.Salmon, PoolType.Mackerel, PoolType.Shrimp);     // 52.png
-        AddSashimi(result, PoolType.Tuna, PoolType.Salmon, PoolType.Flounder);       // 53.png
-        AddSashimi(result, PoolType.Tuna, PoolType.Flounder, PoolType.Mackerel);     // 54.png
-        AddSashimi(result, PoolType.Tuna, PoolType.Flounder, PoolType.Shrimp);       // 55.png
-        AddSashimi(result, PoolType.Salmon, PoolType.Flounder, PoolType.Mackerel);   // 56.png
-        AddSashimi(result, PoolType.Salmon, PoolType.Flounder, PoolType.Shrimp);     // 57.png
-        AddSashimi(result, PoolType.Flounder, PoolType.Mackerel, PoolType.Shrimp);   // 58.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Flounder, PoolType.Shrimp);       // 51.png
+        AddSashimi(result, PoolType.Salmon, PoolType.Flounder, PoolType.Shrimp);     // 52.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel);       // 53.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Mackerel, PoolType.Flounder);     // 54.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Mackerel, PoolType.Shrimp);       // 55.png
+        AddSashimi(result, PoolType.Salmon, PoolType.Mackerel, PoolType.Flounder);   // 56.png
+        AddSashimi(result, PoolType.Salmon, PoolType.Mackerel, PoolType.Shrimp);     // 57.png
+        AddSashimi(result, PoolType.Mackerel, PoolType.Flounder, PoolType.Shrimp);   // 58.png
         AddSashimi(result, PoolType.Tuna, PoolType.Salmon, PoolType.Octopus);        // 59.png
-        AddSashimi(result, PoolType.Tuna, PoolType.Flounder, PoolType.Octopus);      // 60.png
-        AddSashimi(result, PoolType.Tuna, PoolType.Mackerel, PoolType.Octopus);      // 61.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Mackerel, PoolType.Octopus);      // 60.png
+        AddSashimi(result, PoolType.Tuna, PoolType.Flounder, PoolType.Octopus);      // 61.png
         AddSashimi(result, PoolType.Tuna, PoolType.Shrimp, PoolType.Octopus);        // 62.png
-        AddSashimi(result, PoolType.Salmon, PoolType.Flounder, PoolType.Octopus);    // 63.png
-        AddSashimi(result, PoolType.Salmon, PoolType.Mackerel, PoolType.Octopus);    // 64.png
+        AddSashimi(result, PoolType.Salmon, PoolType.Mackerel, PoolType.Octopus);    // 63.png
+        AddSashimi(result, PoolType.Salmon, PoolType.Flounder, PoolType.Octopus);    // 64.png
         AddSashimi(result, PoolType.Salmon, PoolType.Shrimp, PoolType.Octopus);      // 65.png
-        AddSashimi(result, PoolType.Flounder, PoolType.Mackerel, PoolType.Octopus);  // 66.png
-        AddSashimi(result, PoolType.Flounder, PoolType.Shrimp, PoolType.Octopus);    // 67.png
-        AddSashimi(result, PoolType.Mackerel, PoolType.Shrimp, PoolType.Octopus);    // 68.png
+        AddSashimi(result, PoolType.Mackerel, PoolType.Flounder, PoolType.Octopus);  // 66.png
+        AddSashimi(result, PoolType.Mackerel, PoolType.Shrimp, PoolType.Octopus);    // 67.png
+        AddSashimi(result, PoolType.Flounder, PoolType.Shrimp, PoolType.Octopus);    // 68.png
         return result;
     }
 
     // Tạo tên món sashimi theo thành phần và thêm công thức vào danh sách.
+
     private static void AddSashimi(List<SushiRecipe> result, params PoolType[] ingredients)
     {
         Add(result, SushiDishFamily.Sashimi,
