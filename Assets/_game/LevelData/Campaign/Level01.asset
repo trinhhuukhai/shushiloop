@@ -18,7 +18,7 @@ MonoBehaviour:
   hint: "Xem m\xF3n kh\xE1ch g\u1ECDi v\xE0 ch\u1ECDn nguy\xEAn li\u1EC7u \u1EDF
     \u0111\u1EA7u c\u1ED9t."
   beltSlots: 8
-  loopsPerSecond: 0.075
+  loopsPerSecond: 0.17
   numberColumns: 3
   boardSeed: 1000
   shuffleFoods: 0

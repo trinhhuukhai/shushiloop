@@ -1,0 +1,18 @@
+PASS: Home starts with saved construction progress
+PASS: Opening upgrades keeps Home visible and uses its only restaurant
+PASS: Upgrade controls occupy a scrollable bottom drawer
+PASS: Tapping a locked card cannot skip the fixed order
+PASS: Upgrade pops directly into the live Home building and rejects repeated taps
+PASS: Upgrade spends two stars without navigating
+PASS: Closing during the reveal preserves the item on Home
+PASS: Insufficient stars disable upgrading and explain how to earn more
+PASS: Upgrade reveal completes with paused gameplay time
+PASS: Cards scroll to the next upgrade as construction progresses
+PASS: Final upgrade grants 1000 coins once and shows completion inline
+PASS: X closes the drawer and keeps all twelve saved upgrades on Home
+PASS: Reopening completion cannot pay or purchase again
+PASS: Home navigation dismisses upgrades without changing pages
+PASS: Switching tabs during drawer animation closes upgrades cleanly
+PASS: Opening upgrades from another tab returns to the same Home immediately
+PASS: Back closes the drawer and restores Home controls
+PASS: All upgrades preserve the scene, gameplay load version, campaign wins and wallet

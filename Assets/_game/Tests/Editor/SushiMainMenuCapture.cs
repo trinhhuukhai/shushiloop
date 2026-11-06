@@ -170,7 +170,8 @@ public static class SushiMainMenuCapture
                 SetPhase(9);
                 return;
             }
-            Check(menu.SelectedTab == 3 && UIManager.Ins.IsOpened<CanvasDecoration>(), "Decoration button did not open its provided prefab.");
+            Check(menu.SelectedTab == 1 && UIManager.Ins.IsOpened<CanvasDecoration>() && menu.decorationRestaurant.gameObject.activeInHierarchy,
+                "Decoration button must open the upgrade drawer over the visible Home restaurant.");
             Capture("Decoration", 720, 1280);
             Report.AppendLine("PASS: Saved level 5 Loading enters GamePlay and opens only MainMenu; no level, ingredients, customers or conveyor slots initialized.");
             Report.AppendLine("PASS: Seven authored button callbacks are present; navigation tested through real pointer-click handlers.");
@@ -334,7 +335,10 @@ public static class SushiMainMenuCapture
             Check(states.Count > 0, "No root UI canvas found for capture.");
             Canvas.ForceUpdateCanvases();
             foreach (var fitter in Object.FindObjectsByType<SushiUIFitContent>(FindObjectsSortMode.None)) fitter.Refresh();
+            foreach (var restaurant in Object.FindObjectsByType<SushiHomeRestaurantLayout>(FindObjectsSortMode.None)) restaurant.Refresh();
+            foreach (var carousel in Object.FindObjectsByType<SushiRestaurantCarousel>(FindObjectsSortMode.None)) carousel.RefreshLayout();
             Canvas.ForceUpdateCanvases();
+            foreach (var drawer in Object.FindObjectsByType<CanvasDecoration>(FindObjectsSortMode.None)) drawer.FocusNextItem();
             if (GraphicsSettings.currentRenderPipeline != null)
                 RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = target });
             else camera.Render();

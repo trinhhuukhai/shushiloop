@@ -1,0 +1,62 @@
+PASS: 12 fixed items, completion reward 1000
+PASS: Exact spreadsheet costs total 50 stars
+PASS: Old saves start with an empty restaurant and retain earned stars
+PASS: Cannot skip fixed order or mutate wallet on rejection
+PASS: Building consumes exactly the item's stars
+PASS: Repeated tap and insufficient stars are rejected without changing progress
+PASS: Duplicate wins/replays and negative IDs cannot create extra stars
+PASS: Build deco_floor
+PASS: Correct remaining stars at step 2
+PASS: Save/load retains step 2
+PASS: Build deco_lantern
+PASS: Correct remaining stars at step 3
+PASS: Save/load retains step 3
+PASS: Build deco_counter
+PASS: Correct remaining stars at step 4
+PASS: Save/load retains step 4
+PASS: Build deco_stools
+PASS: Correct remaining stars at step 5
+PASS: Save/load retains step 5
+PASS: Build deco_noren
+PASS: Correct remaining stars at step 6
+PASS: Save/load retains step 6
+PASS: Build deco_belt
+PASS: Correct remaining stars at step 7
+PASS: Save/load retains step 7
+PASS: Build deco_shelf
+PASS: Correct remaining stars at step 8
+PASS: Save/load retains step 8
+PASS: Build deco_bonsai
+PASS: Correct remaining stars at step 9
+PASS: Save/load retains step 9
+PASS: Build deco_mural
+PASS: Correct remaining stars at step 10
+PASS: Save/load retains step 10
+PASS: Build deco_window
+PASS: Correct remaining stars at step 11
+PASS: Save/load retains step 11
+PASS: Build deco_torii
+PASS: Correct remaining stars at step 12
+PASS: Save/load retains step 12
+PASS: Final build grants exactly 1000 coins and persists the claimed flag
+PASS: Completion reward cannot be claimed twice after reload
+PASS: Decoration preserves campaign wins, level and boosters
+PASS: Future wins remain available after completion
+PASS: Home binds its restaurant, progress and responsive layout
+PASS: Drawer contains upgrade cards and no duplicate restaurant
+PASS: All twelve item cards bind the indexed upgrade action
+PASS: Three-column scroll grid and inline reward are authored in the drawer
+PASS: Home contains every item layer
+PASS: Only purchased Home layers visible at 0/12
+PASS: Only purchased Home layers visible at 1/12
+PASS: Only purchased Home layers visible at 2/12
+PASS: Only purchased Home layers visible at 3/12
+PASS: Only purchased Home layers visible at 4/12
+PASS: Only purchased Home layers visible at 5/12
+PASS: Only purchased Home layers visible at 6/12
+PASS: Only purchased Home layers visible at 7/12
+PASS: Only purchased Home layers visible at 8/12
+PASS: Only purchased Home layers visible at 9/12
+PASS: Only purchased Home layers visible at 10/12
+PASS: Only purchased Home layers visible at 11/12
+PASS: Only purchased Home layers visible at 12/12

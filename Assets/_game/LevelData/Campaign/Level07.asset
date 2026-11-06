@@ -18,7 +18,7 @@ MonoBehaviour:
   hint: "L\u1EA5y nguy\xEAn li\u1EC7u \u1EDF c\u1ED9t s\xE1t b\xEAn \u0111\u1EC3
     l\xE0m tan m\u1ED9t l\u1EDBp b\u0103ng."
   beltSlots: 10
-  loopsPerSecond: 0.08
+  loopsPerSecond: 0.17
   numberColumns: 4
   boardSeed: 7000
   shuffleFoods: 0
@@ -27,37 +27,77 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 7
+    - recipeKind: 0
+      dish: 7
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
-    - dish: 1
-      amount: 1
-  - rushCustomer: 0
-    rushSeconds: 0
-    dishes:
-    - dish: 6
-      amount: 1
-    - dish: 4
-      amount: 1
-  - rushCustomer: 0
-    rushSeconds: 0
-    dishes:
-    - dish: 14
-      amount: 1
-    - dish: 3
+    - recipeKind: 0
+      dish: 1
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 5
+    - recipeKind: 0
+      dish: 6
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
-    - dish: 2
+    - recipeKind: 0
+      dish: 4
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 8
+    - recipeKind: 0
+      dish: 14
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
-    - dish: 19
+    - recipeKind: 0
+      dish: 3
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 5
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 2
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+  - rushCustomer: 0
+    rushSeconds: 0
+    dishes:
+    - recipeKind: 0
+      dish: 8
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
+      amount: 1
+    - recipeKind: 0
+      dish: 19
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   boardColumns:
   - foods:
@@ -70,7 +110,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 8
+    - tutFood: 0
+      typeFood: 8
       amount: 1
       foodState: 0
       hidden: 0
@@ -78,7 +119,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 13
+    - tutFood: 0
+      typeFood: 13
       amount: 1
       foodState: 0
       hidden: 0
@@ -86,7 +128,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 1
+    - tutFood: 0
+      typeFood: 1
       amount: 2
       foodState: 0
       hidden: 0
@@ -94,7 +137,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 18
+    - tutFood: 0
+      typeFood: 18
       amount: 1
       foodState: 0
       hidden: 0
@@ -103,7 +147,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 14
+    - tutFood: 0
+      typeFood: 14
       amount: 1
       foodState: 2
       hidden: 0
@@ -111,7 +156,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 12
+    - tutFood: 0
+      typeFood: 12
       amount: 1
       foodState: 0
       hidden: 0
@@ -119,7 +165,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 5
+    - tutFood: 0
+      typeFood: 5
       amount: 1
       foodState: 0
       hidden: 0
@@ -127,7 +174,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 14
+    - tutFood: 0
+      typeFood: 14
       amount: 1
       foodState: 0
       hidden: 0
@@ -136,7 +184,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 10
+    - tutFood: 0
+      typeFood: 10
       amount: 1
       foodState: 0
       hidden: 0
@@ -144,7 +193,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 1
+    - tutFood: 0
+      typeFood: 1
       amount: 2
       foodState: 1
       hidden: 1
@@ -152,7 +202,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 5
+    - tutFood: 0
+      typeFood: 5
       amount: 1
       foodState: 1
       hidden: 1
@@ -160,7 +211,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 1
+    - tutFood: 0
+      typeFood: 1
       amount: 2
       foodState: 1
       hidden: 1
@@ -169,7 +221,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 1
+    - tutFood: 0
+      typeFood: 1
       amount: 2
       foodState: 0
       hidden: 0
@@ -177,7 +230,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 18
+    - tutFood: 0
+      typeFood: 18
       amount: 1
       foodState: 0
       hidden: 0
@@ -185,7 +239,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 2
+    - tutFood: 0
+      typeFood: 2
       amount: 1
       foodState: 0
       hidden: 0
@@ -193,7 +248,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 3
+    - tutFood: 0
+      typeFood: 3
       amount: 1
       foodState: 0
       hidden: 0

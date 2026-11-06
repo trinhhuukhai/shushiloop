@@ -43,6 +43,7 @@ public static class SushiMainMenuSetup
         ImportArt();
         SushiHomePageSetup.Setup();
         BuildMainMenu();
+        SushiDecorationSetup.Setup();
         BuildTransit();
         BindSettings();
         var scene = EditorSceneManager.OpenScene("Assets/_game/Scenes/Loading.unity");

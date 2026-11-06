@@ -283,6 +283,15 @@ public class GameDataFragment : DataFragment
 #endif
 
     [Serializable]
+    public class RestaurantProgress
+    {
+        public string id;
+        public int built;
+        public int starsSpent;
+        public bool rewardClaimed;
+    }
+
+    [Serializable]
     public class DataPlayer
     {
         public int money = 0;
@@ -334,6 +343,10 @@ public class GameDataFragment : DataFragment
         public bool isClickBucketTutorialClear = false;
         public bool isClickBucketTutorialMagnet = false;
         public List<int> completedLevels = new();
+        public int restaurantDecorationCount = 0;
+        public bool restaurantCompletionRewardClaimed = false;
+        public string selectedRestaurantId = SushiRestaurantCatalog.FirstRestaurantId;
+        public List<RestaurantProgress> restaurants = new List<RestaurantProgress>();
 
         //tutorial
         public bool showTutorialLevel1 = false;

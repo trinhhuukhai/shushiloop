@@ -12,6 +12,13 @@ public class CanvasMainMenu : UICanvas
     public TMP_Text txtLevel;
     [SerializeField] private TMP_Text coinText;
     [SerializeField] private TMP_Text starText;
+    public SushiDecorationRestaurantView decorationRestaurant;
+    public TMP_Text decorationProgress;
+    public GameObject restaurantCompleteBadge;
+    public SushiHomeRestaurantLayout restaurantLayout;
+    public SushiRestaurantCarousel restaurantCarousel;
+    public string SelectedRestaurantId => restaurantCarousel != null ? restaurantCarousel.Selected.id : SushiRestaurantCatalog.FirstRestaurantId;
+    public bool IsRestaurantUnlocked => restaurantCarousel == null || restaurantCarousel.IsUnlocked;
     [SerializeField] private TMP_Text profileLevel;
     [SerializeField] private Button playButton;
     [SerializeField] private RectTransform homeContent;
@@ -50,6 +57,7 @@ public class CanvasMainMenu : UICanvas
         if (homeContent != null) { homeContent.gameObject.SetActive(true); homeContent.anchoredPosition = Vector2.zero; SetInteraction(homeContent, true); }
         if (profilePanel != null) profilePanel.SetActive(false);
         PositionTabs(false);
+        if (restaurantCarousel != null) restaurantCarousel.RestoreSelection();
         RefreshLevelMap();
         CheckMoneyTemp();
 
@@ -116,16 +124,22 @@ public class CanvasMainMenu : UICanvas
         if (count > 0) index = Mathf.Clamp(index, 0, count - 1);
         if (txtLevel != null) txtLevel.text = "Level " + (index + 1);
         if (coinText != null) coinText.text = (player != null ? player.money : 0).ToString("N0");
-        if (starText != null) starText.text = (player?.completedLevels?.Count ?? 0).ToString();
+        var decoration = SushiDecorationProgress.Catalog;
+        if (restaurantCarousel != null) restaurantCarousel.Refresh();
+        int built = SushiDecorationProgress.Built(player, decoration, SelectedRestaurantId);
+        if (starText != null) starText.text = SushiDecorationProgress.AvailableStars(player, decoration).ToString();
+        if (decorationRestaurant != null) decorationRestaurant.Show(built);
+        if (decorationProgress != null) decorationProgress.text = built + "/" + (decoration != null ? decoration.items.Length : 12);
+        if (restaurantCompleteBadge != null) restaurantCompleteBadge.SetActive(IsRestaurantUnlocked && decoration != null && built == decoration.items.Length);
         if (profileLevel != null) profileLevel.text = "Level " + (index + 1) + "\nĐã hoàn thành " +
             (player?.completedLevels?.Count ?? 0) + " màn";
-        if (playButton != null) playButton.interactable = !starting && DataManager.ins != null && DataManager.ins.isLoaded && count > 0;
+        if (playButton != null) playButton.interactable = !starting && IsRestaurantUnlocked && DataManager.ins != null && DataManager.ins.isLoaded && count > 0;
     }
 
     // Kiểm tra mạng và trạng thái nạp trước khi yêu cầu bắt đầu màn hiện tại.
     public void Play()
     {
-        if (starting || GameManager.ins == null || playButton != null && !playButton.interactable) return;
+        if (starting || !IsRestaurantUnlocked || GameManager.ins == null || playButton != null && !playButton.interactable) return;
 
         bool isUnlimited = LivesDataFragment.cur != null && LivesDataFragment.cur.IsUnlimitedLives();
         if (!isUnlimited && LivesDataFragment.cur.gameData.lives <= 0)
@@ -148,6 +162,7 @@ public class CanvasMainMenu : UICanvas
     public void SelectTab(int index)
     {
         if (starting || index < 0 || index > 2) return;
+        if (UIManager.Ins != null) UIManager.Ins.CloseUI<CanvasDecoration>();
         if (profilePanel != null) profilePanel.SetActive(false);
         if (index == selectedTab) { PositionTabs(true); return; }
         SwitchPage(index);
@@ -193,13 +208,12 @@ public class CanvasMainMenu : UICanvas
         if (group != null) group.interactable = group.blocksRaycasts = value;
     }
 
-    // Lấy canvas trang con tương ứng với chỉ số tab cửa hàng, bảng xếp hạng hoặc trang trí.
+    // Lấy canvas trang con tương ứng với tab cửa hàng hoặc bảng xếp hạng.
     private CanvasHomePage Page(int index)
     {
         if (UIManager.Ins == null) return null;
         if (index == 0) return UIManager.Ins.GetUI<CanvasShop>();
         if (index == 2) return UIManager.Ins.GetUI<CanvasLeadBoard>();
-        if (index == 3) return UIManager.Ins.GetUI<CanvasDecoration>();
         return null;
     }
     // Lấy RectTransform nội dung trang chủ hoặc trang con ứng với tab.
@@ -241,8 +255,20 @@ public class CanvasMainMenu : UICanvas
     public void OpenHome() => SelectTab(1);
     // Chọn tab bảng xếp hạng.
     public void OpenLeaderboard() => SelectTab(2);
-    // Chuyển sang trang trang trí khi chưa bắt đầu nạp màn.
-    public void OpenDecoration() { if (!starting && selectedTab != 3) SwitchPage(3); }
+    // Open a drawer over Home. The building and Home tab stay active throughout upgrades.
+    public void OpenDecoration()
+    {
+        if (starting || !IsRestaurantUnlocked || UIManager.Ins == null || UIManager.Ins.IsOpened<CanvasDecoration>()) return;
+        tabTween?.Kill(true);
+        if (selectedTab != 1) { SelectTab(1); tabTween?.Kill(true); }
+        UIManager.Ins.OpenUI<CanvasDecoration>();
+    }
+
+    public void SetUpgradeMode(bool value)
+    {
+        if (value && restaurantCarousel != null) restaurantCarousel.Settle();
+        if (restaurantLayout != null) restaurantLayout.SetExpanded(value, isActiveAndEnabled);
+    }
     // Mở popup cài đặt từ trang chủ.
     public void OpenSettings() => UIManager.Ins?.OpenUI<CanvasSetting>();
     // Mở popup quà đăng nhập hằng ngày.

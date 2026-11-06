@@ -1,0 +1,50 @@
+PASS: Two configurable restaurants, second unlocks after level 30
+PASS: Level 29 keeps the second restaurant locked
+PASS: Old save retains the first restaurant and starts the second empty
+PASS: Locked restaurant cannot consume stars
+PASS: Winning level 30 unlocks immediately
+PASS: Second restaurant has independent construction and shares the star wallet
+PASS: Save/load retains per-restaurant spending and construction
+PASS: Older campaign saves retain level-based unlocks
+PASS: Build kaiten_counter/deco_floor
+PASS: Build kaiten_counter/deco_lantern
+PASS: Build kaiten_counter/deco_counter
+PASS: Build kaiten_counter/deco_stools
+PASS: Build kaiten_counter/deco_noren
+PASS: Build kaiten_counter/deco_belt
+PASS: Build kaiten_counter/deco_shelf
+PASS: Build kaiten_counter/deco_bonsai
+PASS: Build kaiten_counter/deco_mural
+PASS: Build kaiten_counter/deco_window
+PASS: Build kaiten_counter/deco_torii
+PASS: Build sakura_garden/deco_floor
+PASS: Build sakura_garden/deco_lantern
+PASS: Build sakura_garden/deco_counter
+PASS: Build sakura_garden/deco_stools
+PASS: Build sakura_garden/deco_noren
+PASS: Build sakura_garden/deco_belt
+PASS: Build sakura_garden/deco_shelf
+PASS: Build sakura_garden/deco_bonsai
+PASS: Build sakura_garden/deco_mural
+PASS: Build sakura_garden/deco_window
+PASS: Build sakura_garden/deco_torii
+PASS: Each restaurant rewards 1000 once; both consume 100 stars
+PASS: Completion and unknown IDs cannot pay again after reload
+PASS: Building either restaurant preserves gameplay state
+PASS: Home restores the first restaurant and arrow boundaries
+PASS: Next arrow shows the locked building, closed sign and level-30 condition
+PASS: Visible navigation arrow receives pointer input without shortcut overlap
+PASS: Locked building cannot open upgrades or start gameplay
+PASS: Save/load restores the selected restaurant, including a locked preview
+PASS: Right swipe restores the first restaurant with its saved construction
+PASS: Edge arrows, short drags and vertical drags cannot change restaurants
+PASS: Left swipe opens the next restaurant
+PASS: Rapid arrows cannot pass the last restaurant
+PASS: Passing level 30 unlocks the current preview immediately without copying construction
+PASS: Upgrades share the selected second building on Home
+PASS: One second-restaurant purchase spends once and preserves the first restaurant
+PASS: Drawer interaction cannot swipe to a different build target
+PASS: Reload keeps independent progress and the shared wallet
+PASS: Arrow returns to the original building unchanged
+PASS: Returning from another tab preserves selection and restores navigation
+PASS: Browsing, unlocking and building preserve the scene, gameplay and coin wallet
