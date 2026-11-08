@@ -209,6 +209,8 @@ public partial class ConveyorManager
     {
         if (!food.TryMoveToCustomerPlate()) return;
         plated.ApplyIngredientArtwork(food, true);
+        // Nguyên liệu đầu tiên (bát cơm) bay được nửa đường thì đĩa đen mờ dần hiện ra để đón.
+        plated.RevealPlate(delay + assemblyDuration * 0.4f);
         Transform destination = plated.IngredientTarget(food.Type);
         AnimateFlight(food, destination, assemblyDuration, 0.3f, 1f, delay, 0, dishTweenId, () =>
         {
@@ -222,13 +224,16 @@ public partial class ConveyorManager
             }
             if (!complete)
             {
+                // Món 3 nguyên liệu: đủ 2 nguyên liệu trên đĩa thì nảy lên ghép thành món dở (vd. cơm + rong biển).
+                plated.CombineLandedIngredients();
                 LaunchReadyPreparedIngredients(plated);
                 return;
             }
             assemblyFoods.Remove(plated);
             plated.Order.IsOnTable = true;
-            plated.FinishAssembly();
-            DOVirtual.DelayedCall(tableHoldDuration, () => SendDishToOrder(plated), false).SetId(dishTweenId);
+            // Nguyên liệu gốc biến thành món ngay trên đĩa, giữ một nhịp rồi mới bay tới khách.
+            float transformTime = plated.FinishAssembly();
+            DOVirtual.DelayedCall(transformTime + tableHoldDuration, () => SendDishToOrder(plated), false).SetId(dishTweenId);
         });
     }
 

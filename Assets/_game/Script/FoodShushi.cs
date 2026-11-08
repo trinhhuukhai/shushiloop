@@ -192,6 +192,17 @@ public class FoodShushi : GameUnit
         foodRenderer.transform.localPosition = -Vector3.Scale(bounds.center, scale);
     }
 
+    // Sprite nguyên liệu gốc (như trên bàn/băng chuyền), không tính ảnh đã lên đĩa.
+    public Sprite IngredientSprite
+    {
+        get
+        {
+            if (ingredientArt == null && SushiArtCatalog.Default != null) ingredientArt = SushiArtCatalog.Default.ingredientImages;
+            Sprite sprite = ingredientArt != null ? ingredientArt.GetSprite(Type) : null;
+            return sprite != null ? sprite : SushiArtCatalog.Default?.GetIngredient(Type);
+        }
+    }
+
     // Gán hình ảnh, kích thước và thứ tự vẽ của nguyên liệu khi đặt lên đĩa.
     public void SetPlatedArtwork(Sprite sprite, Vector2 size, int sortingOrder)
     {

@@ -284,6 +284,8 @@ public static class SushiPlatedIngredientRegression
         SushiPreparedDish dish = Dish;
         Advance(); Invoke(belt, "Update"); Advance(); Invoke(belt, "Update"); Advance();
         Check(dish.IsReady && dish.AssemblyIngredients.Count == 3, "custom triple did not finish assembly");
+        Advance();
+        Check(dish.IsTransformed, "custom triple did not run its transform");
         foreach (FoodShushi food in dish.AssemblyIngredients)
         {
             var entry = SushiArtCatalog.Default.platedIngredientImages.Find(food.Type, dish.Order.Recipe);
@@ -360,24 +362,35 @@ public static class SushiPlatedIngredientRegression
         Check(belt.OccupiedSlotCount == 1 && belt.PreparedDishCount == 0, "octopus left the belt before rice");
         Check(Tap(1), "rice pickup failed"); Advance(); Invoke(belt, "Update");
         SushiPreparedDish dish = Dish;
-        Check(dish.IngredientTarget(PoolType.SushiRice).localPosition.x == 0f &&
-            dish.IngredientTarget(PoolType.SushiRice).localPosition.y == 0f &&
-            dish.IngredientTarget(PoolType.Octopus).localPosition.x == 0f &&
-            dish.IngredientTarget(PoolType.Octopus).localPosition.y == 0f,
-            "ingredient landing targets are not centered on the plate");
         Check(belt.OccupiedSlotCount == 1 && !customer.CanReceivePreparedIngredient(customer.Dishes[0], PoolType.Octopus),
             "topping reserved before rice landed");
         var rice = Get<Dictionary<SushiPreparedDish, List<FoodShushi>>>(belt, "assemblyFoods")[dish].Single();
-        Check(Artwork(rice).name == "nigiri_base_0" && rice.Location == FoodLocation.MovingToCustomerPlate,
-            "rice did not change art at takeoff");
+        Check(Artwork(rice) == rice.IngredientSprite && rice.Location == FoodLocation.MovingToCustomerPlate,
+            "rice did not keep its bowl art at takeoff");
         Advance(0.1f); Invoke(belt, "Update");
         Check(belt.OccupiedSlotCount == 1, "topping launched during the base flight");
         Advance();
         Check(dish.AssemblyIngredients.Count == 1 && rice.transform.IsChildOf(dish.IngredientRoot), "base did not join its parent");
-        Check(rice.transform.localPosition == Vector3.zero, "landed base is not centered on the plate");
-        Invoke(belt, "Update"); Advance();
-        Check(dish.IsReady && dish.AssemblyIngredients.Count == 2 && !Get<SpriteRenderer>(dish, "dishImage").enabled,
-            "completed composite was replaced by one finished sprite");
+        Check(rice.transform.localPosition == Vector3.zero && Artwork(rice) == rice.IngredientSprite,
+            "landed base did not stay as the rice bowl");
+        Check(dish.IsPlateShown && Get<SpriteRenderer>(dish, "plate").enabled &&
+            Mathf.Approximately(Get<SpriteRenderer>(dish, "plate").color.a, 1f), "plate did not appear under the landed rice");
+        Invoke(belt, "Update");
+        FoodShushi flyingOctopus = Get<Dictionary<SushiPreparedDish, List<FoodShushi>>>(belt, "assemblyFoods")[dish].Single();
+        Check(Artwork(flyingOctopus) == flyingOctopus.IngredientSprite, "topping did not keep its ingredient art in flight");
+        Advance();
+        Check(dish.IsReady && !dish.IsTransformed, "dish transformed before its transform animation");
+        Advance(); // The transform sequence starts on the tick after the topping lands.
+        var finished = Get<SpriteRenderer>(dish, "dishImage");
+        Check(dish.IsReady && dish.IsTransformed && dish.AssemblyIngredients.Count == 2 && finished.enabled &&
+            finished.sprite == SushiArtCatalog.Default.dishImages.GetSprite(dish.Order.Recipe) &&
+            !dish.IngredientRoot.gameObject.activeSelf,
+            "completed ingredients did not transform into the finished dish");
+        Check(dish.IngredientTarget(PoolType.SushiRice).localPosition.x == 0f &&
+            dish.IngredientTarget(PoolType.SushiRice).localPosition.y == 0f &&
+            dish.IngredientTarget(PoolType.Octopus).localPosition.x == 0f &&
+            dish.IngredientTarget(PoolType.Octopus).localPosition.y == 0f,
+            "transformed layers are not centered on the plate");
         FoodShushi octopus = dish.AssemblyIngredients.Single(food => food.Type == PoolType.Octopus);
         Check(Artwork(octopus).name == "nigiri_top_octopus_0" && octopus.transform.IsChildOf(dish.IngredientRoot),
             "octopus did not retain its plated art/parent");
