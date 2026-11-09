@@ -1103,7 +1103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ConveyorManager
   preparedDishPrefab: {fileID: 2092212452510426463, guid: 3fe78fdc40070cc4f88320e891d9773b, type: 3}
-  assemblyDuration: 0.3
+  assemblyDuration: 0.42
   assemblyIngredientStagger: 0.12
   tableHoldDuration: 0.3
   orderJumpDuration: 0.38
@@ -1125,7 +1125,7 @@ MonoBehaviour:
   pickupStagger: 0.055
   trayPickupStagger: 0.085
   takeoffDuration: 0.065
-  landingDuration: 0.1
+  landingDuration: 0.14
   beltFoodScale: 0.78
   customerManager: {fileID: 1285739045}
   flyingFoodRoot: {fileID: 1285739046}

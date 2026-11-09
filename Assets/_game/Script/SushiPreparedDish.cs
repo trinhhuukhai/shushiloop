@@ -23,7 +23,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     [SerializeField, Min(0.05f)] private float rawToppingSize = 0.66f;
     [Tooltip("Vị trí phần nền trên đĩa (0,0 = chính giữa đĩa).")]
     [SerializeField] private Vector2 rawFoundationPosition = Vector2.zero;
-    [Tooltip("X: khoảng cách giữa các nguyên liệu phủ (1 nguyên liệu thì nằm giữa); Y: độ nâng khi nằm trên nền.")]
+    [Tooltip("X: khoảng cách dàn ngang khi món không có cơm (trên cơm thì luôn nằm giữa); Y: độ nâng so với nền.")]
     [SerializeField] private Vector2 rawToppingSpacing = new Vector2(0.2f, 0.04f);
 
     [Serializable]
@@ -231,7 +231,8 @@ public sealed class SushiPreparedDish : MonoBehaviour
             count++;
         }
         layer = 1 + index;
-        float x = (index - (count - 1) * 0.5f) * rawToppingSpacing.x;
+        // Trên bát cơm: nguyên liệu phủ nằm chính giữa như topping; món không cơm (sashimi, trà) thì dàn ngang.
+        float x = foundation == PoolType.SushiRice ? 0f : (index - (count - 1) * 0.5f) * rawToppingSpacing.x;
         float y = foundation != PoolType.None ? rawFoundationPosition.y + rawToppingSpacing.y : 0f;
         return new Vector2(x, y);
     }

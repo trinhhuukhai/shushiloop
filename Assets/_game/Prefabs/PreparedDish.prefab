@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 78403798261741}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.04, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -83,6 +83,19 @@ MonoBehaviour:
   imageSize: {x: 0.86, y: 0.7}
   ingredientArt: {fileID: 11400000, guid: e981a168bb484b28a7c2fea2a090842a, type: 2}
   ingredientRoot: {fileID: 78403798261742}
+  rawFoundationSize: 0.9
+  rawToppingSize: 0.5
+  rawFoundationPosition: {x: 0, y: 0.1}
+  rawToppingSpacing: {x: 0.2, y: 0.2}
+  rawIngredientOverrides: []
+  plateFadeDuration: 0.1
+  plateStartScale: 0.92
+  hopHeight: 0.38
+  hopUpDuration: 0.17
+  hopDownDuration: 0.19
+  landSquashDuration: 0.14
+  finishedDishOffset: {x: 0, y: 0.06}
+  sparkleColor: {r: 1, g: 0.93, b: 0.55, a: 1}
 --- !u!1 &4813100681759738831
 GameObject:
   m_ObjectHideFlags: 0
@@ -109,7 +122,7 @@ Transform:
   m_GameObject: {fileID: 4813100681759738831}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.07, z: 0}
+  m_LocalPosition: {x: 0, y: 0.14, z: 0}
   m_LocalScale: {x: 1.4112821, y: 1.1946666, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

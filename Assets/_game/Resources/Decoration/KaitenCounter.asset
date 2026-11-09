@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ade299ffa31e46a2b79c66712dc7614d, type: 3}
+  m_Name: KaitenCounter
+  m_EditorClassIdentifier: Assembly-CSharp::SushiDecorationCatalog
+  areaId: kaiten_counter
+  completionCoins: 1000
+  items:
+  - id: deco_sign
+    nameVi: "Bi\u1EC3n hi\u1EC7u"
+    nameEn: Sign
+    iconKey: deco_sign
+    starCost: 2
+  - id: deco_floor
+    nameVi: "S\xE0n g\u1ED7"
+    nameEn: Wooden floor
+    iconKey: deco_floor
+    starCost: 2
+  - id: deco_lantern
+    nameVi: "\u0110\xE8n l\u1ED3ng"
+    nameEn: Lanterns
+    iconKey: deco_lantern
+    starCost: 3
+  - id: deco_counter
+    nameVi: "Qu\u1EA7y g\u1ED7"
+    nameEn: Wooden counter
+    iconKey: deco_counter
+    starCost: 3
+  - id: deco_stools
+    nameVi: "Gh\u1EBF kh\xE1ch"
+    nameEn: Stools
+    iconKey: deco_stools
+    starCost: 4
+  - id: deco_noren
+    nameVi: "R\xE8m noren c\u1EEDa"
+    nameEn: Noren curtain
+    iconKey: deco_noren
+    starCost: 4
+  - id: deco_belt
+    nameVi: "B\u0103ng chuy\u1EC1n"
+    nameEn: Conveyor belt
+    iconKey: deco_belt
+    starCost: 4
+  - id: deco_shelf
+    nameVi: "K\u1EC7 ch\xE9n b\xE1t"
+    nameEn: Dish shelf
+    iconKey: deco_shelf
+    starCost: 5
+  - id: deco_bonsai
+    nameVi: "C\xE2y bonsai"
+    nameEn: Bonsai
+    iconKey: deco_bonsai
+    starCost: 5
+  - id: deco_mural
+    nameVi: "Tranh t\u01B0\u1EDDng"
+    nameEn: Wall mural
+    iconKey: deco_mural
+    starCost: 5
+  - id: deco_window
+    nameVi: "C\u1EEDa s\u1ED5 hoa anh \u0111\xE0o"
+    nameEn: Sakura window
+    iconKey: deco_window
+    starCost: 6
+  - id: deco_torii
+    nameVi: "C\u1ED5ng torii trang tr\xED"
+    nameEn: Torii gate
+    iconKey: deco_torii
+    starCost: 7
