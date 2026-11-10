@@ -47,6 +47,12 @@ public partial class ConveyorManager
     private void AssembleAvailableDishes(float previousProgress)
     {
         if (preparedDishPrefab == null || slotFoods.Count == 0) return;
+        SushiServingCounter counter = SushiServingCounter.Ins;
+        if (counter != null && counter.isActiveAndEnabled && counter.Count > 0)
+        {
+            AssembleAtServingSlots(counter, previousProgress);
+            return;
+        }
         foreach (Transform slot in slots)
         {
             if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food == null ||
@@ -63,6 +69,53 @@ public partial class ConveyorManager
                 break;
             }
         }
+    }
+
+    // Bàn chung: nguyên liệu chỉ nhảy lên khi băng chuyền đưa nó tới ngay cạnh một ô đĩa phù hợp:
+    // ô đang ghép món cần nguyên liệu này, hoặc ô trống khi có khách đang ngồi cần nguyên liệu để bắt đầu món.
+    private readonly List<int> nearServingSlots = new List<int>();
+    // Điểm trên băng gần mỗi ô đĩa nhất (tính lại mỗi lần dựng băng chuyền).
+    private readonly Dictionary<Transform, float> servingGates = new Dictionary<Transform, float>();
+    private void AssembleAtServingSlots(SushiServingCounter counter, float previousProgress)
+    {
+        foreach (Transform slot in slots)
+        {
+            if (!slotFoods.TryGetValue(slot, out FoodShushi food) || food == null ||
+                food.Location != FoodLocation.Conveyor) continue;
+            nearServingSlots.Clear();
+            int slotIndex = slots.IndexOf(slot);
+            for (int k = 0; k < counter.Count; k++)
+                if (counter.Slot(k) != null && IsNearServingSlot(counter.Slot(k), slotIndex, previousProgress)) nearServingSlots.Add(k);
+            if (nearServingSlots.Count == 0) continue;
+            Customer.ServingSlotFilter = k => nearServingSlots.Contains(k);
+            try
+            {
+                foreach (Customer customer in customerManager.FulfillmentPriority())
+                {
+                    if (customer == null || !customer.IsSeated) continue;
+                    if (!TryReserveAvailablePreparedIngredient(customer, food.Type, out SushiDishOrder order, out Transform destination)) continue;
+                    SushiPreparedDish plated = GetOrCreatePreparedDish(customer, order, destination);
+                    slotFoods.Remove(slot);
+                    StartPreparedIngredientFlight(plated, food, destination);
+                    NotifyOccupancy();
+                    break;
+                }
+            }
+            finally { Customer.ServingSlotFilter = null; }
+        }
+    }
+
+    // Đoạn băng vừa đi qua của ô có chạm điểm gần ô đĩa trên bàn nhất hay không.
+    private bool IsNearServingSlot(Transform servingSlot, int beltSlotIndex, float previousProgress)
+    {
+        if (beltSlotIndex < 0 || slots.Count == 0) return false;
+        if (!servingGates.TryGetValue(servingSlot, out float gate))
+            servingGates[servingSlot] = gate = (float)spline.ClosestDistance(servingSlot.position);
+        Vector2 gatePosition = spline.AtDistance(gate);
+        float slotOffset = (float)beltSlotIndex / slots.Count;
+        Vector2 previousPosition = spline.AtDistance(Mathf.Repeat(previousProgress + slotOffset, 1f));
+        Vector2 currentPosition = slots[beltSlotIndex].position;
+        return DistanceToSegment(gatePosition, previousPosition, currentPosition) <= deliveryRange;
     }
 
     // Tìm đĩa cùng khách có phần nền chuyển được sang món đích, ưu tiên tiến độ cao hơn.

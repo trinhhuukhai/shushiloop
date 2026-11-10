@@ -389,6 +389,9 @@ public class CanvasGamePlay : UICanvas
         {
             occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
             occupancy.color = level.Conveyor.OccupancyColor;
+            // Nhãn nằm giữa khung băng chuyền (thế giới) dù camera co giãn theo màn hình.
+            Camera view = Camera.main;
+            if (view != null) occupancy.transform.position = view.WorldToScreenPoint(level.Conveyor.CapacityAnchor);
         }
         speedText.text = level.Conveyor.IsDoubleSpeed ? "2X" : "1X";
         setTxtGold();

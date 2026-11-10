@@ -152,7 +152,10 @@ public class CustomerManager : MonoBehaviour
                 customer.SitDown();
             }
             else
+            {
                 waitingCustomers.Add(customer);
+                customer.SetQueueVisual(waitingCustomers.Count - 1);
+            }
         }
 
         NotifyProgress();
@@ -293,6 +296,8 @@ public class CustomerManager : MonoBehaviour
         Transform seat = GetSeat(seatIndex);
 
         customer.transform.SetParent(seat, true);
+        // Rời hàng chờ: hiện rõ ngay khi bắt đầu đi tới ghế.
+        customer.SetQueueVisual(-1);
 
         DOTween.Sequence()
             .Append(customer.transform.DOLocalMove(Vector3.zero, Mathf.Max(0.01f, moveDuration)).SetEase(Ease.OutQuad))
@@ -329,6 +334,7 @@ public class CustomerManager : MonoBehaviour
             DOTween.Kill(customer, false);
 
             customer.transform.SetParent(waitingPositions[i], true);
+            customer.SetQueueVisual(i);
 
             customer.transform
                 .DOLocalMove(
@@ -382,6 +388,7 @@ public class CustomerManager : MonoBehaviour
             SimplePool.Despawn(food);
         }
 
+        SushiServingCounter.Ins?.ReleaseAll(customer);
         customer.gameObject.SetActive(false);
         Destroy(customer.gameObject);
     }
@@ -414,6 +421,7 @@ public class CustomerManager : MonoBehaviour
             RemoveCustomer(customer);
 
         waitingCustomers.Clear();
+        SushiServingCounter.Ins?.ClearAll();
 
         TotalCustomers = 0;
         CompletedCustomers = 0;

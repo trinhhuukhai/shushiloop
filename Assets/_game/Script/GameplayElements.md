@@ -4,6 +4,17 @@
 
 Từ cập nhật 27/10/2026, `GamePlay.unity` dùng ảnh trong `Assets/_game/Art/ingame`: nhóm **Ingame art** chứa nền, bàn và khung băng chuyền; nhóm **Ingame UI** chứa các instance `UICGamePlay`/`UICFloating` đặt sẵn. `SushiSceneUI` đăng ký chúng với `UIManager`, nên load/replay chỉ cập nhật dữ liệu và mở UI hiện có. `SushiRestaurantView` không dựng nền và `ConveyorManager` không tạo khung băng chuyền lúc chạy. Xem [hướng dẫn chỉnh scene và prefab](../../../Documentation/IngameScene.md).
 
+### Cập nhật giao diện ingame 10/11/2026 (theo `Art/UI/update_ingaem/demo.png`)
+
+- **Board 4 cột cố định**: `BoardShishiManager.fixedColumns = 4`; màn ít cột hơn tự thêm cột trống ở cuối. Các màn 5–6 cột đã được chuyển sang 4 cột bằng menu **SushiKhai → Levels → Convert Boards To 4 Columns** (dồn cột thừa xuống cuối các cột ngắn nhất, khay cứng đi nguyên khối, gỡ ô nối không còn kề nhau, giảm lớp băng vượt số lượt phá). Báo cáo ở `Temp/BoardConvertReport.txt`. Board phóng 1.25 lần, `columnWidth = 1.5`.
+- **Ô băng chuyền**: `Dia.prefab` có `Empty slot` (hố tối `conveyor_slot`) và `SushiConveyorSlotView`; đĩa trắng chỉ hiện (bật nhẹ) khi nguyên liệu đã đáp lên ô.
+- **Bàn phục vụ**: `ServingCounter.prefab` có `SushiServingCounter` với 4 ô cố định **dùng chung** cho mọi khách. Món của khách nào cũng lấy ô trống bất kỳ; hết ô thì món sau đợi. Ô trống hiện vòng nét đứt, đĩa món hiện thì vòng nét đứt tắt. Ô riêng trong `Customer.prefab` chỉ còn dùng khi scene không có bàn chung.
+- **Order**: bình thường các món xếp 1 cột dọc (`order_board_1x2`/`1x3`). Chạm vào order để xem chi tiết **cả bảng**: món chia 2 cột, mỗi món một ô `fr_order_inside` với nguyên liệu xếp dọc; chạm lần nữa để thu gọn.
+- **Khách chờ**: hiện cả người và order nhưng mờ/tối hơn và vẽ sau khách đang ngồi (`Customer.SetQueueVisual`); khách chờ đầu tiên ló ở mép trái, các khách sau xếp tiếp ra ngoài màn hình. Ghế 1 dời vào x = -1.7.
+- **Nguyên liệu nhảy lên đĩa**: chỉ khi băng chuyền đưa nguyên liệu tới ngay cạnh một ô trên bàn chung (trong `deliveryRange`) và ô đó phù hợp: đang ghép món cần nguyên liệu này, hoặc là ô trống trong khi có khách đang ngồi cần nguyên liệu này để bắt đầu món. Không còn giao theo vị trí ghế khách.
+- **Bố cục theo `demo.png`** (menu **SushiKhai → Art → Apply Ingame Demo Layout**, 120 px demo = 1 đơn vị): camera khớp vùng chơi 9 × 19.5; khung băng chuyền/bàn băng chuyền mới (`conveyor`, `conveyor_table`), đường chạy khớp rãnh xám; đĩa và hố trên băng, đĩa trên bàn to bằng demo; khách chờ đứng sát mép bàn; nền dưới nhóm booster là `fr_bottom`, booster nâng 130. Nhãn số ô băng chuyền luôn bám tâm khung. Báo cáo ở `Temp/IngameDemoLayout.txt`.
+- Art `tray`, `tray_selecct`, `line2`, `serve_table`, `serve_empty_slot`, `serve_plate`, nắp ô ẩn `lid`, băng `ice` đã thay bằng bản mới (PPU chỉnh để giữ đúng kích thước). Khung/bàn băng chuyền mới khác tỉ lệ nên chưa thay. Công cụ: **SushiKhai → Art → Apply Ingame Art Update (demo)**, báo cáo ở `Temp/IngameArtReport.txt`.
+
 Luật triển khai theo tài liệu người dùng cung cấp ngày 21/10/2026. Chưa đọc được Google Sheet để đối chiếu các thông số kinh tế.
 
 ## Order món và công thức

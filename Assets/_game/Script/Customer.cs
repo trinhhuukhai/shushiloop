@@ -24,6 +24,35 @@ public class Customer : MonoBehaviour
     [SerializeField] private Transform[] servingSlots;
     private readonly Dictionary<SushiDishOrder, int> tableReservations = new Dictionary<SushiDishOrder, int>();
 
+    // Bàn phục vụ chung (4 ô cho mọi khách); null thì dùng các ô riêng trong prefab khách như cũ.
+    private static SushiServingCounter SharedCounter =>
+        SushiServingCounter.Ins != null && SushiServingCounter.Ins.isActiveAndEnabled && SushiServingCounter.Ins.Count > 0
+            ? SushiServingCounter.Ins : null;
+
+    private Transform ServingSlot(int index) =>
+        SharedCounter != null ? SharedCounter.Slot(index) : servingSlots[index];
+
+    // Bộ lọc tạm do băng chuyền đặt: chỉ cho phép các ô đĩa đang ở ngay cạnh nguyên liệu trên băng.
+    // null = không giới hạn (nam châm, túi revive...).
+    internal static Predicate<int> ServingSlotFilter;
+    private static bool SlotAllowed(int index) => ServingSlotFilter == null || ServingSlotFilter(index);
+
+    // Giữ ô cho món (ghi cả vào bàn chung để khách khác không lấy trùng).
+    private void ClaimTable(SushiDishOrder dish, int slotIndex)
+    {
+        tableReservations[dish] = slotIndex;
+        SharedCounter?.Claim(slotIndex, this);
+    }
+
+    // Trả ô của món.
+    private bool ReleaseTable(SushiDishOrder dish)
+    {
+        if (!tableReservations.TryGetValue(dish, out int slotIndex)) return false;
+        tableReservations.Remove(dish);
+        SharedCounter?.Release(slotIndex, this);
+        return true;
+    }
+
     // Kiểm tra món của khách còn nguyên trạng và đủ điều kiện bắt đầu chuẩn bị.
     public bool CanPrepareDish(SushiDishOrder dish)
     {
@@ -47,7 +76,7 @@ public class Customer : MonoBehaviour
             dish.FindAvailableIngredient(type) == null) return false;
         OrderItem order = FindOrder(type);
         return order != null && order.CanReceive &&
-            (tableReservations.ContainsKey(dish) || FindFreeServingSlot() >= 0);
+            (tableReservations.TryGetValue(dish, out int reserved) ? SlotAllowed(reserved) : FindFreeServingSlot() >= 0);
     }
 
     // Giữ chỗ trên bàn và tăng số nguyên liệu đang bay tới cho món lẫn đơn tổng.
@@ -63,20 +92,21 @@ public class Customer : MonoBehaviour
         {
             slotIndex = FindFreeServingSlot();
             if (slotIndex < 0) return false;
-            tableReservations.Add(dish, slotIndex);
+            ClaimTable(dish, slotIndex);
         }
 
         dish.IsPrepared = true;
         ingredient.incomingAmount++;
         order.incomingAmount++;
-        target = servingSlots[slotIndex];
+        target = ServingSlot(slotIndex);
         OnOrderChanged?.Invoke(this);
         return true;
     }
 
     // Kiểm tra hai món có thể chuyển phần nền đã chuẩn bị và đổi chỗ giữ trên bàn.
     internal bool CanTransferPreparedFoundation(SushiDishOrder source, SushiDishOrder target) =>
-        CanAssembleDish(source) && CanAssembleDish(target) && tableReservations.ContainsKey(source) &&
+        CanAssembleDish(source) && CanAssembleDish(target) && tableReservations.TryGetValue(source, out int sourceSlot) &&
+        SlotAllowed(sourceSlot) &&
         tableReservations.ContainsKey(target) == target.IsPrepared && source.CanTransferFoundationTo(target);
 
     // Chuyển phần nền giữa hai món, đồng bộ chỗ giữ trên bàn và báo thay đổi đơn.
@@ -110,11 +140,7 @@ public class Customer : MonoBehaviour
         bool hasAssembly = false;
         foreach (OrderItem item in dish.Ingredients)
             hasAssembly |= item.receivedAmount > 0 || item.incomingAmount > 0;
-        if (!hasAssembly && tableReservations.ContainsKey(dish))
-        {
-            tableReservations.Remove(dish);
-            dish.IsPrepared = false;
-        }
+        if (!hasAssembly && ReleaseTable(dish)) dish.IsPrepared = false;
         OnOrderChanged?.Invoke(this);
         return true;
     }
@@ -158,20 +184,21 @@ public class Customer : MonoBehaviour
     public bool TryReserveTable(SushiDishOrder dish, out Transform target)
     {
         target = null;
-        if (!IsSeated || completed || RushExpired || !dish.IsPrepared || tableReservations.ContainsKey(dish) || servingSlots == null) return false;
+        if (!IsSeated || completed || RushExpired || !dish.IsPrepared || tableReservations.ContainsKey(dish)) return false;
         int slotIndex = FindFreeServingSlot();
         if (slotIndex < 0) return false;
-        tableReservations.Add(dish, slotIndex);
-        target = servingSlots[slotIndex];
+        ClaimTable(dish, slotIndex);
+        target = ServingSlot(slotIndex);
         return true;
     }
 
-    // Tìm vị trí đĩa phục vụ còn trống trên bàn khách.
+    // Tìm vị trí đĩa còn trống: ở bàn chung nếu có, nếu không thì trên bàn riêng của khách.
     private int FindFreeServingSlot()
     {
+        if (SharedCounter != null) return SharedCounter.FindFree(ServingSlotFilter);
         if (servingSlots == null) return -1;
         for (int i = 0; i < servingSlots.Length; i++)
-            if (servingSlots[i] != null && !tableReservations.ContainsValue(i)) return i;
+            if (servingSlots[i] != null && !tableReservations.ContainsValue(i) && SlotAllowed(i)) return i;
         return -1;
     }
 
@@ -190,7 +217,7 @@ public class Customer : MonoBehaviour
             ingredient.incomingAmount = 0;
             ingredient.receivedAmount = 0;
         }
-        tableReservations.Remove(dish);
+        ReleaseTable(dish);
         dish.IsPrepared = dish.IsOnTable = false;
         OnOrderChanged?.Invoke(this);
     }
@@ -199,7 +226,7 @@ public class Customer : MonoBehaviour
     public bool CompletePreparedDish(SushiDishOrder dish)
     {
         if (dish == null || !dish.IsPrepared || dish.IsComplete || !dish.HasAllIngredients() ||
-            !tableReservations.Remove(dish)) return false;
+            !ReleaseTable(dish)) return false;
         dish.IsPrepared = dish.IsOnTable = false;
         CompleteDish(dish);
         OnOrderChanged?.Invoke(this);
@@ -332,12 +359,59 @@ public class Customer : MonoBehaviour
         RushRemaining = RushDuration;
     }
 
+    [Header("Khách đang chờ (hiện cả người và order nhưng không nổi bật)")]
+    [SerializeField, Range(0f, 1f)] private float waitingAlpha = 0.9f;
+    [SerializeField] private Color waitingTint = new Color(0.72f, 0.72f, 0.72f, 1f);
+    [Tooltip("Mỗi bậc hàng chờ lùi sorting order thêm bấy nhiêu để vẽ sau khách đang ngồi và khách đứng trước.")]
+    [SerializeField, Min(1)] private int waitingSortingStep = 4;
+    private Canvas[] sortedCanvases;
+    private int[] baseSortingOrders;
+    private CanvasGroup visualsGroup;
+    private UnityEngine.UI.Graphic[] tintedGraphics;
+    private Color[] baseGraphicColors;
+
+    // waitingIndex = -1: đang ngồi (bình thường); 0, 1, 2...: vị trí trong hàng chờ (càng sau càng bị che).
+    public void SetQueueVisual(int waitingIndex)
+    {
+        if (sortedCanvases == null)
+        {
+            var canvases = new List<Canvas>(GetComponentsInChildren<Canvas>(true));
+            canvases.RemoveAll(c => !c.overrideSorting && c.transform.parent != null && c.transform.parent.GetComponentInParent<Canvas>(true) != null);
+            sortedCanvases = canvases.ToArray();
+            baseSortingOrders = new int[sortedCanvases.Length];
+            for (int i = 0; i < sortedCanvases.Length; i++) baseSortingOrders[i] = sortedCanvases[i].sortingOrder;
+            Canvas root = GetComponentInChildren<Canvas>(true);
+            if (root != null)
+            {
+                visualsGroup = root.GetComponent<CanvasGroup>();
+                if (visualsGroup == null) visualsGroup = root.gameObject.AddComponent<CanvasGroup>();
+            }
+            // Chỉ làm tối ảnh nhân vật; order giữ màu nhưng mờ theo CanvasGroup.
+            tintedGraphics = avatarImage != null ? new UnityEngine.UI.Graphic[] { avatarImage } : new UnityEngine.UI.Graphic[0];
+            baseGraphicColors = new Color[tintedGraphics.Length];
+            for (int i = 0; i < tintedGraphics.Length; i++) baseGraphicColors[i] = tintedGraphics[i].color;
+        }
+        bool waiting = waitingIndex >= 0;
+        int offset = waiting ? -(waitingIndex + 1) * waitingSortingStep : 0;
+        for (int i = 0; i < sortedCanvases.Length; i++)
+            if (sortedCanvases[i] != null) sortedCanvases[i].sortingOrder = baseSortingOrders[i] + offset;
+        if (visualsGroup != null)
+        {
+            visualsGroup.alpha = waiting ? waitingAlpha : 1f;
+            visualsGroup.interactable = visualsGroup.blocksRaycasts = !waiting;
+        }
+        for (int i = 0; i < tintedGraphics.Length; i++)
+            if (tintedGraphics[i] != null) tintedGraphics[i].color = waiting ? baseGraphicColors[i] * waitingTint : baseGraphicColors[i];
+    }
+
     // Đánh dấu khách đã vào ghế và bật phần đơn món cùng bàn phục vụ.
     public void SitDown()
     {
+        SetQueueVisual(-1);
         IsSeated = true;
         GetComponent<CustomerRecipeView>()?.SetSeated(true);
-        if (servingRoot != null) servingRoot.gameObject.SetActive(true);
+        // Có bàn chung thì không hiện các ô đĩa riêng dưới chân khách.
+        if (servingRoot != null) servingRoot.gameObject.SetActive(SharedCounter == null);
     }
 
     // Giảm thời gian chờ của khách vội đang ngồi và phát sự kiện khi hết giờ.
@@ -384,6 +458,7 @@ public class Customer : MonoBehaviour
         receivedFoods.Clear();
         reservations.Clear();
         occupiedSlots.Clear();
+        SharedCounter?.ReleaseAll(this);
         tableReservations.Clear();
         if (servingRoot != null) servingRoot.gameObject.SetActive(false);
         ConfigureServingSlots(0);

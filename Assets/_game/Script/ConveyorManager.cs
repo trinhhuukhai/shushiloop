@@ -25,6 +25,7 @@ public partial class ConveyorManager : MonoBehaviour
     [SerializeField] private Color capacityFullColor = new Color(1f, 0.15f, 0.1f);
 
     private readonly List<Transform> slots = new List<Transform>();
+    private readonly List<SushiConveyorSlotView> slotViews = new List<SushiConveyorSlotView>();
 
     private float progress;
     private bool isRunning;
@@ -48,6 +49,8 @@ public partial class ConveyorManager : MonoBehaviour
 
 
     public IReadOnlyList<Transform> Slots => slots;
+    // Tâm khung băng chuyền (thế giới), nơi hiện số ô đang dùng.
+    public Vector3 CapacityAnchor => spline != null ? (Vector3)spline.center : transform.position;
 
     //private void Start()
     //{
@@ -145,6 +148,9 @@ public partial class ConveyorManager : MonoBehaviour
             slot.name = "Slot_" + i;
             slot.gameObject.SetActive(true);
             slots.Add(slot);
+            var view = slot.GetComponent<SushiConveyorSlotView>();
+            if (view != null) view.SetFilled(false, false);
+            slotViews.Add(view);
         }
 
         progress = 0f;
@@ -180,6 +186,20 @@ public partial class ConveyorManager : MonoBehaviour
         DeliverBagIngredients();
         AssembleAvailableDishes(previousProgress);
         CheckCustomerOrders(previousProgress, advance);
+    }
+
+    // Ô trống hiện hố tối; đĩa trắng chỉ hiện khi nguyên liệu (hoặc túi revive) đã đáp lên ô.
+    private void LateUpdate()
+    {
+        for (int i = 0; i < slots.Count && i < slotViews.Count; i++)
+        {
+            SushiConveyorSlotView view = slotViews[i];
+            if (view == null) continue;
+            Transform slot = slots[i];
+            bool filled = slotBags.ContainsKey(slot) ||
+                slotFoods.TryGetValue(slot, out FoodShushi food) && food != null && food.Location == FoodLocation.Conveyor;
+            view.SetFilled(filled);
+        }
     }
 
     // Đặt từng vị trí băng chuyền lên đường chạy theo tiến độ vòng hiện tại.
@@ -262,6 +282,7 @@ public partial class ConveyorManager : MonoBehaviour
         }
 
         slots.Clear();
+        slotViews.Clear();
         progress = 0f;
         NotifyOccupancy();
     }
@@ -682,6 +703,7 @@ public partial class ConveyorManager : MonoBehaviour
     private void BuildDeliveryPoints()
     {
         deliveryProgresses = new float[customerManager.ActiveCustomers.Count];
+        servingGates.Clear();
 
         for (int i = 0; i < deliveryProgresses.Length; i++)
         {

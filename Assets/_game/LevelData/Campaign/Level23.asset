@@ -19,7 +19,7 @@ MonoBehaviour:
     l\u1EA5y nguy\xEAn li\u1EC7u cho kh\xE1ch trong h\xE0ng ch\u1EDD."
   beltSlots: 8
   loopsPerSecond: 0.17
-  numberColumns: 5
+  numberColumns: 4
   boardSeed: 23002
   shuffleFoods: 0
   maxIngredientsPerTile: 2
@@ -317,6 +317,15 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 5
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 13
@@ -416,6 +425,42 @@ MonoBehaviour:
       iceLayers: 0
       linkId: 0
       trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 5
+      amount: 1
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 3
+      lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 2
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 3
+      lockId: 0
+    - tutFood: 0
+      typeFood: 16
+      amount: 1
+      foodState: 4
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 3
       lockId: 0
   - foods:
     - tutFood: 0
@@ -517,6 +562,24 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 18
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 3
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 18
@@ -608,7 +671,6 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  - foods:
     - tutFood: 0
       typeFood: 5
       amount: 1
@@ -620,33 +682,6 @@ MonoBehaviour:
       lockId: 0
     - tutFood: 0
       typeFood: 16
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 2
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 2
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 5
       amount: 1
       foodState: 0
       hidden: 0
@@ -662,40 +697,4 @@ MonoBehaviour:
       iceLayers: 0
       linkId: 0
       trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 18
-      amount: 1
-      foodState: 3
-      hidden: 0
-      iceLayers: 0
-      linkId: 3
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 5
-      amount: 1
-      foodState: 4
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 3
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 2
-      foodState: 4
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 3
-      lockId: 0
-    - tutFood: 0
-      typeFood: 16
-      amount: 1
-      foodState: 4
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 3
       lockId: 0

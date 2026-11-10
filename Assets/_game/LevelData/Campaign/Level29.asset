@@ -19,7 +19,7 @@ MonoBehaviour:
     li\u1EC7u c\u1EE7a hai b\xE0n \u0111ang ng\u1ED3i."
   beltSlots: 8
   loopsPerSecond: 0.17
-  numberColumns: 5
+  numberColumns: 4
   boardSeed: 29000
   shuffleFoods: 0
   maxIngredientsPerTile: 2
@@ -362,6 +362,24 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 2
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 14
@@ -480,6 +498,24 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 2
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 18
+      amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 18
@@ -589,6 +625,42 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 2
+      foodState: 2
+      hidden: 0
+      iceLayers: 4
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 9
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 1
@@ -683,10 +755,10 @@ MonoBehaviour:
     - tutFood: 0
       typeFood: 1
       amount: 2
-      foodState: 3
+      foodState: 0
       hidden: 0
       iceLayers: 0
-      linkId: 2
+      linkId: 0
       trayId: 0
       lockId: 0
     - tutFood: 0
@@ -698,22 +770,12 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  - foods:
     - tutFood: 0
       typeFood: 2
       amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 2
-      foodState: 2
-      hidden: 0
-      iceLayers: 4
       linkId: 0
       trayId: 0
       lockId: 0
@@ -722,33 +784,6 @@ MonoBehaviour:
       amount: 1
       foodState: 0
       hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 2
-      foodState: 1
-      hidden: 1
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 2
-      foodState: 1
-      hidden: 1
       iceLayers: 0
       linkId: 0
       trayId: 0
@@ -763,46 +798,10 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
     - tutFood: 0
-      typeFood: 12
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 18
-      amount: 2
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 1
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
       typeFood: 5
       amount: 1
-      foodState: 3
+      foodState: 0
       hidden: 0
-      iceLayers: 0
-      linkId: 2
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 9
-      amount: 1
-      foodState: 1
-      hidden: 1
       iceLayers: 0
       linkId: 0
       trayId: 0

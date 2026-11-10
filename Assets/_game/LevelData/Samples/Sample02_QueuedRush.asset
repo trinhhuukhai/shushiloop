@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13d15152b00bf8346a5a306d9c9e3341, type: 3}
   m_Name: Sample02_QueuedRush
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
+  TypeLevel: 0
   number: 20
   levelName: "Kh\xE1ch v\u1ED9i trong h\xE0ng ch\u1EDD"
   hint: "Kh\xE1ch th\u1EE9 3 c\xF3 45 gi\xE2y; \u0111\u1ED3ng h\u1ED3 ch\u1EC9 ch\u1EA1y
     khi kh\xE1ch \u0111\xE3 ng\u1ED3i."
   beltSlots: 10
   loopsPerSecond: 0.07
-  numberColumns: 6
+  numberColumns: 4
   boardSeed: 20
   shuffleFoods: 0
   maxIngredientsPerTile: 3
@@ -26,30 +27,55 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 13
+    - recipeKind: 0
+      dish: 13
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 5
+    - recipeKind: 0
+      dish: 5
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
-    - dish: 47
+    - recipeKind: 0
+      dish: 47
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   - rushCustomer: 1
     rushSeconds: 0
     dishes:
-    - dish: 48
+    - recipeKind: 0
+      dish: 48
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
-    - dish: 8
+    - recipeKind: 0
+      dish: 8
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - dish: 30
+    - recipeKind: 0
+      dish: 30
+      firstIngredient: 2
+      secondIngredient: 14
+      thirdIngredient: 10
       amount: 1
   boardColumns:
   - foods:
-    - typeFood: 1
+    - tutFood: 0
+      typeFood: 1
       amount: 2
       foodState: 0
       hidden: 0
@@ -57,7 +83,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 18
+    - tutFood: 0
+      typeFood: 18
       amount: 1
       foodState: 1
       hidden: 1
@@ -66,7 +93,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 10
+    - tutFood: 0
+      typeFood: 10
       amount: 1
       foodState: 0
       hidden: 0
@@ -74,7 +102,17 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 20
+    - tutFood: 0
+      typeFood: 20
+      amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 1
       amount: 2
       foodState: 0
       hidden: 0
@@ -83,7 +121,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
   - foods:
-    - typeFood: 2
+    - tutFood: 0
+      typeFood: 2
       amount: 1
       foodState: 0
       hidden: 0
@@ -91,7 +130,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 3
+    - tutFood: 0
+      typeFood: 3
       amount: 1
       foodState: 1
       hidden: 1
@@ -99,8 +139,18 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 16
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
-    - typeFood: 19
+    - tutFood: 0
+      typeFood: 19
       amount: 2
       foodState: 0
       hidden: 0
@@ -108,7 +158,8 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-    - typeFood: 21
+    - tutFood: 0
+      typeFood: 21
       amount: 1
       foodState: 0
       hidden: 0
@@ -116,26 +167,9 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  - foods:
-    - typeFood: 18
+    - tutFood: 0
+      typeFood: 18
       amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - typeFood: 16
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-  - foods:
-    - typeFood: 1
-      amount: 2
       foodState: 0
       hidden: 0
       iceLayers: 0

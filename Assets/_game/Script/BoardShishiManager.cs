@@ -17,6 +17,8 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
     [SerializeField] private FoodQueue columnPrefab;
     [SerializeField] private FoodShushi ingredientPrefab;
     [SerializeField] private float columnWidth = 1.4f;
+    [Tooltip("Số vị trí cột cố định trên board (0 = theo dữ liệu level).")]
+    [SerializeField, Min(0)] private int fixedColumns = 4;
     [SerializeField] private float firstRowOffset = -1f;
     [SerializeField] private ConveyorManager conveyorManager;
     [Header("Băng chuyền cột sau khi lấy nguyên liệu")]
@@ -33,6 +35,15 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
     {
         ClearBoard();
         EnsureIngredientPool();
+        // Board luôn có đúng fixedColumns vị trí cột: màn ít cột hơn thì thêm cột trống ở cuối.
+        if (fixedColumns > 0 && boardData.Count < fixedColumns)
+        {
+            boardData = new List<FoodQueueData>(boardData);
+            while (boardData.Count < fixedColumns) boardData.Add(new FoodQueueData());
+        }
+        else if (fixedColumns > 0 && boardData.Count > fixedColumns)
+            Debug.LogWarning($"Level có {boardData.Count} cột, nhiều hơn {fixedColumns} cột cố định của board. " +
+                "Chạy SushiKhai → Levels → Convert Boards To 4 Columns.", this);
         float startX = -((boardData.Count - 1) / 2f) * columnWidth;
         for (int i = 0; i < boardData.Count; i++)
         {

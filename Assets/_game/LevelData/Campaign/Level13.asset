@@ -19,7 +19,7 @@ MonoBehaviour:
     c\u0103n c\u1EB7p n\u1ED1i tr\u01B0\u1EDBc khi l\u1EA5y khay."
   beltSlots: 10
   loopsPerSecond: 0.17
-  numberColumns: 5
+  numberColumns: 4
   boardSeed: 13001
   shuffleFoods: 0
   maxIngredientsPerTile: 2
@@ -264,6 +264,24 @@ MonoBehaviour:
       linkId: 2
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 5
+      amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 2
+      amount: 1
+      foodState: 2
+      hidden: 0
+      iceLayers: 1
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 16
@@ -317,6 +335,24 @@ MonoBehaviour:
       hidden: 0
       iceLayers: 0
       linkId: 2
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 2
+      amount: 1
+      foodState: 3
+      hidden: 0
+      iceLayers: 0
+      linkId: 1
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 18
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
       trayId: 0
       lockId: 0
   - foods:
@@ -374,7 +410,6 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
-  - foods:
     - tutFood: 0
       typeFood: 3
       amount: 1
@@ -385,47 +420,11 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
     - tutFood: 0
-      typeFood: 2
-      amount: 1
-      foodState: 3
-      hidden: 0
-      iceLayers: 0
-      linkId: 1
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 5
-      amount: 1
-      foodState: 1
-      hidden: 1
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
       typeFood: 18
       amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 18
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
-      typeFood: 2
-      amount: 1
-      foodState: 2
-      hidden: 0
-      iceLayers: 1
       linkId: 0
       trayId: 0
       lockId: 0

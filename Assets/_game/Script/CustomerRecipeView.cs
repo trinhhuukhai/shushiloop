@@ -10,6 +10,8 @@ public class CustomerRecipeView : MonoBehaviour
     [SerializeField] private Transform leftColumn;
     [SerializeField] private Transform rightColumn;
     [SerializeField] private Sprite oneColumnTwoRowsBoard;
+    [Tooltip("Bảng 1 cột 3 hàng (order thường có 3 món trở lên).")]
+    [SerializeField] private Sprite oneColumnThreeRowsBoard;
     [SerializeField] private Sprite twoColumnTwoRowsBoard;
     [SerializeField] private Sprite twoColumnThreeRowsBoard;
     private Customer customer;
@@ -59,13 +61,12 @@ public class CustomerRecipeView : MonoBehaviour
             if (group == null) { group = new List<SushiDishOrder>(); groups.Add(group); }
             group.Add(dish);
         }
-        ConfigureOrderBoard(groups.Count);
-        bool twoColumns = groups.Count > 1;
-        rightColumn.gameObject.SetActive(twoColumns);
+        // Order thường: các món xếp 1 cột dọc; mở chi tiết mới chia 2 cột ô (xem SetAllExpanded).
+        ConfigureOrderBoard(groups.Count, false);
+        rightColumn.gameObject.SetActive(false);
         for (int i = 0; i < groups.Count; i++)
         {
-            Transform column = twoColumns && i % 2 == 1 ? rightColumn : leftColumn;
-            SushiDishCardView card = Instantiate(cardTemplate, column, false);
+            SushiDishCardView card = Instantiate(cardTemplate, leftColumn, false);
             card.name = groups[i][0].Recipe.Name;
             card.BindGroup(owner, groups[i], art);
             card.gameObject.SetActive(true);
@@ -82,18 +83,15 @@ public class CustomerRecipeView : MonoBehaviour
     // Lấy điểm nhận nguyên liệu trên thẻ của một món.
     public Transform DeliverySlot(int dishIndex, int ingredientIndex) => dishCards[dishIndex].DeliverySlot(ingredientIndex);
 
-    // Hiện đơn khi khách đã ngồi và thu gọn chi tiết công thức khi khách rời ghế.
+    // Khách chờ vẫn hiện order (mờ hơn, do Customer.SetQueueVisual); chỉ khách đang ngồi mới mở được chi tiết.
     public void SetSeated(bool seated)
     {
-        if (orderRoot != null) orderRoot.gameObject.SetActive(seated);
+        if (orderRoot != null) orderRoot.gameObject.SetActive(true);
         bool changed = false;
         foreach (var card in cards)
-            if (card.gameObject.activeSelf != seated) { card.gameObject.SetActive(seated); changed = true; }
-        if (!seated)
-            foreach (var card in cards)
-                if (card.IsRecipeExpanded) card.SetRecipeExpanded(false);
-        if (seated && changed) LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
-        if (!seated) RefreshOrderLayout();
+            if (!card.gameObject.activeSelf) { card.gameObject.SetActive(true); changed = true; }
+        if (!seated && AnyExpanded) { SetAllExpanded(false); return; }
+        if (changed) RefreshOrderLayout();
     }
 
     // Tìm phần món chưa hoàn thành tại vị trí chạm, ưu tiên phần chưa bắt đầu chuẩn bị.
@@ -118,26 +116,48 @@ public class CustomerRecipeView : MonoBehaviour
         foreach (var card in cards)
         {
             if (!card.gameObject.activeInHierarchy || !card.Contains(position)) continue;
-            if (card.IsOrderComplete) return false;
-            bool expand = !card.IsRecipeExpanded;
-            if (expand)
-                foreach (var otherCard in cards)
-                    if (otherCard != card) otherCard.SetRecipeExpanded(false);
-            card.SetRecipeExpanded(expand);
-            RefreshOrderLayout();
+            if (card.IsOrderComplete && !AnyExpanded) return false;
+            // Mở/đóng chi tiết cả bảng: mỗi món chưa xong là một ô nguyên liệu xếp dọc.
+            SetAllExpanded(!AnyExpanded);
             return true;
         }
         return false;
     }
 
-    // Mở chi tiết duy nhất cho thẻ mục tiêu hợp lệ rồi tính lại bố cục bảng đơn.
+    // Mở chi tiết cả bảng order (thẻ mục tiêu phải là món chưa xong) rồi tính lại bố cục.
     public bool ShowRecipeDetails(SushiDishCardView target)
     {
         if (customer == null || !customer.IsSeated || target == null || target.IsOrderComplete || !cards.Contains(target))
             return false;
-        foreach (SushiDishCardView card in cards) card.SetRecipeExpanded(card == target);
-        RefreshOrderLayout();
+        SetAllExpanded(true);
         return true;
+    }
+
+    private bool AnyExpanded
+    {
+        get
+        {
+            foreach (SushiDishCardView card in cards) if (card.IsRecipeExpanded) return true;
+            return false;
+        }
+    }
+
+    // Chi tiết: món chia đều 2 cột (món 1,3,5 bên trái; 2,4 bên phải), mỗi món một ô nguyên liệu xếp dọc.
+    // Thu gọn: tất cả về 1 cột.
+    private void SetAllExpanded(bool expanded)
+    {
+        bool twoColumns = expanded && cards.Count > 1;
+        for (int i = 0; i < cards.Count; i++)
+        {
+            Transform column = twoColumns && i % 2 == 1 ? rightColumn : leftColumn;
+            if (cards[i].transform.parent != column) cards[i].transform.SetParent(column, false);
+        }
+        // Giữ đúng thứ tự món trong từng cột.
+        for (int i = 0; i < cards.Count; i++) cards[i].transform.SetAsLastSibling();
+        rightColumn.gameObject.SetActive(twoColumns);
+        ConfigureOrderBoard(cards.Count, expanded);
+        foreach (SushiDishCardView card in cards) card.SetRecipeExpanded(expanded && !card.IsOrderComplete);
+        RefreshOrderLayout();
     }
 
     // Đổi trạng thái chọn mục tiêu nam châm và cập nhật màu các thẻ món.
@@ -223,8 +243,8 @@ public class CustomerRecipeView : MonoBehaviour
         hasCachedOrderBoard = true;
     }
 
-    // Chọn hình bảng và kích thước phù hợp với số nhóm món của khách.
-    private void ConfigureOrderBoard(int orderCount)
+    // Chọn hình bảng theo số món: order thường 1 cột (1x2, 1x3), xem chi tiết 2 cột (2x2, 2x3).
+    private void ConfigureOrderBoard(int orderCount, bool detail)
     {
         if (!hasCachedOrderBoard)
         {
@@ -234,22 +254,21 @@ public class CustomerRecipeView : MonoBehaviour
 
         Sprite board;
         float height;
-        switch (orderCount)
+        if (!detail || orderCount <= 1)
         {
-            case 1:
-                board = oneColumnTwoRowsBoard;
-                height = 184f;
-                break;
-            case 2:
-            case 3:
-            case 4:
-                board = twoColumnTwoRowsBoard;
-                height = 184f;
-                break;
-            default:
-                board = twoColumnThreeRowsBoard;
-                height = 248f;
-                break;
+            bool tall = orderCount > 2 && oneColumnThreeRowsBoard != null;
+            board = tall ? oneColumnThreeRowsBoard : oneColumnTwoRowsBoard;
+            height = tall ? 248f : 184f;
+        }
+        else if (orderCount <= 4)
+        {
+            board = twoColumnTwoRowsBoard;
+            height = 184f;
+        }
+        else
+        {
+            board = twoColumnThreeRowsBoard;
+            height = 248f;
         }
 
         if (board == null)

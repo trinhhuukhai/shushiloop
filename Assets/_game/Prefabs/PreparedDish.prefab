@@ -95,6 +95,7 @@ MonoBehaviour:
   hopDownDuration: 0.19
   landSquashDuration: 0.14
   finishedDishOffset: {x: 0, y: 0.06}
+  matchIngredientLayout: 1
   sparkleColor: {r: 1, g: 0.93, b: 0.55, a: 1}
 --- !u!1 &4813100681759738831
 GameObject:
@@ -268,7 +269,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 3
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7034508252839307962, guid: df79904c4d8e4a2468cf6423c72b0895, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 769dcb9faaf00b9468480cddff50e313, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

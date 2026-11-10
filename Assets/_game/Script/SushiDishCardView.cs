@@ -18,6 +18,12 @@ public sealed class SushiDishCardView : MonoBehaviour
     [SerializeField] private TMP_Text portionCount;
     [SerializeField] private Transform dishDeliverySlot;
     [SerializeField] private RectTransform incompleteNotification;
+    [Tooltip("Nền ô khi xem chi tiết công thức (fr_order_inside): mỗi món một ô, nguyên liệu xếp dọc.")]
+    [SerializeField] private Sprite recipeCellSprite;
+    [SerializeField] private Color recipeCellColor = Color.white;
+    private Sprite defaultBackgroundSprite;
+    private Image.Type defaultBackgroundType;
+    private bool hasDefaultBackground;
     private IReadOnlyList<SushiDishOrder> portions;
     private GameObject ingredientDetails;
     private GameObject completedTick;
@@ -189,7 +195,8 @@ public sealed class SushiDishCardView : MonoBehaviour
         orderComplete = complete;
         RefreshNotification();
         if (complete && recipeExpanded) SetRecipeExpanded(false);
-        background.color = complete ? completedColor : targeting ? targetingColor : pendingColor;
+        background.color = recipeExpanded && recipeCellSprite != null ? recipeCellColor
+            : complete ? completedColor : targeting ? targetingColor : pendingColor;
         completedMark.SetActive(complete);
         if (completedTick != null) completedTick.SetActive(complete);
         if (portionCount != null)
@@ -206,6 +213,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         if (expanded && orderComplete) return;
         recipeExpanded = expanded;
         RefreshNotification();
+        ApplyRecipeCell(expanded);
         dishName.gameObject.SetActive(!expanded && originalDishNameActive);
         finished.gameObject.SetActive(!expanded);
         finished.enabled = !expanded && finished.sprite != null;
@@ -266,6 +274,21 @@ public sealed class SushiDishCardView : MonoBehaviour
         ingredientDetails.SetActive(expanded);
         if (expanded && ingredientDetailsRect != null)
             LayoutRebuilder.ForceRebuildLayoutImmediate(ingredientDetailsRect);
+    }
+
+    // Khi xem chi tiết: nền thẻ đổi sang ô fr_order_inside; thu gọn thì trả nền gốc.
+    private void ApplyRecipeCell(bool expanded)
+    {
+        if (background == null || recipeCellSprite == null) return;
+        if (!hasDefaultBackground)
+        {
+            defaultBackgroundSprite = background.sprite;
+            defaultBackgroundType = background.type;
+            hasDefaultBackground = true;
+        }
+        background.sprite = expanded ? recipeCellSprite : defaultBackgroundSprite;
+        background.type = expanded ? Image.Type.Sliced : defaultBackgroundType;
+        background.color = expanded ? recipeCellColor : orderComplete ? completedColor : pendingColor;
     }
 
     // Kiểm tra một vị trí thế giới có nằm trong vùng chữ nhật của thẻ món.
