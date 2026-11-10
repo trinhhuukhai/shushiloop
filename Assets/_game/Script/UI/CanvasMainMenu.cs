@@ -27,6 +27,25 @@ public class CanvasMainMenu : UICanvas
     [SerializeField] private TMP_Text[] tabLabels;
     [SerializeField] private GameObject profilePanel;
     [SerializeField, Range(0.15f, 0.6f)] private float tabDuration = 0.32f;
+
+    [Header("Thanh tab kiểu mới (để trống tabButtons = kiểu cũ)")]
+    [Tooltip("Nền từng tab Shop/Home/Ranking; tab đang chọn rộng hơn.")]
+    [SerializeField] private RectTransform[] tabButtons;
+    [SerializeField] private Sprite selectedTabSprite;
+    [SerializeField] private Sprite idleTabSprite;
+    [SerializeField] private float selectedTabWidth = 408f;
+    [SerializeField] private float selectedIconY = 26f;
+    [SerializeField] private float selectedIconScale = 1.16f;
+    [SerializeField] private float idleIconScale = 0.88f;
+    [SerializeField] private Color selectedLabelColor = new Color(1, 0.87f, 0.46f);
+    [SerializeField] private Color idleLabelColor = new Color(0.84f, 0.9f, 1);
+    [Tooltip("Header trang chủ (avatar, ví, mạng, sao); ẩn khi sang Shop/Ranking vì trang đó có header riêng.")]
+    [SerializeField] private CanvasGroup headerGroup;
+
+    [Header("Nút Decorate")]
+    [SerializeField] private Image decorationFill;
+    [SerializeField] private GameObject decorationBadge;
+    [SerializeField] private TMP_Text decorationBadgeText;
     private Sequence tabTween;
     private int selectedTab = 1;
     private bool starting;
@@ -57,6 +76,7 @@ public class CanvasMainMenu : UICanvas
         if (homeContent != null) { homeContent.gameObject.SetActive(true); homeContent.anchoredPosition = Vector2.zero; SetInteraction(homeContent, true); }
         if (profilePanel != null) profilePanel.SetActive(false);
         PositionTabs(false);
+        FadeHeader(true, false);
         if (restaurantCarousel != null) restaurantCarousel.RestoreSelection();
         RefreshLevelMap();
         CheckMoneyTemp();
@@ -129,7 +149,15 @@ public class CanvasMainMenu : UICanvas
         int built = SushiDecorationProgress.Built(player, decoration, SelectedRestaurantId);
         if (starText != null) starText.text = SushiDecorationProgress.AvailableStars(player, decoration).ToString();
         if (decorationRestaurant != null) decorationRestaurant.Show(built);
-        if (decorationProgress != null) decorationProgress.text = built + "/" + (decoration != null ? decoration.items.Length : 12);
+        int total = decoration != null ? decoration.items.Length : 12;
+        if (decorationProgress != null) decorationProgress.text = built + "/" + total;
+        if (decorationFill != null) decorationFill.fillAmount = total > 0 ? Mathf.Clamp01((float)built / total) : 0f;
+        if (decorationBadge != null)
+        {
+            int stars = SushiDecorationProgress.AvailableStars(player, decoration);
+            decorationBadge.SetActive(stars > 0);
+            if (decorationBadgeText != null) decorationBadgeText.text = stars.ToString();
+        }
         if (restaurantCompleteBadge != null) restaurantCompleteBadge.SetActive(IsRestaurantUnlocked && decoration != null && built == decoration.items.Length);
         if (profileLevel != null) profileLevel.text = "Level " + (index + 1) + "\nĐã hoàn thành " +
             (player?.completedLevels?.Count ?? 0) + " màn";
@@ -198,6 +226,18 @@ public class CanvasMainMenu : UICanvas
             SetInteraction(incoming, true);
         });
         PositionTabs(true, direction);
+        FadeHeader(index == 1, true);
+    }
+
+    // Hiện header trang chủ chỉ ở tab Home; Shop/Ranking tự vẽ header riêng.
+    private void FadeHeader(bool visible, bool animate)
+    {
+        if (headerGroup == null) return;
+        headerGroup.DOKill();
+        headerGroup.interactable = headerGroup.blocksRaycasts = visible;
+        float alpha = visible ? 1f : 0f;
+        if (animate) headerGroup.DOFade(alpha, tabDuration * 0.6f).SetUpdate(true);
+        else headerGroup.alpha = alpha;
     }
 
     // Bật hoặc tắt tương tác cùng chặn raycast của nội dung trang qua CanvasGroup.
@@ -223,10 +263,40 @@ public class CanvasMainMenu : UICanvas
     private void PositionTabs(bool animate, int direction = 0)
     {
         int selected = selectedTab == 3 ? 1 : selectedTab;
+        float selectedX = (selected - 1) * 360f;
+        bool resizable = tabButtons != null && tabButtons.Length == 3;
+        if (resizable)
+        {
+            // Tab đang chọn rộng selectedTabWidth, hai tab còn lại chia đều phần còn lại của thanh.
+            var bar = tabButtons[0].parent as RectTransform;
+            float total = bar != null && bar.rect.width > 1f ? bar.rect.width : 1080f;
+            float idleWidth = Mathf.Max(1f, (total - selectedTabWidth) * 0.5f);
+            float left = -total * 0.5f;
+            for (int i = 0; i < tabButtons.Length; i++)
+            {
+                RectTransform tab = tabButtons[i];
+                if (tab == null) continue;
+                float width = i == selected ? selectedTabWidth : idleWidth;
+                float x = left + width * 0.5f;
+                left += width;
+                if (i == selected) selectedX = x;
+                var image = tab.GetComponent<Image>();
+                Sprite sprite = i == selected ? selectedTabSprite : idleTabSprite;
+                if (image != null && sprite != null) image.sprite = sprite;
+                tab.DOKill();
+                Vector2 size = new Vector2(width, tab.sizeDelta.y);
+                if (animate)
+                {
+                    tab.DOAnchorPosX(x, tabDuration).SetEase(Ease.InOutCubic).SetUpdate(true);
+                    tab.DOSizeDelta(size, tabDuration).SetEase(Ease.InOutCubic).SetUpdate(true);
+                }
+                else { tab.anchoredPosition = new Vector2(x, tab.anchoredPosition.y); tab.sizeDelta = size; }
+            }
+        }
         if (tabSelection != null)
         {
             tabSelection.DOKill();
-            float targetX = (selected - 1) * 360f;
+            float targetX = selectedX;
             if (animate) tabSelection.DOAnchorPosX(targetX, tabDuration).SetEase(Ease.InOutCubic).SetUpdate(true);
             else tabSelection.anchoredPosition = new Vector2(targetX, tabSelection.anchoredPosition.y);
         }
@@ -234,8 +304,8 @@ public class CanvasMainMenu : UICanvas
         {
             RectTransform icon = tabIcons[i];
             icon.DOKill();
-            Vector2 target = new Vector2(0, i == selected ? 26 : 0);
-            Vector3 scale = Vector3.one * (i == selected ? 1.16f : 0.88f);
+            Vector2 target = new Vector2(0, i == selected ? selectedIconY : 0);
+            Vector3 scale = Vector3.one * (i == selected ? selectedIconScale : idleIconScale);
             if (animate)
             {
                 if (i == selected && direction != 0)
@@ -245,7 +315,7 @@ public class CanvasMainMenu : UICanvas
             }
             else { icon.anchoredPosition = target; icon.localScale = scale; }
             if (i < tabLabels.Length && tabLabels[i] != null)
-                tabLabels[i].color = i == selected ? new Color(1, 0.87f, 0.46f) : new Color(0.84f, 0.9f, 1);
+                tabLabels[i].color = i == selected ? selectedLabelColor : idleLabelColor;
         }
     }
 
@@ -309,7 +379,9 @@ public class CanvasMainMenu : UICanvas
     {
         tabTween?.Kill();
         tabSelection?.DOKill();
+        headerGroup?.DOKill();
         foreach (RectTransform icon in tabIcons) if (icon != null) icon.DOKill();
+        if (tabButtons != null) foreach (RectTransform tab in tabButtons) if (tab != null) tab.DOKill();
         ClosePages();
         RestoreCanvasScale();
         //RestoreCheatOverlay();

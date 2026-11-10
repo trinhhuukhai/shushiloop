@@ -200,6 +200,11 @@ public static class SushiMainMenuCapture
         Check(LoadingScreen.ins == null || !LoadingScreen.ins.gameObject.activeInHierarchy, "Loading still obscures the main menu.");
     }
 
+    // Đọc field private (kể cả mảng/số) bằng reflection.
+    private static T Value<T>(object owner, string field) =>
+        (T)owner.GetType().GetField(field, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic |
+            System.Reflection.BindingFlags.Public).GetValue(owner);
+
     private static T Field<T>(Object owner, string field) where T : Object
     {
         var property = new SerializedObject(owner).FindProperty(field);
@@ -257,14 +262,19 @@ public static class SushiMainMenuCapture
         RectTransform content = selected == 1 ? home : selected == 0 ?
             UIManager.Ins.GetUI<CanvasShop>().pageContent : UIManager.Ins.GetUI<CanvasLeadBoard>().pageContent;
         Check(content.anchoredPosition.sqrMagnitude < 0.02f, "Selected page did not finish at its center.");
-        Check(Mathf.Abs(Field<RectTransform>(menu, "tabSelection").anchoredPosition.x - (selected - 1) * 360f) < 0.1f,
+        // Thanh tab kiểu mới: marker đi theo tâm nút tab đang chọn (tab chọn rộng hơn).
+        RectTransform[] tabButtons = Value<RectTransform[]>(menu, "tabButtons");
+        float markerX = tabButtons != null && tabButtons.Length == 3 ? tabButtons[selected].anchoredPosition.x : (selected - 1) * 360f;
+        Check(Mathf.Abs(Field<RectTransform>(menu, "tabSelection").anchoredPosition.x - markerX) < 0.1f,
             "Tab marker has incorrect final position.");
+        float liftY = Value<float>(menu, "selectedIconY");
+        float selectedScale = Value<float>(menu, "selectedIconScale"), idleScale = Value<float>(menu, "idleIconScale");
         for (int i = 0; i < 3; i++)
         {
             RectTransform icon = Icon(menu, i);
-            Check(Mathf.Abs(icon.anchoredPosition.y - (i == selected ? 26 : 0)) < 0.1f, "Navigation icon lift is incorrect.");
+            Check(Mathf.Abs(icon.anchoredPosition.y - (i == selected ? liftY : 0)) < 0.1f, "Navigation icon lift is incorrect.");
             Check(Mathf.Abs(icon.anchoredPosition.x) < 0.1f, "Navigation icon did not finish its horizontal slide.");
-            Check(Mathf.Abs(icon.localScale.x - (i == selected ? 1.16f : 0.88f)) < 0.01f, "Navigation icon scale is incorrect.");
+            Check(Mathf.Abs(icon.localScale.x - (i == selected ? selectedScale : idleScale)) < 0.01f, "Navigation icon scale is incorrect.");
         }
         Check(content.lossyScale.x > 0 && content.rect.width > 100 && content.rect.height > 100,
             "Selected page has a collapsed Canvas rect or zero scale.");

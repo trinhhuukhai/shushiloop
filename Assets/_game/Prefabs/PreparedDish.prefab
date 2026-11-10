@@ -84,7 +84,7 @@ MonoBehaviour:
   ingredientArt: {fileID: 11400000, guid: e981a168bb484b28a7c2fea2a090842a, type: 2}
   ingredientRoot: {fileID: 78403798261742}
   rawFoundationSize: 0.9
-  rawToppingSize: 0.5
+  rawToppingSize: 0.7
   rawFoundationPosition: {x: 0, y: 0.1}
   rawToppingSpacing: {x: 0.2, y: 0.2}
   rawIngredientOverrides: []

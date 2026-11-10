@@ -1,35 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+// Một ô chọn avatar trong bảng sửa hồ sơ: khung xám khi chưa chọn, khung xanh + dấu tick khi đang chọn.
 public class UIChooseAvatar : MonoBehaviour
 {
     public int id;
     public Image img_avatar;
     public Image img_frame;
     public Image img_selecting;
-    
+    public Sprite idleFrame;
+    public Sprite selectedFrame;
+
     public int idAvatar;
     public int idFrame;
 
-    // Gán sprite avatar cùng khung cho một ô lựa chọn và đặt kích thước ảnh gốc.
+    // Gán sprite avatar theo idAvatar (giữ nguyên kích thước ô đã dựng sẵn).
     public void SetUp()
     {
-        img_avatar.sprite = ProfileDataFragment.cur.spr_avatars[idAvatar];
-        img_frame.sprite = ProfileDataFragment.cur.spr_frames[idFrame];
-        img_frame.SetNativeSize();
-        img_avatar.SetNativeSize(); 
+        var profile = ProfileDataFragment.cur;
+        if (profile != null && profile.spr_avatars != null && profile.spr_avatars.Length > 0 && img_avatar != null)
+            img_avatar.sprite = profile.spr_avatars[Mathf.Clamp(idAvatar, 0, profile.spr_avatars.Length - 1)];
     }
 
-    // Lưu lựa chọn avatar, khung và đồng bộ hình ảnh hồ sơ ở trang chủ cùng popup.
+    // Đổi khung và dấu tick theo trạng thái chọn.
+    public void SetSelected(bool selected)
+    {
+        if (img_frame != null && idleFrame != null && selectedFrame != null) img_frame.sprite = selected ? selectedFrame : idleFrame;
+        if (img_selecting != null) img_selecting.gameObject.SetActive(selected);
+    }
+
+    // Bấm ô: chọn avatar này (lưu khi bấm Save).
     public void Btn_clickChooseThis()
     {
-        ProfileDataFragment.cur.gameData.idChoose = id;
-        ProfileDataFragment.cur.gameData.idAvatar = idAvatar;
-        ProfileDataFragment.cur.gameData.idFrame = idFrame;
-
-        ProfileHome.cur.UpdateAvatar();
-        CanvasProfile.cur.UpdateAvatar();
+        if (CanvasProfile.cur != null) CanvasProfile.cur.ChooseAvatar(idAvatar);
     }
 }

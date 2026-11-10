@@ -14,48 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProfileDataFragment
   key: ProfileFragment
   spr_avatars:
-  - {fileID: -8593363048089091735, guid: 954878729678a8942a7afc3361517ace, type: 3}
-  - {fileID: 7725314035466326156, guid: 4163a8bae7193cf4487bc03216af3ff3, type: 3}
-  - {fileID: -7840118230214706752, guid: e2d04968a0bb92f40bbf7656698dacbf, type: 3}
-  - {fileID: 2817778216939327335, guid: cdf0129d07efdec46b474f32e885197c, type: 3}
-  - {fileID: 2979186755827144330, guid: 6148752dd5f6c5647a29588b5c83f661, type: 3}
-  - {fileID: -4114867585693774645, guid: 08b87e000ecc6d840845d590f92b5b72, type: 3}
-  - {fileID: 3511379150169783377, guid: 8e7c559f849afb3478dfe03ad8852c31, type: 3}
-  - {fileID: 5581198676278931774, guid: ce50e0c038bbd6244af74f0e8f15047a, type: 3}
-  - {fileID: 3609969979744772080, guid: c8a52f7f6911751469bc1bc17112f2ba, type: 3}
-  - {fileID: -569948925643974366, guid: 2baeaeecdb1ad4941a3c02aa32fa4f61, type: 3}
-  - {fileID: -4252144922562825746, guid: ce814e04f19f86f449a66b166b255755, type: 3}
-  - {fileID: -2834533167014588821, guid: 4e4cae24a834d174f8ea5249dd7ce4ab, type: 3}
-  - {fileID: 5727932885444766542, guid: e76c03aacc46a7e478d5c6a3fe23bf9b, type: 3}
-  - {fileID: -4034672951983755537, guid: 2fb87fc0769aa5d47a2f732675c98a73, type: 3}
-  - {fileID: -269303084831680773, guid: ad1e1041638c1d6428cd101e35c2a5b9, type: 3}
-  - {fileID: 5299944842787209266, guid: 35d89cbf19f733a44b33a3b2b33fa6f3, type: 3}
-  - {fileID: -2747510663007403236, guid: d66481b0de74a6843932683b6cd3b841, type: 3}
-  - {fileID: 5452492405530305137, guid: 38c470c1f281ff1449d2f32d20911192, type: 3}
+  - {fileID: 21300000, guid: 364ffd0fff3dcbe47b3959d01a381713, type: 3}
+  - {fileID: 21300000, guid: 65e33d9e0e10fc141b9a1fb1b8344d2b, type: 3}
+  - {fileID: 21300000, guid: e050422bb684f7a45a2567fc66151c35, type: 3}
+  - {fileID: 21300000, guid: 615fa514efb0ce24d8bfe1fd336aa788, type: 3}
+  - {fileID: 21300000, guid: acf6f9ad201458a44b3b2ad9e7a4ce24, type: 3}
+  - {fileID: 21300000, guid: d3f6ab3344cd83549b4024509f355f50, type: 3}
+  - {fileID: 21300000, guid: e4d37fe3b04c15f4584cd3837c9daef8, type: 3}
+  - {fileID: 21300000, guid: b48393ac387f77e4ab4b24548ec3356e, type: 3}
+  - {fileID: 21300000, guid: d37200605fa4334479b94999faddfcc6, type: 3}
   spr_frames:
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
-  - {fileID: 4446804402726002953, guid: c4dddacc7243964489a58ab738c2dd62, type: 3}
+  - {fileID: 21300000, guid: 407d6a3acf3809a43a5befebec0207de, type: 3}
   gameData:
     idChoose: 0
     idAvatar: 0
     idFrame: 0
-    userName: Mosese
+    userName: Angel
     firstTryWin: 0
     firstTryWinMax: 0
     winStreak: 0

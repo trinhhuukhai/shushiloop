@@ -3,6 +3,9 @@ using UnityEngine;
 [RequireComponent(typeof(RectTransform))]
 public sealed class SushiUISafeArea : MonoBehaviour
 {
+    [Tooltip("Tắt: mép trên vẫn chạm đỉnh màn hình (ảnh nền/header tràn lên vùng tai thỏ); " +
+             "các nút cần né tai thỏ dùng SushiUISafeTopInset.")]
+    [SerializeField] private bool applyTop = true;
     private Rect lastArea;
     private Vector2Int lastSize;
     // Áp dụng vùng an toàn màn hình ngay khi UI được bật.
@@ -20,7 +23,7 @@ public sealed class SushiUISafeArea : MonoBehaviour
         lastSize = new Vector2Int(Screen.width, Screen.height);
         var rect = (RectTransform)transform;
         rect.anchorMin = new Vector2(lastArea.xMin / Screen.width, lastArea.yMin / Screen.height);
-        rect.anchorMax = new Vector2(lastArea.xMax / Screen.width, lastArea.yMax / Screen.height);
+        rect.anchorMax = new Vector2(lastArea.xMax / Screen.width, applyTop ? lastArea.yMax / Screen.height : 1f);
         rect.offsetMin = rect.offsetMax = Vector2.zero;
     }
 }
