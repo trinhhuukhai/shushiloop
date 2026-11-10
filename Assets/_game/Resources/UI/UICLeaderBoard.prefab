@@ -1977,6 +1977,7 @@ GameObject:
   - component: {fileID: 1044900477805043638}
   - component: {fileID: 682615793485410435}
   - component: {fileID: 2274337890629642025}
+  - component: {fileID: 5716678127359247658}
   m_Layer: 5
   m_Name: Page content
   m_TagString: Untagged
@@ -2040,6 +2041,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
+--- !u!114 &5716678127359247658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2191947134605309480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ee7ff283a3224f44b729b0ec32c1c49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SushiTabSwipeArea
 --- !u!1 &2357386782128320523
 GameObject:
   m_ObjectHideFlags: 0
@@ -3419,7 +3432,7 @@ GameObject:
   - component: {fileID: 5935652706361684468}
   - component: {fileID: 1852893463634122133}
   - component: {fileID: 7897936440536063630}
-  - component: {fileID: 5997833023463886868}
+  - component: {fileID: 8049234696819628699}
   m_Layer: 5
   m_Name: List
   m_TagString: Untagged
@@ -3499,7 +3512,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
---- !u!114 &5997833023463886868
+--- !u!114 &8049234696819628699
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3508,9 +3521,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3384831030904812771}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
+  m_Script: {fileID: 11500000, guid: 8681d2bb35660bd41b7d8fa7ad112bfe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
+  m_EditorClassIdentifier: Assembly-CSharp::SushiNestedScrollRect
   m_Content: {fileID: 120709671462982751}
   m_Horizontal: 0
   m_Vertical: 1
@@ -6728,7 +6741,7 @@ GameObject:
   - component: {fileID: 2702550717413940365}
   - component: {fileID: 519932617337895979}
   - component: {fileID: 6711459441739874512}
-  - component: {fileID: 1373103165759519075}
+  - component: {fileID: 277605630029271709}
   m_Layer: 5
   m_Name: List
   m_TagString: Untagged
@@ -6808,7 +6821,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
---- !u!114 &1373103165759519075
+--- !u!114 &277605630029271709
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6817,9 +6830,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6784398869491301064}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
+  m_Script: {fileID: 11500000, guid: 8681d2bb35660bd41b7d8fa7ad112bfe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
+  m_EditorClassIdentifier: Assembly-CSharp::SushiNestedScrollRect
   m_Content: {fileID: 2945732311808600048}
   m_Horizontal: 0
   m_Vertical: 1

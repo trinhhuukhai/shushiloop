@@ -13949,6 +13949,9 @@ MonoBehaviour:
   decorationFill: {fileID: 7636771109190510360}
   decorationBadge: {fileID: 8490213010182805488}
   decorationBadgeText: {fileID: 8016450490805117510}
+  swipeCommitRatio: 0.25
+  swipeFlickSpeed: 1500
+  swipeEdgeResistance: 0.12
   txtLive: {fileID: 0}
   txtLives: {fileID: 6203983484901480690}
   txtLivesTime: {fileID: 8161654843028226731}
@@ -35436,6 +35439,9 @@ GameObject:
   m_Component:
   - component: {fileID: 9022381744386571572}
   - component: {fileID: 8009187276501799610}
+  - component: {fileID: 2074091685410591645}
+  - component: {fileID: 4758119132950211603}
+  - component: {fileID: 1681743911518833121}
   m_Layer: 5
   m_Name: Home content
   m_TagString: Untagged
@@ -35482,6 +35488,56 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!222 &2074091685410591645
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7798722264724724649}
+  m_CullTransparentMesh: 1
+--- !u!114 &4758119132950211603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7798722264724724649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1681743911518833121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7798722264724724649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ee7ff283a3224f44b729b0ec32c1c49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SushiTabSwipeArea
 --- !u!1 &7803007602460956740
 GameObject:
   m_ObjectHideFlags: 0

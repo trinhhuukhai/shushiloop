@@ -8012,6 +8012,7 @@ GameObject:
   - component: {fileID: 7389130472992220767}
   - component: {fileID: 6429830747715621040}
   - component: {fileID: 3384216029991958739}
+  - component: {fileID: 7593301017174932572}
   m_Layer: 5
   m_Name: Page content
   m_TagString: Untagged
@@ -8067,6 +8068,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
+--- !u!114 &7593301017174932572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4756162597233066867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ee7ff283a3224f44b729b0ec32c1c49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SushiTabSwipeArea
 --- !u!1 &4805662039941711563
 GameObject:
   m_ObjectHideFlags: 0
@@ -13520,7 +13533,7 @@ GameObject:
   - component: {fileID: 2949866804863260196}
   - component: {fileID: 4726035190744296012}
   - component: {fileID: 5536699821501716207}
-  - component: {fileID: 6381035030252986778}
+  - component: {fileID: 1188284818419514471}
   m_Layer: 5
   m_Name: Packs
   m_TagString: Untagged
@@ -13600,7 +13613,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
---- !u!114 &6381035030252986778
+--- !u!114 &1188284818419514471
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -13609,9 +13622,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8483838254347684442}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
+  m_Script: {fileID: 11500000, guid: 8681d2bb35660bd41b7d8fa7ad112bfe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
+  m_EditorClassIdentifier: Assembly-CSharp::SushiNestedScrollRect
   m_Content: {fileID: 297758706010433944}
   m_Horizontal: 0
   m_Vertical: 1

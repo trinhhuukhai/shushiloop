@@ -35,6 +35,7 @@ internal static class SushiHomeArtAutoRun
                 if (what == "shop") SushiHomeArtSetup.SetupShopOnly();
                 else if (what == "pages") SushiHomeArtSetup.SetupPages();
                 else if (what == "safearea") SushiHomeArtSetup.PatchSafeArea();
+                else if (what == "swipe") SushiHomeArtSetup.PatchSwipe();
                 else SushiHomeArtSetup.Setup();
             }
             if (File.Exists(CaptureTrigger)) File.Delete(CaptureTrigger);

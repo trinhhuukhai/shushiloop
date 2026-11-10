@@ -86,6 +86,78 @@ public static class SushiHomeArtSetup
         Debug.Log("Đã vá safe area cho UICShop và UICLeaderBoard.");
     }
 
+    // Vá tại chỗ: vuốt trái/phải trên Home, Shop, Ranking để chuyển tab.
+    [MenuItem("SushiKhai/UI/Patch Tab Swipe")]
+    public static void PatchSwipe()
+    {
+        if (Application.isPlaying) throw new InvalidOperationException("Thoát Play Mode trước khi sửa prefab.");
+        string menuPath = Prefabs + "UICMainMenu.prefab";
+        GameObject menu = PrefabUtility.LoadPrefabContents(menuPath);
+        try
+        {
+            Transform home = menu.transform.Find("Safe area/Home viewport/Home content");
+            if (home != null)
+            {
+                // Ảnh trong suốt để vuốt ở chỗ trống của trang chủ cũng nhận được.
+                var hit = home.GetComponent<Image>();
+                if (hit == null) { hit = home.gameObject.AddComponent<Image>(); hit.color = Color.clear; }
+                hit.raycastTarget = true;
+                SwipeArea(home);
+            }
+            PrefabUtility.SaveAsPrefabAsset(menu, menuPath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(menu); }
+        EditPrefab("UICShop", root =>
+        {
+            Transform page = root.Find("Safe area/Viewport/Page content");
+            SwipeArea(page);
+            NestedScroll(page.Find("Packs"));
+        });
+        EditPrefab("UICLeaderBoard", root =>
+        {
+            Transform page = root.Find("Safe area/Viewport/Page content");
+            SwipeArea(page);
+            NestedScroll(page.Find("Weekly/List"));
+            NestedScroll(page.Find("Rank/List"));
+        });
+        AssetDatabase.SaveAssets();
+        Debug.Log("Đã gắn vuốt chuyển tab cho Home, Shop, Ranking.");
+    }
+
+    private static void SwipeArea(Transform target)
+    {
+        if (target != null && target.GetComponent<SushiTabSwipeArea>() == null) target.gameObject.AddComponent<SushiTabSwipeArea>();
+    }
+
+    // Đổi ScrollRect thường sang SushiNestedScrollRect (giữ nguyên thông số) để vuốt ngang chuyển tab.
+    private static void NestedScroll(Transform target)
+    {
+        var old = target != null ? target.GetComponent<ScrollRect>() : null;
+        if (old == null || old is SushiNestedScrollRect) return;
+        RectTransform content = old.content, viewport = old.viewport;
+        bool horizontal = old.horizontal, vertical = old.vertical, inertia = old.inertia;
+        var movement = old.movementType;
+        float elasticity = old.elasticity, deceleration = old.decelerationRate, sensitivity = old.scrollSensitivity;
+        Object.DestroyImmediate(old);
+        var scroll = target.gameObject.AddComponent<SushiNestedScrollRect>();
+        scroll.content = content; scroll.viewport = viewport;
+        scroll.horizontal = horizontal; scroll.vertical = vertical; scroll.inertia = inertia;
+        scroll.movementType = movement; scroll.elasticity = elasticity;
+        scroll.decelerationRate = deceleration; scroll.scrollSensitivity = sensitivity;
+    }
+
+    private static void EditPrefab(string prefab, Action<Transform> edit)
+    {
+        string path = Prefabs + prefab + ".prefab";
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            edit(root.transform);
+            PrefabUtility.SaveAsPrefabAsset(root, path);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(root); }
+    }
+
     private static void Patch(string prefab, Action<Transform> edit)
     {
         string path = Prefabs + prefab + ".prefab";
@@ -381,6 +453,7 @@ public static class SushiHomeArtSetup
         content.gameObject.AddComponent<CanvasGroup>();
         // Cắt mọi thứ tràn ngoài trang (vd. mái hiên rộng 2161px) để khi trượt tab không lộ sang trang bên cạnh.
         content.gameObject.AddComponent<RectMask2D>();
+        content.gameObject.AddComponent<SushiTabSwipeArea>();
         Image back = Rect(content, "Background", Vector2.zero, Vector2.zero).gameObject.AddComponent<Image>();
         back.sprite = backgroundSprite;
         back.color = backgroundSprite != null ? Color.white : background;
@@ -400,7 +473,7 @@ public static class SushiHomeArtSetup
         area.gameObject.AddComponent<RectMask2D>();
         RectTransform content = Rect(area, "Content", new Vector2(1080, contentHeight), Vector2.zero, TopAnchor);
         content.pivot = new Vector2(0.5f, 1f);
-        var scroll = area.gameObject.AddComponent<ScrollRect>();
+        var scroll = area.gameObject.AddComponent<SushiNestedScrollRect>();
         scroll.content = content;
         scroll.viewport = area;
         scroll.horizontal = false;

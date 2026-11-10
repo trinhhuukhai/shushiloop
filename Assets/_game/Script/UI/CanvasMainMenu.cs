@@ -57,7 +57,18 @@ public class CanvasMainMenu : UICanvas
     private bool cheatCanvasWasEnabled;
     private bool cheatRaycasterWasEnabled;
     public int SelectedTab => selectedTab;
-    public bool IsTabAnimating => tabTween != null && tabTween.IsActive() && tabTween.IsPlaying();
+    public bool IsTabAnimating => tabTween != null && tabTween.IsActive() && tabTween.IsPlaying() || IsSwiping;
+    public bool IsSwiping => swiping || swipeTween != null && swipeTween.IsActive();
+
+    [Header("Vuốt trái/phải để chuyển tab")]
+    [Tooltip("Kéo quá tỉ lệ này của chiều rộng màn hình rồi thả thì sang tab mới.")]
+    [SerializeField, Range(0.1f, 0.6f)] private float swipeCommitRatio = 0.25f;
+    [Tooltip("Vuốt nhanh hơn tốc độ này (đơn vị canvas/giây) thì sang tab mới dù kéo chưa tới ngưỡng.")]
+    [SerializeField, Min(100f)] private float swipeFlickSpeed = 1500f;
+    private bool swiping;
+    private float swipeRaw;
+    private int swipeNeighbor = -1;
+    private Tween swipeTween;
     protected override bool BlocksGameplay => false;
 
     public TMP_Text txtLive;
@@ -71,6 +82,10 @@ public class CanvasMainMenu : UICanvas
         //HideCheatOverlay();
         starting = false;
         tabTween?.Kill();
+        swipeTween?.Kill();
+        swipeTween = null;
+        swiping = false;
+        swipeNeighbor = -1;
         ClosePages();
         selectedTab = 1;
         if (homeContent != null) { homeContent.gameObject.SetActive(true); homeContent.anchoredPosition = Vector2.zero; SetInteraction(homeContent, true); }
@@ -189,7 +204,7 @@ public class CanvasMainMenu : UICanvas
     // Xử lý chọn tab hợp lệ, đóng panel hồ sơ và chuyển trang nếu cần.
     public void SelectTab(int index)
     {
-        if (starting || index < 0 || index > 2) return;
+        if (starting || index < 0 || index > 2 || IsSwiping) return;
         if (UIManager.Ins != null) UIManager.Ins.CloseUI<CanvasDecoration>();
         if (profilePanel != null) profilePanel.SetActive(false);
         if (index == selectedTab) { PositionTabs(true); return; }
@@ -227,6 +242,180 @@ public class CanvasMainMenu : UICanvas
         });
         PositionTabs(true, direction);
         FadeHeader(index == 1, true);
+    }
+
+    // ------------------------------------------------------------ Vuốt chuyển tab
+
+    // Bắt đầu kéo ngang (gọi từ SushiTabSwipeArea). Trả về false nếu lúc này không được vuốt.
+    public bool BeginSwipe()
+    {
+        if (starting || IsSwiping || rootPanel == null || !isActiveAndEnabled) return false;
+        if (profilePanel != null && profilePanel.activeSelf) return false;
+        if (UIManager.Ins != null && UIManager.Ins.IsOpened<CanvasDecoration>()) return false;
+        tabTween?.Kill(true);
+        KillTabVisualTweens();
+        swiping = true;
+        swipeRaw = 0f;
+        swipeNeighbor = -1;
+        SetInteraction(PageContent(selectedTab), false);
+        return true;
+    }
+
+    // Kéo thêm deltaX (đơn vị canvas): trang và thanh tab đi theo ngón tay.
+    public void DragSwipe(float deltaX)
+    {
+        if (!swiping) return;
+        swipeRaw += deltaX / SwipeWidth;
+        // Tab ngoài cùng không kéo tiếp ra ngoài được: Shop không có tab bên trái, Ranking không có tab bên phải.
+        if (selectedTab <= 0) swipeRaw = Mathf.Min(swipeRaw, 0f);
+        if (selectedTab >= 2) swipeRaw = Mathf.Max(swipeRaw, 0f);
+        swipeRaw = Mathf.Clamp(swipeRaw, -1f, 1f);
+        int direction = swipeRaw < 0f ? 1 : swipeRaw > 0f ? -1 : 0;
+        int neighbor = direction == 0 ? -1 : selectedTab + direction;
+        if (neighbor < 0 || neighbor > 2) neighbor = -1;
+        if (neighbor != swipeNeighbor)
+        {
+            ReleaseNeighbor(swipeNeighbor);
+            PrepareNeighbor(neighbor);
+            swipeNeighbor = neighbor;
+        }
+        LayoutSwipe(SwipeProgress());
+    }
+
+    // Thả tay: quá ngưỡng hoặc vuốt nhanh thì sang tab bên cạnh, không thì bật về.
+    public void EndSwipe(float velocityX)
+    {
+        if (!swiping) return;
+        swiping = false;
+        float progress = SwipeProgress();
+        bool towardNeighbor = swipeNeighbor >= 0 && progress != 0f;
+        bool flick = Mathf.Abs(velocityX) >= swipeFlickSpeed && Mathf.Sign(velocityX) == Mathf.Sign(progress);
+        bool commit = towardNeighbor && (Mathf.Abs(progress) >= swipeCommitRatio || flick);
+        float target = commit ? Mathf.Sign(progress) : 0f;
+        float duration = Mathf.Max(0.08f, tabDuration * Mathf.Abs(target - progress));
+        swipeTween = DOVirtual.Float(progress, target, duration, LayoutSwipe)
+            .SetEase(Ease.OutCubic).SetUpdate(true)
+            .OnComplete(() => FinishSwipe(commit));
+    }
+
+    private float SwipeWidth => Mathf.Max(1f, rootPanel.rect.width);
+
+    // Tiến độ kéo hiển thị: -1..1 khi có tab bên cạnh, đứng yên khi không còn tab bên đó.
+    private float SwipeProgress() => swipeNeighbor >= 0 ? Mathf.Clamp(swipeRaw, -1f, 1f) : 0f;
+
+    // Đặt vị trí trang hiện tại, trang bên cạnh và trạng thái thanh tab theo tiến độ kéo.
+    private void LayoutSwipe(float progress)
+    {
+        float width = SwipeWidth;
+        RectTransform current = PageContent(selectedTab);
+        if (current != null) current.anchoredPosition = new Vector2(progress * width, 0f);
+        float tab = selectedTab;
+        if (swipeNeighbor >= 0)
+        {
+            int direction = swipeNeighbor - selectedTab;
+            RectTransform neighbor = PageContent(swipeNeighbor);
+            if (neighbor != null) neighbor.anchoredPosition = new Vector2((progress + direction) * width, 0f);
+            tab += direction * Mathf.Abs(progress);
+        }
+        ApplyTabVisual(tab);
+    }
+
+    // Bật trang bên cạnh (đặt ngoài màn hình) để nó trượt vào theo tay.
+    private void PrepareNeighbor(int index)
+    {
+        if (index < 0) return;
+        CanvasHomePage page = Page(index);
+        if (page != null) { page.Setup(); page.Open(); }
+        RectTransform content = PageContent(index);
+        if (content == null) return;
+        content.gameObject.SetActive(true);
+        SetInteraction(content, false);
+    }
+
+    // Tắt trang bên cạnh khi kéo ngược lại hoặc bật về.
+    private void ReleaseNeighbor(int index)
+    {
+        if (index < 0) return;
+        RectTransform content = PageContent(index);
+        if (content != null) content.anchoredPosition = Vector2.zero;
+        if (index == 1) { if (homeContent != null) homeContent.gameObject.SetActive(false); }
+        else Page(index)?.CloseDirectly();
+    }
+
+    // Chốt kết quả vuốt: đổi tab (nếu sang) và đưa mọi thứ về trạng thái nghỉ.
+    private void FinishSwipe(bool commit)
+    {
+        int previous = selectedTab;
+        if (commit)
+        {
+            selectedTab = swipeNeighbor;
+            ReleaseNeighbor(previous);
+        }
+        else ReleaseNeighbor(swipeNeighbor);
+        swipeNeighbor = -1;
+        swipeRaw = 0f;
+        swipeTween = null;
+        RectTransform current = PageContent(selectedTab);
+        if (current != null) { current.anchoredPosition = Vector2.zero; SetInteraction(current, true); }
+        PositionTabs(false);
+        FadeHeader(selectedTab == 1, false);
+    }
+
+    private void KillTabVisualTweens()
+    {
+        tabSelection?.DOKill();
+        headerGroup?.DOKill();
+        foreach (RectTransform icon in tabIcons) if (icon != null) icon.DOKill();
+        if (tabButtons != null) foreach (RectTransform tab in tabButtons) if (tab != null) tab.DOKill();
+    }
+
+    // Thanh tab theo vị trí tab dạng số thực (vd. 0.5 = nửa đường giữa Shop và Home):
+    // tab càng gần thì ô càng rộng, icon càng to/nhô cao, chữ càng rõ; header Home mờ dần theo.
+    private void ApplyTabVisual(float position)
+    {
+        var weights = new float[3];
+        for (int i = 0; i < 3; i++) weights[i] = Mathf.Clamp01(1f - Mathf.Abs(position - i));
+        float markerX = 0f;
+        if (tabButtons != null && tabButtons.Length == 3)
+        {
+            var bar = tabButtons[0].parent as RectTransform;
+            float total = bar != null && bar.rect.width > 1f ? bar.rect.width : 1080f;
+            float idleWidth = Mathf.Max(1f, (total - selectedTabWidth) * 0.5f);
+            float left = -total * 0.5f;
+            for (int i = 0; i < 3; i++)
+            {
+                RectTransform tab = tabButtons[i];
+                float width = Mathf.Lerp(idleWidth, selectedTabWidth, weights[i]);
+                float x = left + width * 0.5f;
+                left += width;
+                markerX += x * weights[i];
+                if (tab == null) continue;
+                tab.anchoredPosition = new Vector2(x, tab.anchoredPosition.y);
+                tab.sizeDelta = new Vector2(width, tab.sizeDelta.y);
+                var image = tab.GetComponent<Image>();
+                Sprite sprite = weights[i] >= 0.5f ? selectedTabSprite : idleTabSprite;
+                if (image != null && sprite != null) image.sprite = sprite;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 3; i++) markerX += (i - 1) * 360f * weights[i];
+        }
+        if (tabSelection != null) tabSelection.anchoredPosition = new Vector2(markerX, tabSelection.anchoredPosition.y);
+        for (int i = 0; i < tabIcons.Length; i++)
+        {
+            RectTransform icon = tabIcons[i];
+            if (icon == null) continue;
+            icon.anchoredPosition = new Vector2(0f, selectedIconY * weights[i]);
+            icon.localScale = Vector3.one * Mathf.Lerp(idleIconScale, selectedIconScale, weights[i]);
+            if (i < tabLabels.Length && tabLabels[i] != null)
+                tabLabels[i].color = Color.Lerp(idleLabelColor, selectedLabelColor, weights[i]);
+        }
+        if (headerGroup != null)
+        {
+            headerGroup.alpha = Mathf.Clamp01(1f - Mathf.Abs(position - 1f));
+            headerGroup.interactable = headerGroup.blocksRaycasts = headerGroup.alpha > 0.99f;
+        }
     }
 
     // Hiện header trang chủ chỉ ở tab Home; Shop/Ranking tự vẽ header riêng.
@@ -378,10 +567,11 @@ public class CanvasMainMenu : UICanvas
     protected override void OnDisable()
     {
         tabTween?.Kill();
-        tabSelection?.DOKill();
-        headerGroup?.DOKill();
-        foreach (RectTransform icon in tabIcons) if (icon != null) icon.DOKill();
-        if (tabButtons != null) foreach (RectTransform tab in tabButtons) if (tab != null) tab.DOKill();
+        swipeTween?.Kill();
+        swipeTween = null;
+        swiping = false;
+        swipeNeighbor = -1;
+        KillTabVisualTweens();
         ClosePages();
         RestoreCanvasScale();
         //RestoreCheatOverlay();
