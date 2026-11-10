@@ -192,6 +192,9 @@ public class FoodShushi : GameUnit
         foodRenderer.transform.localPosition = -Vector3.Scale(bounds.center, scale);
     }
 
+    // Renderer hiển thị ảnh nguyên liệu (dùng để đo khung ảnh trên đĩa).
+    public SpriteRenderer FoodRenderer => foodRenderer;
+
     // Sprite nguyên liệu gốc (như trên bàn/băng chuyền), không tính ảnh đã lên đĩa.
     public Sprite IngredientSprite
     {

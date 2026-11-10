@@ -54,6 +54,8 @@ public sealed class SushiPreparedDish : MonoBehaviour
     [Tooltip("Thời gian nhún khi rơi chạm đĩa.")]
     [SerializeField, Min(0.02f)] private float landSquashDuration = 0.14f;
     [SerializeField] private Vector2 finishedDishOffset = new Vector2(0f, 0.06f);
+    [Tooltip("Ảnh món hoàn chỉnh đặt đúng vị trí tâm các nguyên liệu đã ghép (Ingredients), kích thước vẫn theo imageSize. Tắt để dùng finishedDishOffset.")]
+    [SerializeField] private bool matchIngredientLayout = true;
     [SerializeField] private Color sparkleColor = new Color(1f, 0.93f, 0.55f, 1f);
 
     private const int RawLayerOffset = 10;
@@ -70,6 +72,8 @@ public sealed class SushiPreparedDish : MonoBehaviour
     private Vector3 baseScale = Vector3.one;
     private Vector3 ingredientRootPosition;
     private float contentHop;
+    // Vị trí nghỉ của ảnh món hoàn chỉnh (trùng tâm khung nguyên liệu đã ghép).
+    private Vector2 dishRestPosition;
     private bool plateShown;
     private Sequence mergeSequence;
     private Tween plateTween;
@@ -95,6 +99,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         isFlying = false;
         combinedLayout = false;
         transformed = false;
+        dishRestPosition = finishedDishOffset;
         baseScale = transform.localScale;
         if (ingredientArt == null && SushiArtCatalog.Default != null)
             ingredientArt = SushiArtCatalog.Default.platedIngredientImages;
@@ -218,23 +223,33 @@ public sealed class SushiPreparedDish : MonoBehaviour
     private Vector2 RawPosition(PoolType type, out int layer)
     {
         PoolType foundation = Order.FoundationType;
-        if (foundation != PoolType.None && type == foundation)
+        // Maki/gunkan: rong biển nằm giữa đĩa (lớp 0), bát cơm đặt chồng lên rong biển (lớp 1).
+        if (IsRawBase(type))
         {
-            layer = 0;
+            layer = Order.AssemblyStage(type);
             return rawFoundationPosition;
         }
         int count = 0, index = 0;
+        int baseLayers = Order.IsSeaweedWrapped ? 2 : 1;
         foreach (OrderItem item in Order.Ingredients)
         {
-            if (foundation != PoolType.None && item.typeFood == foundation) continue;
+            if (IsRawBase(item.typeFood)) continue;
             if (item.typeFood == type) index = count;
             count++;
         }
-        layer = 1 + index;
+        layer = baseLayers + index;
         // Trên bát cơm: nguyên liệu phủ nằm chính giữa như topping; món không cơm (sashimi, trà) thì dàn ngang.
         float x = foundation == PoolType.SushiRice ? 0f : (index - (count - 1) * 0.5f) * rawToppingSpacing.x;
         float y = foundation != PoolType.None ? rawFoundationPosition.y + rawToppingSpacing.y : 0f;
         return new Vector2(x, y);
+    }
+
+    // Nguyên liệu làm nền trên đĩa: cơm/cốc, và rong biển với maki/gunkan.
+    private bool IsRawBase(PoolType type)
+    {
+        PoolType foundation = Order.FoundationType;
+        return (foundation != PoolType.None && type == foundation) ||
+            (type == PoolType.Seaweed && Order.IsSeaweedWrapped);
     }
 
     // Cập nhật đĩa, điểm đặt và hình nguyên liệu khi thư viện đang dùng thay đổi.
@@ -280,7 +295,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         {
             Sprite raw = food.IngredientSprite;
             RawPosition(food.Type, out int layer);
-            bool isFoundation = Order.FoundationType != PoolType.None && food.Type == Order.FoundationType;
+            bool isFoundation = IsRawBase(food.Type);
             RawIngredientOverride custom = FindRawOverride(food.Type);
             float maxSize = custom != null && custom.size > 0f ? custom.size : isFoundation ? rawFoundationSize : rawToppingSize;
             // Nguyên liệu gốc mới đáp luôn nằm trên các lớp đã ghép.
@@ -361,7 +376,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     }
 
     // Món chưa đủ: khi đã có từ 2 nguyên liệu trên đĩa thì ghép chúng thành món dở.
-    // Trả về thời lượng hiệu ứng, 0 nếu chưa cần ghép (vd. mới chỉ có bát cơm).
+    // Trả về thời lượng hiệu ứng, 0 nếu chưa cần ghép (vd. mới chỉ có rong biển hoặc bát cơm).
     public float CombineLandedIngredients()
     {
         if (transformed || assemblyIngredients.Count < 2) return 0f;
@@ -411,7 +426,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
         if (dishImage != null)
         {
             Vector3 position = dishImage.transform.localPosition;
-            dishImage.transform.localPosition = new Vector3(finishedDishOffset.x, finishedDishOffset.y + height, position.z);
+            dishImage.transform.localPosition = new Vector3(dishRestPosition.x, dishRestPosition.y + height, position.z);
         }
     }
 
@@ -452,8 +467,12 @@ public sealed class SushiPreparedDish : MonoBehaviour
             return;
         }
         dishImage.sprite = finished;
+        // Ảnh món hoàn chỉnh đặt trùng tâm khung các lớp nguyên liệu vừa ghép; kích thước giữ theo imageSize.
+        dishRestPosition = finishedDishOffset;
+        if (matchIngredientLayout && TryGetIngredientBounds(out Vector2 center, out _))
+            dishRestPosition = center;
         Vector2 size = FitInside(finished, imageSize);
-        dishImage.transform.localPosition = new Vector3(finishedDishOffset.x, finishedDishOffset.y + contentHop,
+        dishImage.transform.localPosition = new Vector3(dishRestPosition.x, dishRestPosition.y + contentHop,
             dishImage.transform.localPosition.z);
         dishImage.transform.localRotation = Quaternion.identity;
         dishImage.transform.localScale = new Vector3(size.x / Mathf.Max(0.01f, finished.bounds.size.x),
@@ -461,6 +480,30 @@ public sealed class SushiPreparedDish : MonoBehaviour
         dishImage.sortingOrder = isFlying ? 31 : 18;
         dishImage.enabled = true;
         ingredientRoot.gameObject.SetActive(false);
+    }
+
+    // Khung bao các lớp nguyên liệu đã ghép, tính trong không gian của ảnh món ở tư thế nghỉ (bỏ độ nảy).
+    private bool TryGetIngredientBounds(out Vector2 center, out Vector2 size)
+    {
+        center = size = Vector2.zero;
+        Transform space = dishImage.transform.parent != null ? dishImage.transform.parent : transform;
+        bool found = false;
+        Vector2 min = Vector2.zero, max = Vector2.zero;
+        foreach (FoodShushi food in assemblyIngredients)
+        {
+            SpriteRenderer renderer = food != null ? food.FoodRenderer : null;
+            if (renderer == null || !renderer.enabled || renderer.sprite == null) continue;
+            Bounds world = renderer.bounds;
+            Vector3 a = space.InverseTransformPoint(world.min), b = space.InverseTransformPoint(world.max);
+            Vector2 low = Vector2.Min(a, b), high = Vector2.Max(a, b);
+            min = found ? Vector2.Min(min, low) : low;
+            max = found ? Vector2.Max(max, high) : high;
+            found = true;
+        }
+        if (!found) return false;
+        center = (min + max) * 0.5f - Vector2.up * contentHop;
+        size = max - min;
+        return size.x > 0.01f && size.y > 0.01f;
     }
 
     // Ảnh món hoàn chỉnh; món dùng đĩa trang trí riêng (sashimi) giữ bố cục lớp đã căn chỉnh.
@@ -476,7 +519,7 @@ public sealed class SushiPreparedDish : MonoBehaviour
     private void PlayFlash()
     {
         int order = (isFlying ? 31 : 18) + 20;
-        Vector3 center = new Vector3(finishedDishOffset.x, finishedDishOffset.y + contentHop, -0.3f);
+        Vector3 center = new Vector3(dishRestPosition.x, dishRestPosition.y + contentHop, -0.3f);
 
         var flash = NewEffect("Merge flash", GlowSprite, order, center);
         flash.color = new Color(1f, 1f, 1f, 0.95f);

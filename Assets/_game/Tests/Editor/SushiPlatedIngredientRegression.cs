@@ -72,13 +72,15 @@ public static class SushiPlatedIngredientRegression
             Run("landed rice serves a later matching order without waiting for earlier cards", UnorderedAssembly);
             Run("maki rice and nori serve the topping that arrives", () => SharedWrappedAssembly(SushiDishId.MakiTuna, SushiDishId.MakiSalmon, false));
             Run("gunkan rice and nori serve the topping that arrives", () => SharedWrappedAssembly(SushiDishId.GunkanTuna, SushiDishId.GunkanSalmon, false));
-            Run("a ready maki base replaces a rice-only gunkan plate", () => SharedWrappedAssembly(SushiDishId.MakiTuna, SushiDishId.GunkanSalmon, true));
-            Run("a ready gunkan base replaces a rice-only maki plate", () => SharedWrappedAssembly(SushiDishId.GunkanTuna, SushiDishId.MakiSalmon, true));
+            Run("a ready maki base replaces a nori-only gunkan plate", () => SharedWrappedAssembly(SushiDishId.MakiTuna, SushiDishId.GunkanSalmon, true));
+            Run("a ready gunkan base replaces a nori-only maki plate", () => SharedWrappedAssembly(SushiDishId.GunkanTuna, SushiDishId.MakiSalmon, true));
             Run("custom recipe cards group by ingredients and use distinct plated art", CustomRecipeCards);
             Run("custom rice triples assemble both toppings after rice", CustomTripleAssembly);
             Run("rice-free custom pairs accept either ingredient first", CustomRiceFreeAssembly);
             Run("magnet intercepts rice in flight and waits before launching toppings", () => MagnetAssembly(SushiDishId.NigiriOctopus));
             Run("iced tea magnet puts the cup down before tea and ice", () => MagnetAssembly(SushiDishId.IcedGreenTea));
+            Run("maki magnet plates nori, then rice, then topping", () => MagnetAssembly(SushiDishId.MakiTuna));
+            Run("gunkan magnet plates nori, then rice, then topping", () => MagnetAssembly(SushiDishId.GunkanSalmon));
             Run("missing foundation rejects magnet without consuming any ingredient", MissingFoundation);
             Run("reload cancels queued layers and pooled ingredients recover their raw art", CancellationAndPool);
             Run("loss check distinguishes blocked toppings from an incoming foundation", LossWithFoundation);
@@ -198,8 +200,8 @@ public static class SushiPlatedIngredientRegression
     {
         Customer customer = Prepare(new[] {
             new DishOrderData { dish = sourceId }, new DishOrderData { dish = targetId } }, 5,
-            new[] { Food(PoolType.SushiRice) }, new[] { Food(PoolType.Seaweed) },
-            new[] { Food(PoolType.Salmon) }, new[] { Food(PoolType.SushiRice) });
+            new[] { Food(PoolType.Seaweed) }, new[] { Food(PoolType.SushiRice) },
+            new[] { Food(PoolType.Salmon) }, new[] { Food(PoolType.Seaweed) });
         SushiDishOrder original = customer.Dishes[0], matching = customer.Dishes[1];
         SushiPreparedDish Add(SushiDishOrder order, int column)
         {
@@ -230,13 +232,13 @@ public static class SushiPlatedIngredientRegression
         Check(completeBase.AssemblyIngredients.All(food => Artwork(food) ==
             SushiArtCatalog.Default.platedIngredientImages.Find(food.Type, matching.Recipe).sprite),
             "reassigning between maki/gunkan kept the wrong layered artwork");
-        Check(original.IsPrepared == hasTargetPlate && original.Ingredients.Single(item => item.typeFood == PoolType.Seaweed).receivedAmount == 0,
-            "the earlier order retained the shared nori");
+        Check(original.IsPrepared == hasTargetPlate && original.Ingredients.Single(item => item.typeFood == PoolType.SushiRice).receivedAmount == 0,
+            "the earlier order retained the shared rice");
         if (partialBase != null)
             Check(partialBase.Order == original && partialBase.AssemblyIngredients.Count == 1,
-                "the existing rice-only plate lost its replacement order");
-        Check(customer.Orders.Single(item => item.typeFood == PoolType.Seaweed).receivedAmount == 1 &&
-            customer.Orders.Single(item => item.typeFood == PoolType.SushiRice).receivedAmount == (hasTargetPlate ? 2 : 1),
+                "the existing nori-only plate lost its replacement order");
+        Check(customer.Orders.Single(item => item.typeFood == PoolType.SushiRice).receivedAmount == 1 &&
+            customer.Orders.Single(item => item.typeFood == PoolType.Seaweed).receivedAmount == (hasTargetPlate ? 2 : 1),
             "shared-base reassignment changed aggregate ingredient totals");
         for (int i = 0; i < 130; i++) Advance(0.1f);
         Check(matching.IsComplete && !original.IsComplete && belt.PreparedDishCount == (hasTargetPlate ? 1 : 0),
@@ -340,16 +342,30 @@ public static class SushiPlatedIngredientRegression
             PoolType foundation = recipe.Ingredients.Contains(PoolType.SushiRice) ? PoolType.SushiRice :
                 recipe.Ingredients.Contains(PoolType.EmptyCup) ? PoolType.EmptyCup : PoolType.None;
             Check(order.FoundationType == foundation, "wrong foundation for " + recipe.Id);
+            bool wrapped = recipe.Ingredients.Contains(PoolType.Seaweed) &&
+                (recipe.Family == SushiDishFamily.Maki || recipe.Family == SushiDishFamily.Gunkan);
+            PoolType lead = wrapped ? PoolType.Seaweed : foundation;
+            Check(order.LeadType == lead, "wrong first plated ingredient for " + recipe.Id);
             foreach (var item in order.Ingredients)
-                Check(order.CanStartIngredient(item.typeFood) == (foundation == PoolType.None || item.typeFood == foundation),
-                    "topping started without a foundation");
-            if (foundation == PoolType.None) continue;
-            var baseItem = order.Ingredients.Single(item => item.typeFood == foundation);
-            baseItem.incomingAmount = baseItem.requiredAmount;
-            foreach (var item in order.Ingredients.Where(item => item.typeFood != foundation))
-                Check(!order.CanStartIngredient(item.typeFood) && order.CanStartIngredient(item.typeFood, true),
-                    "in-flight foundation was confused with a landed foundation");
-            baseItem.receivedAmount = baseItem.requiredAmount; baseItem.incomingAmount = 0;
+                Check(order.CanStartIngredient(item.typeFood) == (lead == PoolType.None || item.typeFood == lead),
+                    "ingredient started before the first plated layer");
+            if (lead == PoolType.None) continue;
+            // Lần lượt từng bước: đang bay chưa mở bước sau, đáp xuống mới mở (rong biển -> cơm -> topping).
+            int stages = order.Ingredients.Max(item => order.AssemblyStage(item.typeFood));
+            for (int stage = 0; stage < stages; stage++)
+            {
+                var current = order.Ingredients.Where(item => order.AssemblyStage(item.typeFood) == stage).ToArray();
+                foreach (var item in current) item.incomingAmount = item.requiredAmount;
+                foreach (var item in order.Ingredients.Where(item => order.AssemblyStage(item.typeFood) == stage + 1))
+                    Check(!order.CanStartIngredient(item.typeFood) && order.CanStartIngredient(item.typeFood, true),
+                        "in-flight layer was confused with a landed layer");
+                foreach (var item in order.Ingredients.Where(item => order.AssemblyStage(item.typeFood) > stage + 1))
+                    Check(!order.CanStartIngredient(item.typeFood), "a later layer skipped its assembly step");
+                foreach (var item in current) { item.receivedAmount = item.requiredAmount; item.incomingAmount = 0; }
+            }
+            if (wrapped)
+                Check(order.AssemblyStage(PoolType.Seaweed) == 0 && order.AssemblyStage(PoolType.SushiRice) == 1,
+                    "maki/gunkan must plate nori, then rice, then topping");
             Check(order.Ingredients.All(item => order.CanStartIngredient(item.typeFood)), "landed base did not unlock toppings");
         }
     }
@@ -450,25 +466,26 @@ public static class SushiPlatedIngredientRegression
         var columns = recipe.Ingredients.Select(type => new[] { Food(type) }).ToArray();
         Customer customer = Prepare(id, 4, columns);
         SushiDishOrder order = customer.Dishes[0];
-        int foundationColumn = recipe.Ingredients.ToList().IndexOf(order.FoundationType);
+        PoolType lead = order.LeadType;
+        int foundationColumn = recipe.Ingredients.ToList().IndexOf(lead);
         Check(Tap(foundationColumn), "foundation pickup failed");
         Check(belt.CanTargetMagnet(board, customer, order), "Magnet preview missed the available foundation in flight");
         Check(belt.TryTakeMagnet(board, customer, order), "magnet could not intercept the foundation");
         SushiPreparedDish dish = Dish;
         var pending = Get<Dictionary<SushiPreparedDish, List<FoodShushi>>>(belt, "assemblyFoods")[dish];
         var all = pending.ToArray();
-        Check(all.Single(food => food.Type == order.FoundationType).Location == FoodLocation.MovingToCustomerPlate,
+        Check(all.Single(food => food.Type == lead).Location == FoodLocation.MovingToCustomerPlate,
             "foundation was not the first flight");
-        Check(all.Where(food => food.Type != order.FoundationType).All(food => food.Location == FoodLocation.Conveyor),
+        Check(all.Where(food => food.Type != lead).All(food => food.Location == FoodLocation.Conveyor),
             "magnet launched toppings alongside the base");
         Check(!belt.TryTakeMagnet(board, customer, order), "duplicate magnet reservation accepted");
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < 60; i++)
         {
             Advance(0.05f);
-            var baseItem = order.Ingredients.Single(item => item.typeFood == order.FoundationType);
-            foreach (FoodShushi food in all.Where(food => food.Type != order.FoundationType))
+            foreach (FoodShushi food in all.Where(food => food.Type != lead))
                 if (food.Location == FoodLocation.MovingToCustomerPlate || food.Location == FoodLocation.CustomerPlate)
-                    Check(baseItem.IsComplete, "topping moved before foundation arrived");
+                    Check(order.Ingredients.Where(item => order.AssemblyStage(item.typeFood) < order.AssemblyStage(food.Type))
+                        .All(item => item.IsComplete), "a layer moved before the previous layer arrived");
         }
         Check(dish.IsReady && dish.AssemblyIngredients.Count == recipe.Ingredients.Count, "magnet composition is incomplete");
         for (int i = 0; i < 130; i++) Advance(0.1f);

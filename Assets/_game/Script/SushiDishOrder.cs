@@ -36,15 +36,34 @@ public sealed class SushiDishOrder
         }
     }
 
-    // Kiểm tra phần nền đã đủ để ghép nguyên liệu tiếp theo, tùy chọn tính cả phần đang bay tới.
+    // Maki/gunkan: rong biển lên đĩa trước, rồi bát cơm (ghép thành cơm cuộn rong biển), cuối cùng là topping.
+    public bool IsSeaweedWrapped => FoundationType == PoolType.SushiRice &&
+        (Recipe.Family == SushiDishFamily.Maki || Recipe.Family == SushiDishFamily.Gunkan) &&
+        ingredients.Exists(item => item.typeFood == PoolType.Seaweed);
+
+    // Nguyên liệu lên đĩa đầu tiên: rong biển với maki/gunkan, nếu không thì phần nền (cơm, cốc).
+    public PoolType LeadType => IsSeaweedWrapped ? PoolType.Seaweed : FoundationType;
+
+    // Bước ghép của nguyên liệu: nguyên liệu bước sau chỉ lên đĩa khi các bước trước đã đủ.
+    public int AssemblyStage(PoolType type)
+    {
+        if (IsSeaweedWrapped)
+            return type == PoolType.Seaweed ? 0 : type == PoolType.SushiRice ? 1 : 2;
+        PoolType foundation = FoundationType;
+        return foundation == PoolType.None || type == foundation ? 0 : 1;
+    }
+
+    // Kiểm tra các bước ghép trước đã đủ để ghép nguyên liệu này, tùy chọn tính cả phần đang bay tới.
     public bool CanStartIngredient(PoolType type, bool includeIncomingFoundation = false)
     {
-        PoolType foundation = FoundationType;
-        if (foundation == PoolType.None || type == foundation) return true;
+        int stage = AssemblyStage(type);
         foreach (OrderItem ingredient in ingredients)
-            if (ingredient.typeFood == foundation)
-                return ingredient.receivedAmount + (includeIncomingFoundation ? ingredient.incomingAmount : 0) >= ingredient.requiredAmount;
-        return false;
+        {
+            if (AssemblyStage(ingredient.typeFood) >= stage) continue;
+            int progress = ingredient.receivedAmount + (includeIncomingFoundation ? ingredient.incomingAmount : 0);
+            if (progress < ingredient.requiredAmount) return false;
+        }
+        return true;
     }
 
     // Tìm mục nguyên liệu còn thiếu và chưa được giữ đủ lượt giao.
@@ -64,11 +83,12 @@ public sealed class SushiDishOrder
     // Kiểm tra hai món có thể trao đổi phần nền chung mà không làm sai tiến độ nguyên liệu.
     internal bool CanTransferFoundationTo(SushiDishOrder target)
     {
-        PoolType foundation = FoundationType;
-        if (target == null || target == this || foundation == PoolType.None || target.FoundationType != foundation ||
+        // Phần nền dùng chung bắt đầu từ nguyên liệu lên đĩa đầu tiên (rong biển của maki/gunkan, cơm của nigiri).
+        PoolType lead = LeadType;
+        if (target == null || target == this || lead == PoolType.None || target.LeadType != lead ||
             !IsPrepared || IsComplete || IsOnTable || target.IsComplete || target.IsOnTable) return false;
-        OrderItem sourceBase = ingredients.Find(item => item.typeFood == foundation);
-        OrderItem targetBase = target.ingredients.Find(item => item.typeFood == foundation);
+        OrderItem sourceBase = ingredients.Find(item => item.typeFood == lead);
+        OrderItem targetBase = target.ingredients.Find(item => item.typeFood == lead);
         if (sourceBase == null || targetBase == null || !sourceBase.IsComplete || sourceBase.incomingAmount != 0 ||
             sourceBase.requiredAmount != targetBase.requiredAmount) return false;
         int sourceProgress = 0, targetProgress = 0;
@@ -96,9 +116,7 @@ public sealed class SushiDishOrder
 
     // Xác định nguyên liệu thuộc phần nền dùng chung, gồm cơm và rong biển ở nhóm món phù hợp.
     internal bool IsSharedBaseIngredient(PoolType type) => type == FoundationType ||
-        (type == PoolType.Seaweed && FoundationType == PoolType.SushiRice &&
-            (Recipe.Family == SushiDishFamily.Maki || Recipe.Family == SushiDishFamily.Gunkan) &&
-            ingredients.Exists(item => item.typeFood == PoolType.Seaweed));
+        (type == PoolType.Seaweed && IsSeaweedWrapped);
 
     // Lấy tiến độ nguyên liệu dự kiến sau khi dùng phần nền từ món nguồn.
     internal OrderItem ProjectedIngredient(PoolType type, SushiDishOrder foundationSource)

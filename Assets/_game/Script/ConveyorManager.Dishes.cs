@@ -68,7 +68,7 @@ public partial class ConveyorManager
     // Tìm đĩa cùng khách có phần nền chuyển được sang món đích, ưu tiên tiến độ cao hơn.
     private SushiPreparedDish FindReusableFoundation(Customer customer, SushiDishOrder target, PoolType type)
     {
-        if (type == target.FoundationType || target.FindAvailableIngredient(type) == null) return null;
+        if (type == target.LeadType || target.FindAvailableIngredient(type) == null) return null;
         SushiPreparedDish best = null;
         int bestProgress = -1, bestLanded = -1;
         foreach (SushiPreparedDish plated in slotDishes.Values)
@@ -209,7 +209,7 @@ public partial class ConveyorManager
     {
         if (!food.TryMoveToCustomerPlate()) return;
         plated.ApplyIngredientArtwork(food, true);
-        // Nguyên liệu đầu tiên (bát cơm) bay được nửa đường thì đĩa đen mờ dần hiện ra để đón.
+        // Nguyên liệu đầu tiên (rong biển của maki/gunkan, bát cơm của nigiri) bay được nửa đường thì đĩa đen mờ dần hiện ra để đón.
         plated.RevealPlate(delay + assemblyDuration * 0.4f);
         Transform destination = plated.IngredientTarget(food.Type);
         AnimateFlight(food, destination, assemblyDuration, 0.3f, 1f, delay, 0, dishTweenId, () =>
@@ -224,7 +224,7 @@ public partial class ConveyorManager
             }
             if (!complete)
             {
-                // Món 3 nguyên liệu: đủ 2 nguyên liệu trên đĩa thì nảy lên ghép thành món dở (vd. cơm + rong biển).
+                // Món 3 nguyên liệu: đủ 2 nguyên liệu trên đĩa thì nảy lên ghép thành món dở (vd. rong biển + cơm = cơm cuộn rong biển).
                 plated.CombineLandedIngredients();
                 LaunchReadyPreparedIngredients(plated);
                 return;
@@ -330,8 +330,8 @@ public partial class ConveyorManager
 
         var selectedFoods = new List<FoodShushi>(units);
         foreach (var pickup in beltPlan) selectedFoods.Add(pickup.Value);
-        PoolType foundation = order.FoundationType;
-        selectedFoods.Sort((a, b) => (a.Type == foundation ? 0 : 1).CompareTo(b.Type == foundation ? 0 : 1));
+        // Giữ chỗ theo đúng thứ tự ghép: rong biển -> cơm -> topping (món không rong biển: cơm -> topping).
+        selectedFoods.Sort((a, b) => order.AssemblyStage(a.Type).CompareTo(order.AssemblyStage(b.Type)));
         var newlyReserved = new List<FoodShushi>();
         Transform target = null;
         foreach (FoodShushi food in selectedFoods)
