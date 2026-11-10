@@ -237,15 +237,22 @@ public class CustomerManager : MonoBehaviour
                     return;
                 }
 
-                float direction = seatIndex == 0 ? -1f : 1f;
-                Vector3 exitPosition = customer.transform.position +
-                    Vector3.right * direction * customerExitDistance;
+                // Mọi khách đều rời bàn về bên phải, qua cùng một điểm ngoài màn hình tính từ ghế phải.
+                Vector3 origin = customer.transform.position;
+                Vector3 exitPosition = origin;
+                exitPosition.x = secondSeat.position.x + customerExitDistance;
+                // Khách ghế trái phải đi ngang qua ghế phải: vẽ sau khách đang ngồi đó để không che họ.
+                if (FindSeatIndex(customer) == 0) customer.SetBehindSeated();
+                // Giữ tốc độ đi như khách ghế phải dù quãng đường dài hơn.
+                float duration = Mathf.Max(0.01f, moveDuration) *
+                    Mathf.Max(1f, Mathf.Abs(exitPosition.x - origin.x) / Mathf.Max(0.01f, customerExitDistance));
+                DOTween.Kill(customer, false);
                 customer.transform
-                    .DOMove(exitPosition, Mathf.Max(0.01f, moveDuration))
+                    .DOMove(exitPosition, duration)
                     .SetEase(Ease.InQuad)
                     .SetId(moveTweenId)
                     .SetTarget(customer)
-                    .OnComplete(() => FinishCustomerExit(customer, seatIndex));
+                    .OnComplete(() => FinishCustomerExit(customer));
             },
             false // Dùng thời gian game, dừng khi Time.timeScale = 0.
         )
@@ -253,19 +260,50 @@ public class CustomerManager : MonoBehaviour
     }
 
     // Dọn khách đã rời đi, cập nhật tiến độ và gọi khách tiếp theo vào các ghế trống.
-    private void FinishCustomerExit(Customer customer, int seatIndex)
+    private void FinishCustomerExit(Customer customer)
     {
         if (customer == null || !finishingCustomers.Remove(customer)) return;
 
-        activeCustomers[seatIndex] = null;
+        // Ghế có thể đã đổi trong lúc chờ (khách ghế trái dời sang phải), nên tra lại lúc rời đi.
+        int seatIndex = FindSeatIndex(customer);
+        if (seatIndex >= 0) activeCustomers[seatIndex] = null;
         CompletedCustomers++;
         RemoveCustomer(customer);
-        MoveNextCustomerToSeat(seatIndex);
-        MoveNextCustomerToSeat(1 - seatIndex);
+        AdvanceLine();
         NotifyProgress();
 
         if (AllCustomersCompleted)
             OnAllCustomersCompleted?.Invoke();
+    }
+
+    // Hàng khách dồn từ trái sang phải: ghế phải trống thì khách ghế trái dời sang, rồi khách đầu hàng vào ghế trái.
+    private void AdvanceLine()
+    {
+        if (activeCustomers[1] == null && movingCustomers[1] == null)
+        {
+            Customer left = activeCustomers[0];
+            if (left != null)
+            {
+                // Khách ghế trái đang chờ rời bàn thì để họ tự đi ra, không dời ghế.
+                if (!finishingCustomers.Contains(left)) ShiftToSecondSeat(left);
+            }
+            else if (movingCustomers[0] == null) MoveNextCustomerToSeat(1);
+        }
+        MoveNextCustomerToSeat(0);
+    }
+
+    // Khách ghế trái trượt sang ghế phải, vẫn nhận món bình thường trong lúc di chuyển.
+    private void ShiftToSecondSeat(Customer customer)
+    {
+        activeCustomers[0] = null;
+        activeCustomers[1] = customer;
+        DOTween.Kill(customer, false);
+        customer.transform.SetParent(secondSeat, true);
+        customer.transform
+            .DOLocalMove(Vector3.zero, Mathf.Max(0.01f, moveDuration))
+            .SetEase(Ease.OutQuad)
+            .SetId(moveTweenId)
+            .SetTarget(customer);
     }
 
     // Đưa khách đầu hàng vào ghế trống, tuân theo giới hạn khách rush đồng thời.
@@ -319,6 +357,8 @@ public class CustomerManager : MonoBehaviour
                 // Chỉ nhận Food sau khi đã tới ghế.
                 activeCustomers[seatIndex] = customer;
                 customer.SitDown();
+                // Ghế phải có thể đã trống trong lúc khách này đang đi vào ghế trái.
+                AdvanceLine();
             });
 
         RefreshWaitingPositions();

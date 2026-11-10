@@ -13951,7 +13951,6 @@ MonoBehaviour:
   decorationBadgeText: {fileID: 8016450490805117510}
   swipeCommitRatio: 0.25
   swipeFlickSpeed: 1500
-  swipeEdgeResistance: 0.12
   txtLive: {fileID: 0}
   txtLives: {fileID: 6203983484901480690}
   txtLivesTime: {fileID: 8161654843028226731}

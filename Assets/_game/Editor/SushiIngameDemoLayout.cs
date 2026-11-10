@@ -30,7 +30,8 @@ public static class SushiIngameDemoLayout
     private const float ConveyorCenterPy = 1157f;       // tâm khung băng chuyền
     private const float ConveyorWidthPx = 1020f;
     private const float ConveyorTablePy = 830f;         // mép trên bàn băng chuyền
-    private const float BeltTopPy = 955f, BeltBottomPy = 1340f, BeltSidePx = 145f;
+    // Tâm rãnh xám đo trực tiếp trên conveyor.png để hố/đĩa không chạm viền khung.
+    private const float BeltTopPy = 958f, BeltBottomPy = 1347f, BeltSidePx = 152.5f;
     private const float BeltPlatePx = 190f;             // bề ngang đĩa trên băng
     private const float FirstTrayPy = 1625f;            // tâm hàng khay đầu
     private const float BottomFramePy = 2085f;          // mép trên nền xanh dưới đáy
@@ -50,6 +51,13 @@ public static class SushiIngameDemoLayout
     public static void Apply()
     {
         if (Application.isPlaying) throw new InvalidOperationException("Thoát Play Mode trước khi sửa prefab/scene.");
+        // Camera giờ cố định orthographicSize = 8 (cao 16 đơn vị), nên các root thế giới trong GamePlay.unity
+        // (Ingame art, Bangchuyen, BangchuyenManager, CustomerManager, TutControl, BoardManager) đã được scale 16/19.5
+        // và đường chạy băng chuyền nhân theo. Tool này vẫn tính theo 120 px/đơn vị với root scale 1,
+        // chạy lại sẽ làm lệch bố cục đó nên phải xác nhận trước.
+        if (!EditorUtility.DisplayDialog("Apply Ingame Demo Layout",
+            "Bố cục hiện tại đã được scale 16/19.5 cho camera orthographicSize = 8. Tool này tính theo camera cũ (cao 19.5 đơn vị) và sẽ ghi đè làm lệch bố cục. Vẫn chạy?",
+            "Chạy", "Huỷ")) return;
         Log.Clear();
         SetPixelsPerUnit("conveyor.png", PixelsPerUnit * 1040f / ConveyorWidthPx);
         SetPixelsPerUnit("conveyor_table.png", PixelsPerUnit);

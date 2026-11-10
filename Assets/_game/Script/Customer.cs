@@ -373,6 +373,39 @@ public class Customer : MonoBehaviour
     // waitingIndex = -1: đang ngồi (bình thường); 0, 1, 2...: vị trí trong hàng chờ (càng sau càng bị che).
     public void SetQueueVisual(int waitingIndex)
     {
+        CacheQueueVisuals();
+        bool waiting = waitingIndex >= 0;
+        int offset = waiting ? -(waitingIndex + 1) * waitingSortingStep : 0;
+        for (int i = 0; i < sortedCanvases.Length; i++)
+            if (sortedCanvases[i] != null) sortedCanvases[i].sortingOrder = baseSortingOrders[i] + offset;
+        if (visualsGroup != null)
+        {
+            visualsGroup.alpha = waiting ? waitingAlpha : 1f;
+            visualsGroup.interactable = visualsGroup.blocksRaycasts = !waiting;
+        }
+        for (int i = 0; i < tintedGraphics.Length; i++)
+            if (tintedGraphics[i] != null) tintedGraphics[i].color = waiting ? baseGraphicColors[i] * waitingTint : baseGraphicColors[i];
+    }
+
+    // Khách rời bàn đi ngang sau lưng khách đang ngồi: lùi toàn bộ canvas xuống dưới mọi lớp của khách ngồi, giữ nguyên màu.
+    public void SetBehindSeated()
+    {
+        CacheQueueVisuals();
+        if (baseSortingOrders.Length == 0) return;
+        int lowest = int.MaxValue, highest = int.MinValue;
+        foreach (int order in baseSortingOrders)
+        {
+            lowest = Mathf.Min(lowest, order);
+            highest = Mathf.Max(highest, order);
+        }
+        int offset = -(highest - lowest + 1);
+        for (int i = 0; i < sortedCanvases.Length; i++)
+            if (sortedCanvases[i] != null) sortedCanvases[i].sortingOrder = baseSortingOrders[i] + offset;
+    }
+
+    // Lưu sorting order và màu gốc một lần để các trạng thái hiển thị tính từ giá trị prefab.
+    private void CacheQueueVisuals()
+    {
         if (sortedCanvases == null)
         {
             var canvases = new List<Canvas>(GetComponentsInChildren<Canvas>(true));
@@ -391,17 +424,6 @@ public class Customer : MonoBehaviour
             baseGraphicColors = new Color[tintedGraphics.Length];
             for (int i = 0; i < tintedGraphics.Length; i++) baseGraphicColors[i] = tintedGraphics[i].color;
         }
-        bool waiting = waitingIndex >= 0;
-        int offset = waiting ? -(waitingIndex + 1) * waitingSortingStep : 0;
-        for (int i = 0; i < sortedCanvases.Length; i++)
-            if (sortedCanvases[i] != null) sortedCanvases[i].sortingOrder = baseSortingOrders[i] + offset;
-        if (visualsGroup != null)
-        {
-            visualsGroup.alpha = waiting ? waitingAlpha : 1f;
-            visualsGroup.interactable = visualsGroup.blocksRaycasts = !waiting;
-        }
-        for (int i = 0; i < tintedGraphics.Length; i++)
-            if (tintedGraphics[i] != null) tintedGraphics[i].color = waiting ? baseGraphicColors[i] * waitingTint : baseGraphicColors[i];
     }
 
     // Đánh dấu khách đã vào ghế và bật phần đơn món cùng bàn phục vụ.

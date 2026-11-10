@@ -194,7 +194,7 @@ public static class SushiIngameArtUpdate
 
     // ---------------------------------------------------------------- Conveyor slot
 
-    // Dia.prefab: thêm hố tối "Empty slot" cùng cỡ với đĩa; đĩa chỉ hiện khi có nguyên liệu.
+    // Dia.prefab: thêm hố tối "Empty slot" nhỏ hơn đĩa một chút để nằm gọn trong rãnh băng chuyền; đĩa chỉ hiện khi có nguyên liệu.
     private static void SetupConveyorSlot(GameObject root)
     {
         var plate = root.transform.Find("Ceramic plate")?.GetComponent<SpriteRenderer>();
@@ -214,7 +214,7 @@ public static class SushiIngameArtUpdate
         empty.sortingLayerID = plate.sortingLayerID;
         empty.sortingOrder = plate.sortingOrder;
         float plateWidth = plate.sprite.bounds.size.x * plate.transform.localScale.x;
-        float scale = plateWidth * 1.02f / Mathf.Max(0.01f, hole.bounds.size.x);
+        float scale = plateWidth * 0.92f / Mathf.Max(0.01f, hole.bounds.size.x);
         emptyTransform.localPosition = plate.transform.localPosition;
         emptyTransform.localScale = new Vector3(scale, scale, 1f);
         var view = root.GetComponent<SushiConveyorSlotView>();

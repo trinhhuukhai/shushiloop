@@ -21,6 +21,10 @@ public sealed class SushiDishCardView : MonoBehaviour
     [Tooltip("Nền ô khi xem chi tiết công thức (fr_order_inside): mỗi món một ô, nguyên liệu xếp dọc.")]
     [SerializeField] private Sprite recipeCellSprite;
     [SerializeField] private Color recipeCellColor = Color.white;
+    [Tooltip("Chiều cao hiển thị tối đa của một nguyên liệu khi xem chi tiết (đơn vị canvas).")]
+    [SerializeField, Min(8f)] private float maxRecipeIngredientSize = 58f;
+    [Tooltip("Khi xem chi tiết, panel nền của ô thu vào từng này mỗi cạnh để các ô không dính sát nhau và sát viền bảng.")]
+    [SerializeField, Min(0f)] private float recipeCellInset = 4f;
     private Sprite defaultBackgroundSprite;
     private Image.Type defaultBackgroundType;
     private bool hasDefaultBackground;
@@ -37,6 +41,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     private Vector2 ingredientOffsetMin;
     private Vector2 ingredientOffsetMax;
     private float collapsedCardHeight;
+    private float cellHeight;
     private float collapsedIngredientHeight;
     private int recipeIngredientCount;
     private bool originalDishNameActive;
@@ -106,12 +111,25 @@ public sealed class SushiDishCardView : MonoBehaviour
             }
             hasCachedRecipeLayout = true;
         }
+        if (cellHeight > 0) collapsedCardHeight = cellHeight;
+        // Bảng order chỉ hiện hình món; số phần vẫn được cập nhật trong text nhưng không hiển thị.
+        if (portionCount != null) portionCount.gameObject.SetActive(false);
         dishName.text = dish.Recipe.Name;
         for (int i = 0; i < ingredients.Length; i++)
             ingredients[i].gameObject.SetActive(i < dish.Ingredients.Count);
         SetRecipeExpanded(false);
         RefreshArtwork(customer, dish, art);
         Refresh(dish, false);
+    }
+
+    // Chiều cao một ô trên bảng order (bảng chia đều theo số hàng); thẻ thu gọn cao đúng bằng ô.
+    public void SetCellHeight(float height)
+    {
+        if (height <= 0) return;
+        cellHeight = height;
+        collapsedCardHeight = height;
+        if (cardLayout == null) cardLayout = GetComponent<LayoutElement>();
+        if (cardLayout != null && !recipeExpanded) cardLayout.preferredHeight = height;
     }
 
     // Gắn nhóm các phần cùng công thức vào một thẻ món dùng chung.
@@ -199,11 +217,7 @@ public sealed class SushiDishCardView : MonoBehaviour
             : complete ? completedColor : targeting ? targetingColor : pendingColor;
         completedMark.SetActive(complete);
         if (completedTick != null) completedTick.SetActive(complete);
-        if (portionCount != null)
-        {
-            portionCount.text = received + "/" + total;
-            portionCount.gameObject.SetActive(!complete && !recipeExpanded);
-        }
+        if (portionCount != null) portionCount.text = received + "/" + total;
         for (int i = 0; i < dish.Ingredients.Count; i++) ingredients[i].SetProgress(dish.Ingredients[i]);
     }
 
@@ -217,8 +231,6 @@ public sealed class SushiDishCardView : MonoBehaviour
         dishName.gameObject.SetActive(!expanded && originalDishNameActive);
         finished.gameObject.SetActive(!expanded);
         finished.enabled = !expanded && finished.sprite != null;
-        if (portionCount != null)
-            portionCount.gameObject.SetActive(!expanded && !orderComplete);
         foreach (SushiOrderIngredientView ingredient in ingredients)
             ingredient.SetRecipeDisplay(expanded);
         if (ingredientDetails == null) return;
@@ -242,23 +254,32 @@ public sealed class SushiDishCardView : MonoBehaviour
             {
                 ingredientDetailsRect.anchorMin = Vector2.zero;
                 ingredientDetailsRect.anchorMax = Vector2.one;
-                ingredientDetailsRect.offsetMin = new Vector2(6, 4);
-                ingredientDetailsRect.offsetMax = new Vector2(-6, -4);
+                // Nguyên liệu nằm trong panel nền đã thu vào.
+                ingredientDetailsRect.offsetMin = new Vector2(6 + recipeCellInset, 4 + recipeCellInset);
+                ingredientDetailsRect.offsetMax = new Vector2(-6 - recipeCellInset, -4 - recipeCellInset);
             }
-            float ingredientHeight = 0;
-            for (int i = 0; i < recipeIngredientCount; i++)
-            {
-                LayoutElement itemLayout = ingredients[i].GetComponent<LayoutElement>();
-                ingredientHeight += itemLayout != null && itemLayout.preferredHeight > 0
-                    ? itemLayout.preferredHeight : ingredients[i].GetComponent<RectTransform>().rect.height;
-            }
+            // Ô chi tiết cao đúng bằng ô của bảng (không làm bảng dài ra); nguyên liệu chia đều chiều cao ô
+            // và to hết mức ô cho phép, tối đa maxRecipeIngredientSize.
+            int count = Mathf.Max(1, recipeIngredientCount);
+            float available = Mathf.Max(1f, collapsedCardHeight - 8f - recipeCellInset * 2f);
+            float slot = available / count;
+            float itemScale = ingredients.Length > 0 ? Mathf.Abs(ingredients[0].transform.localScale.y) : 1f;
+            if (itemScale < 0.01f) itemScale = 1f;
+            float visual = Mathf.Max(8f, Mathf.Min(slot - 2f, maxRecipeIngredientSize));
+            // Item có scale riêng trong prefab nên chiều cao layout phải chia lại cho scale đó.
+            float layoutHeight = visual / itemScale;
+            for (int i = 0; i < recipeIngredientCount; i++) ingredients[i].SetRecipeDisplay(true, layoutHeight);
             if (ingredientsColumnLayout != null)
-                ingredientHeight += Mathf.Max(0, recipeIngredientCount - 1) * ingredientsColumnLayout.spacing;
+            {
+                // Khoảng cách + lề trên dưới lấp hết phần dư để tâm các nguyên liệu cách đều nhau trong ô.
+                int edge = Mathf.RoundToInt(Mathf.Max(0f, slot - layoutHeight) * 0.5f);
+                ingredientsColumnLayout.padding = new RectOffset(0, 0, edge, edge);
+                ingredientsColumnLayout.spacing = Mathf.Max(0f, slot - layoutHeight);
+            }
             if (ingredientDetailsLayout != null)
-                ingredientDetailsLayout.preferredHeight = ingredientHeight;
-            float expandedCardHeight = Mathf.Max(collapsedCardHeight, ingredientHeight + 8);
+                ingredientDetailsLayout.preferredHeight = available;
             if (cardLayout != null)
-                cardLayout.preferredHeight = expandedCardHeight;
+                cardLayout.preferredHeight = collapsedCardHeight;
         }
         else if (ingredientDetailsRect != null)
         {
@@ -288,6 +309,10 @@ public sealed class SushiDishCardView : MonoBehaviour
         }
         background.sprite = expanded ? recipeCellSprite : defaultBackgroundSprite;
         background.type = expanded ? Image.Type.Sliced : defaultBackgroundType;
+        // Panel nền nhỏ hơn ô một chút khi xem chi tiết; thu gọn thì trả về phủ kín thẻ như prefab.
+        float inset = expanded ? recipeCellInset : 0f;
+        background.rectTransform.offsetMin = new Vector2(inset, inset);
+        background.rectTransform.offsetMax = new Vector2(-inset, -inset);
         background.color = expanded ? recipeCellColor : orderComplete ? completedColor : pendingColor;
     }
 

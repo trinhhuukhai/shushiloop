@@ -188,7 +188,7 @@ public partial class ConveyorManager : MonoBehaviour
         CheckCustomerOrders(previousProgress, advance);
     }
 
-    // Ô trống hiện hố tối; đĩa trắng chỉ hiện khi nguyên liệu (hoặc túi revive) đã đáp lên ô.
+    // Ô trống hiện hố tối; đĩa trắng hiện ngay khi ô được giữ cho nguyên liệu vừa bấm lấy (hoặc túi revive), không chờ đáp xuống.
     private void LateUpdate()
     {
         for (int i = 0; i < slots.Count && i < slotViews.Count; i++)
@@ -197,7 +197,7 @@ public partial class ConveyorManager : MonoBehaviour
             if (view == null) continue;
             Transform slot = slots[i];
             bool filled = slotBags.ContainsKey(slot) ||
-                slotFoods.TryGetValue(slot, out FoodShushi food) && food != null && food.Location == FoodLocation.Conveyor;
+                slotFoods.TryGetValue(slot, out FoodShushi food) && food != null;
             view.SetFilled(filled);
         }
     }

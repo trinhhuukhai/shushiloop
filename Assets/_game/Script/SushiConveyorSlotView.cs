@@ -1,7 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-// Hình một ô trên băng chuyền: ô trống là hố tối (conveyor_slot), khi nguyên liệu đáp xuống thì đĩa trắng mới hiện ra.
+// Hình một ô trên băng chuyền: ô trống là hố tối (conveyor_slot), đĩa trắng hiện ra ngay khi ô được giữ cho nguyên liệu.
 public sealed class SushiConveyorSlotView : MonoBehaviour
 {
     [Tooltip("Hố tối hiện khi ô chưa có nguyên liệu.")]

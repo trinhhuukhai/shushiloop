@@ -478,7 +478,10 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             {
                 artwork.sortingOrder = -1;
                 artwork.transform.rotation = Quaternion.identity;
-                artwork.transform.localScale = new Vector3(1.3f / sprite.bounds.size.x, (Vector3.Distance(first, last) + 1.18f) / sprite.bounds.size.y, 1);
+                // Khoảng cách phải tính trong hệ toạ độ của bàn (bàn đang scale 1.25); dùng khoảng cách thế giới
+                // rồi gán vào localScale làm khung dài quá và lòi ra hai đầu. Ô khay cao ~1.08; ảnh khung có ~4% viền trong suốt.
+                float span = artwork.transform.parent.InverseTransformVector(last - first).magnitude;
+                artwork.transform.localScale = new Vector3(1.3f / sprite.bounds.size.x, (span + 1.1f) / 0.96f / sprite.bounds.size.y, 1);
             }
             line.gameObject.SetActive(false);
         }

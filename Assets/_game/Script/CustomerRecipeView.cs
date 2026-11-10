@@ -14,6 +14,12 @@ public class CustomerRecipeView : MonoBehaviour
     [SerializeField] private Sprite oneColumnThreeRowsBoard;
     [SerializeField] private Sprite twoColumnTwoRowsBoard;
     [SerializeField] private Sprite twoColumnThreeRowsBoard;
+    [Tooltip("Bảng order dùng native size của sprite. Chỉ khi bảng cao hơn mức này (bảng 3 hàng) mới thu nhỏ đều để không đè lên HUD.")]
+    [SerializeField, Min(1f)] private float maxBoardHeight = 252f;
+    [Tooltip("Bề ngang bảng 2 cột (3 món trở lên, hoặc xem chi tiết). 0 = dùng native size của sprite (307).")]
+    [SerializeField, Min(0f)] private float wideBoardWidth = 210f;
+    [Tooltip("Lề phải của bảng khi khách vội: chừa chỗ cho thanh thời gian nằm trong bảng, hình món dồn sang trái.")]
+    [SerializeField, Min(0)] private int rushRightPadding = 32;
     private Customer customer;
     private SushiDishArtLibrary art;
     private readonly List<SushiDishCardView> cards = new List<SushiDishCardView>();
@@ -28,6 +34,13 @@ public class CustomerRecipeView : MonoBehaviour
     private Image.Type defaultOrderBoardType;
     private Image orderBoardImage;
     private bool hasCachedOrderBoard;
+    private HorizontalLayoutGroup orderLayout;
+    private int defaultRightPadding;
+    private float cellHeight;
+    private float boardInnerHeight;
+    private bool wideBoard;
+    private float columnSpacing;
+    private readonly Vector3[] boardCorners = new Vector3[4];
 
     // Lấy thẻ hiển thị tương ứng với chỉ số đơn món, kể cả các phần dùng chung thẻ.
     public SushiDishCardView CardAt(int index) => dishCards[index];
@@ -61,19 +74,20 @@ public class CustomerRecipeView : MonoBehaviour
             if (group == null) { group = new List<SushiDishOrder>(); groups.Add(group); }
             group.Add(dish);
         }
-        // Order thường: các món xếp 1 cột dọc; mở chi tiết mới chia 2 cột ô (xem SetAllExpanded).
+        // Order thường: 1–2 món xếp 1 cột dọc; từ 3 món dùng bảng 2 cột (2x2, 2x3) như khi xem chi tiết.
         ConfigureOrderBoard(groups.Count, false);
-        rightColumn.gameObject.SetActive(false);
         for (int i = 0; i < groups.Count; i++)
         {
             SushiDishCardView card = Instantiate(cardTemplate, leftColumn, false);
             card.name = groups[i][0].Recipe.Name;
             card.BindGroup(owner, groups[i], art);
+            card.SetCellHeight(cellHeight);
             card.gameObject.SetActive(true);
             cards.Add(card);
         }
         foreach (var dish in customer.Dishes)
             dishCards.Add(cards[groups.FindIndex(g => g[0].Recipe.Key == dish.Recipe.Key)]);
+        ArrangeColumns(UsesTwoColumns(cards.Count, false));
         LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
         RefreshOrderLayout();
         customer.OnOrderChanged += Refresh;
@@ -87,7 +101,7 @@ public class CustomerRecipeView : MonoBehaviour
     public void SetSeated(bool seated)
     {
         if (orderRoot != null) orderRoot.gameObject.SetActive(true);
-        bool changed = false;
+        bool changed = ApplyRushPadding();
         foreach (var card in cards)
             if (!card.gameObject.activeSelf) { card.gameObject.SetActive(true); changed = true; }
         if (!seated && AnyExpanded) { SetAllExpanded(false); return; }
@@ -142,11 +156,12 @@ public class CustomerRecipeView : MonoBehaviour
         }
     }
 
-    // Chi tiết: món chia đều 2 cột (món 1,3,5 bên trái; 2,4 bên phải), mỗi món một ô nguyên liệu xếp dọc.
-    // Thu gọn: tất cả về 1 cột.
-    private void SetAllExpanded(bool expanded)
+    // Bảng 2 cột khi: xem chi tiết từ 2 món, hoặc order thường từ 3 món. Còn lại dùng bảng 1 cột.
+    private static bool UsesTwoColumns(int orderCount, bool detail) => orderCount > (detail ? 1 : 2);
+
+    // Chia món vào cột theo thứ tự đọc từ trái sang phải, trên xuống dưới (món 1,3,5 bên trái; 2,4,6 bên phải).
+    private void ArrangeColumns(bool twoColumns)
     {
-        bool twoColumns = expanded && cards.Count > 1;
         for (int i = 0; i < cards.Count; i++)
         {
             Transform column = twoColumns && i % 2 == 1 ? rightColumn : leftColumn;
@@ -155,9 +170,33 @@ public class CustomerRecipeView : MonoBehaviour
         // Giữ đúng thứ tự món trong từng cột.
         for (int i = 0; i < cards.Count; i++) cards[i].transform.SetAsLastSibling();
         rightColumn.gameObject.SetActive(twoColumns);
+    }
+
+    // Chi tiết: mỗi món một ô nguyên liệu xếp dọc. Thu gọn: hình món, 1 cột (1–2 món) hoặc 2 cột (từ 3 món).
+    private void SetAllExpanded(bool expanded)
+    {
+        bool twoColumns = UsesTwoColumns(cards.Count, expanded);
+        ArrangeColumns(twoColumns);
         ConfigureOrderBoard(cards.Count, expanded);
+        if (expanded)
+        {
+            FitDetailCells(leftColumn);
+            if (twoColumns) FitDetailCells(rightColumn);
+        }
         foreach (SushiDishCardView card in cards) card.SetRecipeExpanded(expanded && !card.IsOrderComplete);
         RefreshOrderLayout();
+    }
+
+    // Xem chi tiết: các ô trong một cột chia đều trọn chiều cao bảng (cột 1 món thì ô cao hết bảng),
+    // nên ô luôn khít bảng và bảng không phải dài ra theo số nguyên liệu.
+    private void FitDetailCells(Transform column)
+    {
+        int count = 0;
+        foreach (SushiDishCardView card in cards) if (card.transform.parent == column) count++;
+        if (count == 0) return;
+        float height = (boardInnerHeight - columnSpacing * (count - 1)) / count;
+        foreach (SushiDishCardView card in cards)
+            if (card.transform.parent == column) card.SetCellHeight(height);
     }
 
     // Đổi trạng thái chọn mục tiêu nam châm và cập nhật màu các thẻ món.
@@ -197,7 +236,7 @@ public class CustomerRecipeView : MonoBehaviour
     {
         if (orderRoot == null) return;
         float requiredHeight = Mathf.Max(GetColumnHeight(leftColumn), GetColumnHeight(rightColumn));
-        HorizontalLayoutGroup layout = orderRoot.GetComponent<HorizontalLayoutGroup>();
+        HorizontalLayoutGroup layout = orderLayout != null ? orderLayout : orderRoot.GetComponent<HorizontalLayoutGroup>();
         if (layout != null) requiredHeight += layout.padding.top + layout.padding.bottom;
         float targetHeight = Mathf.Max(collapsedOrderHeight, requiredHeight);
         orderRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, targetHeight);
@@ -240,10 +279,13 @@ public class CustomerRecipeView : MonoBehaviour
         defaultOrderPosition = orderRoot.anchoredPosition;
         defaultOrderBoard = orderBoardImage.sprite;
         defaultOrderBoardType = orderBoardImage.type;
+        orderLayout = orderRoot.GetComponent<HorizontalLayoutGroup>();
+        defaultRightPadding = orderLayout != null ? orderLayout.padding.right : 0;
         hasCachedOrderBoard = true;
     }
 
-    // Chọn hình bảng theo số món: order thường 1 cột (1x2, 1x3), xem chi tiết 2 cột (2x2, 2x3).
+    // Chọn hình bảng theo số món: 1 cột (1x2) cho 1–2 món, 2 cột (2x2, từ 5 món là 2x3) cho 3 món trở lên
+    // và cho mọi bảng chi tiết từ 2 món.
     private void ConfigureOrderBoard(int orderCount, bool detail)
     {
         if (!hasCachedOrderBoard)
@@ -253,22 +295,23 @@ public class CustomerRecipeView : MonoBehaviour
         }
 
         Sprite board;
-        float height;
-        if (!detail || orderCount <= 1)
+        int rows;
+        wideBoard = UsesTwoColumns(orderCount, detail);
+        if (!wideBoard)
         {
-            bool tall = orderCount > 2 && oneColumnThreeRowsBoard != null;
-            board = tall ? oneColumnThreeRowsBoard : oneColumnTwoRowsBoard;
-            height = tall ? 248f : 184f;
+            board = oneColumnTwoRowsBoard;
+            // Một món thì ô chiếm trọn bảng để hình món nằm giữa và to nhất có thể.
+            rows = Mathf.Clamp(orderCount, 1, 2);
         }
         else if (orderCount <= 4)
         {
             board = twoColumnTwoRowsBoard;
-            height = 184f;
+            rows = 2;
         }
         else
         {
             board = twoColumnThreeRowsBoard;
-            height = 248f;
+            rows = 3;
         }
 
         if (board == null)
@@ -278,11 +321,71 @@ public class CustomerRecipeView : MonoBehaviour
         }
         orderBoardImage.sprite = board;
         orderBoardImage.type = Image.Type.Simple;
-        float width = height * board.bounds.size.x / board.bounds.size.y;
-        orderRoot.sizeDelta = new Vector2(width, height);
+        // Native size của sprite; mép dưới cố định (pivot đáy trong prefab) nên bảng cao hơn chỉ dài lên trên.
+        orderBoardImage.SetNativeSize();
+        Vector2 size = orderRoot.sizeDelta;
+        if (wideBoard && wideBoardWidth > 0)
+        {
+            // Bảng 2 cột ở native size (307) che mất khách ghế bên cạnh: thu bề ngang cho vừa khoảng giữa hai khách,
+            // giữ chiều cao bằng bảng 1 cột. Sprite có viền 9-slice nên góc bo không bị méo.
+            if (board.border.sqrMagnitude > 0) orderBoardImage.type = Image.Type.Sliced;
+            size = new Vector2(wideBoardWidth, Mathf.Min(size.y, maxBoardHeight));
+        }
+        else if (size.y > maxBoardHeight) size *= maxBoardHeight / size.y;
+        orderRoot.sizeDelta = size;
         orderRoot.anchoredPosition = defaultOrderPosition;
-        collapsedOrderHeight = height;
+        collapsedOrderHeight = size.y;
         hasCachedOrderHeight = true;
+
+        float spacing = 0;
+        VerticalLayoutGroup column = leftColumn != null ? leftColumn.GetComponent<VerticalLayoutGroup>() : null;
+        if (column != null) spacing = column.spacing;
+        float inner = size.y;
+        ApplyRushPadding();
+        if (orderLayout != null) inner -= orderLayout.padding.top + orderLayout.padding.bottom;
+        // Chia đều chiều cao bảng cho số hàng để thẻ món (và hình món) lấp đầy bảng.
+        boardInnerHeight = inner;
+        columnSpacing = spacing;
+        cellHeight = (inner - spacing * (rows - 1)) / rows;
+        foreach (SushiDishCardView card in cards) card.SetCellHeight(cellHeight);
+        KeepBoardOnScreen();
+    }
+
+    // Khách có thể đổi ghế hoặc còn đang đi vào, nên bảng 2 cột được giữ trong màn hình theo từng khung hình.
+    private void LateUpdate() => KeepBoardOnScreen();
+
+    // Khách thường: lề hai bên cân nhau, hình món nằm giữa bảng. Khách vội: lề phải rộng hơn chừa thanh thời gian.
+    // Trả về true khi lề đổi (trạng thái vội được gán sau khi dựng bảng).
+    private bool ApplyRushPadding()
+    {
+        if (orderLayout == null) return false;
+        int right = customer != null && customer.IsRush ? rushRightPadding : orderLayout.padding.left;
+        if (orderLayout.padding.right == right) return false;
+        orderLayout.padding.right = right;
+        return true;
+    }
+
+    // Bảng 2 cột rộng của khách đang ngồi: đẩy ngang vào trong nếu tràn mép màn hình, trả về chỗ cũ khi hết tràn.
+    private void KeepBoardOnScreen()
+    {
+        if (!hasCachedOrderBoard || orderRoot == null) return;
+        float targetX = defaultOrderPosition.x;
+        Transform parent = orderRoot.parent;
+        Camera view = wideBoard && customer != null && customer.IsSeated ? Camera.main : null;
+        float scale = parent != null ? parent.lossyScale.x : 0f;
+        if (view != null && view.orthographic && Mathf.Abs(scale) > 0.0001f)
+        {
+            float halfWidth = view.orthographicSize * view.aspect - 0.1f;
+            float left = view.transform.position.x - halfWidth, right = view.transform.position.x + halfWidth;
+            // Tính mép bảng như khi đang ở vị trí gốc để không cộng dồn độ lệch qua từng khung hình.
+            float current = (orderRoot.anchoredPosition.x - defaultOrderPosition.x) * scale;
+            orderRoot.GetWorldCorners(boardCorners);
+            float boardLeft = boardCorners[0].x - current, boardRight = boardCorners[2].x - current;
+            if (boardRight > right) targetX += (right - boardRight) / scale;
+            else if (boardLeft < left) targetX += (left - boardLeft) / scale;
+        }
+        if (Mathf.Abs(orderRoot.anchoredPosition.x - targetX) > 0.01f)
+            orderRoot.anchoredPosition = new Vector2(targetX, orderRoot.anchoredPosition.y);
     }
 
     // Phục hồi hình ảnh và bố cục bảng đơn về cấu hình ban đầu.
@@ -293,6 +396,7 @@ public class CustomerRecipeView : MonoBehaviour
         orderRoot.anchoredPosition = defaultOrderPosition;
         orderBoardImage.sprite = defaultOrderBoard;
         orderBoardImage.type = defaultOrderBoardType;
+        if (orderLayout != null) orderLayout.padding.right = defaultRightPadding;
         collapsedOrderHeight = defaultOrderSize.y;
         LayoutRebuilder.ForceRebuildLayoutImmediate(orderRoot);
     }

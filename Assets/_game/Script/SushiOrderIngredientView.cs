@@ -14,7 +14,9 @@ public sealed class SushiOrderIngredientView : MonoBehaviour
     [SerializeField] private Color incomingTextColor;
     [SerializeField] private Color completedTextColor;
     private LayoutElement imageLayout;
+    private LayoutElement itemLayout;
     private float defaultImageHeight;
+    private float defaultItemHeight;
     private bool hasCachedImageHeight;
     private bool recipeDisplay;
     private bool isComplete;
@@ -49,23 +51,26 @@ public sealed class SushiOrderIngredientView : MonoBehaviour
     }
 
     // Chuyển sang chế độ xem công thức, ẩn tiến độ và điều chỉnh chiều cao biểu tượng.
-    public void SetRecipeDisplay(bool active)
+    // height > 0: thẻ món ấn định chiều cao layout của nguyên liệu để vừa khít ô chi tiết.
+    public void SetRecipeDisplay(bool active, float height = 0)
     {
         recipeDisplay = active;
         progress.gameObject.SetActive(!active);
         if (imageLayout == null) imageLayout = image.GetComponent<LayoutElement>();
+        if (itemLayout == null) itemLayout = GetComponent<LayoutElement>();
+        if (!hasCachedImageHeight)
+        {
+            defaultImageHeight = imageLayout != null ? imageLayout.preferredHeight : 0;
+            defaultItemHeight = itemLayout != null ? itemLayout.preferredHeight : 0;
+            hasCachedImageHeight = true;
+        }
+        bool fitted = active && height > 0;
+        if (itemLayout != null) itemLayout.preferredHeight = fitted ? height : defaultItemHeight;
         if (imageLayout != null)
         {
-            if (!hasCachedImageHeight)
-            {
-                defaultImageHeight = imageLayout.preferredHeight;
-                hasCachedImageHeight = true;
-            }
-            LayoutElement itemLayout = GetComponent<LayoutElement>();
-            float availableHeight = itemLayout != null && itemLayout.preferredHeight > 0
-                ? itemLayout.preferredHeight - 4 : defaultImageHeight + 10;
-            imageLayout.preferredHeight = active
-                ? Mathf.Min(defaultImageHeight + 10, availableHeight)
+            float availableHeight = defaultItemHeight > 0 ? defaultItemHeight - 4 : defaultImageHeight + 10;
+            imageLayout.preferredHeight = fitted ? height
+                : active ? Mathf.Min(defaultImageHeight + 10, availableHeight)
                 : defaultImageHeight;
         }
         RefreshImageColor();

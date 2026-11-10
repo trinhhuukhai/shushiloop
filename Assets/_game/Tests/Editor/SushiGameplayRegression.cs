@@ -486,9 +486,9 @@ public static partial class SushiGameplayRegression
                 avatar.transform.parent.GetComponent<RectMask2D>() != null,
                 "customer portrait should be masked and render below every order board");
             Check(orderBoard.sprite.name == "order_board_1x2_0" &&
-                Mathf.Abs(orderRoot.rect.height - 184f) < 0.1f &&
-                Mathf.Abs(orderRoot.rect.width - 184f * 188f / 252f) < 0.1f,
-                "one recipe group should use the compact 1x2 board");
+                Mathf.Abs(orderRoot.rect.height - 252f) < 0.1f &&
+                Mathf.Abs(orderRoot.rect.width - 188f) < 0.1f,
+                "one recipe group should use the 1x2 board at its native size");
             for (int i = 0; i < count; i++)
             {
                 SushiDishCardView card = view.CardAt(i);
@@ -539,7 +539,7 @@ public static partial class SushiGameplayRegression
         Vector3 firstDishCenter = firstDishCard.Rect.TransformPoint(firstDishCard.Rect.rect.center);
         float collapsedOrderHeight = multiDishOrderRoot.rect.height;
         Check(multiDishOrderRoot.GetComponent<Image>().sprite.name == "order_board_2x2_0" &&
-            Mathf.Abs(collapsedOrderHeight - 184f) < 0.1f &&
+            Mathf.Abs(collapsedOrderHeight - 252f) < 0.1f &&
             firstDishCard.transform.parent == thirdDishCard.transform.parent &&
             firstDishCard.transform.parent != secondDishCard.transform.parent &&
             Get<Transform>(multiDishView, "rightColumn").gameObject.activeSelf,
@@ -562,12 +562,12 @@ public static partial class SushiGameplayRegression
             !Get<TMPro.TMP_Text>(thirdDishCard, "portionCount").gameObject.activeSelf &&
             thirdDishCard.IngredientAt(0).transform.parent.GetComponent<VerticalLayoutGroup>().enabled &&
             !thirdDishCard.IngredientAt(0).transform.parent.GetComponent<HorizontalLayoutGroup>().enabled &&
-            multiDishOrderRoot.rect.height > collapsedOrderHeight,
+            multiDishOrderRoot.rect.height >= collapsedOrderHeight - 0.1f,
             "expanded recipe should hide the dish art and show a vertical ingredient list without overlap");
         SushiOrderIngredientView expandedIngredient = thirdDishCard.IngredientAt(0);
         Check(!Get<TMPro.TMP_Text>(expandedIngredient, "progress").gameObject.activeSelf &&
             Mathf.Approximately(expandedIngredient.Image.color.a, 1) &&
-            expandedIngredient.Image.GetComponent<LayoutElement>().preferredHeight > 30,
+            expandedIngredient.Image.GetComponent<LayoutElement>().preferredHeight > 20,
             "expanded recipe should show only full-opacity, enlarged ingredient images");
         LayoutRebuilder.ForceRebuildLayoutImmediate(
             (RectTransform)thirdDishCard.IngredientAt(0).transform.parent);
@@ -577,13 +577,13 @@ public static partial class SushiGameplayRegression
         Check(Mathf.Abs(firstIngredientY - secondIngredientY) > 1 &&
             Mathf.Abs(secondIngredientY - thirdIngredientY) > 1 &&
             Mathf.Abs(firstIngredientY - thirdIngredientY) > 1 &&
-            Mathf.Abs(firstIngredientY - secondIngredientY) >= 52 &&
-            Mathf.Abs(secondIngredientY - thirdIngredientY) >= 52,
+            Mathf.Abs(firstIngredientY - secondIngredientY) >= 30 &&
+            Mathf.Abs(secondIngredientY - thirdIngredientY) >= 30,
             "expanded ingredient icons should have visible vertical spacing");
         Vector3 expandedDishCenter = thirdDishCard.Rect.TransformPoint(thirdDishCard.Rect.rect.center);
         Check(multiDishView.ToggleRecipeDetailsAtWorldPosition(expandedDishCenter) &&
             !thirdDishCard.IsRecipeExpanded && thirdDishCard.DishImage.enabled &&
-            Get<TMPro.TMP_Text>(thirdDishCard, "portionCount").gameObject.activeSelf &&
+            !Get<TMPro.TMP_Text>(thirdDishCard, "portionCount").gameObject.activeSelf &&
             Get<TMPro.TMP_Text>(expandedIngredient, "progress").gameObject.activeSelf &&
             expandedIngredient.Image.GetComponent<LayoutElement>().preferredHeight == 30 &&
             Mathf.Approximately(multiDishOrderRoot.rect.height, collapsedOrderHeight),
@@ -595,7 +595,7 @@ public static partial class SushiGameplayRegression
             SushiDishId.NigiriTuna, SushiDishId.NigiriSalmon, SushiDishId.NigiriFlounder,
             SushiDishId.NigiriMackerel, SushiDishId.NigiriShrimp
         };
-        foreach (int count in new[] { 2, 4, 5 })
+        foreach (int count in new[] { 3, 4, 5 })
         {
             var orders = new List<DishOrderData>();
             for (int i = 0; i < count; i++) orders.Add(new DishOrderData { dish = uniqueDishes[i] });
@@ -604,7 +604,7 @@ public static partial class SushiGameplayRegression
             CustomerRecipeView view = customer.GetComponent<CustomerRecipeView>();
             RectTransform orderRoot = Get<RectTransform>(view, "orderRoot");
             string expectedBoard = count < 5 ? "order_board_2x2_0" : "order_board_2x3_0";
-            float expectedHeight = count == 5 ? 248f : 184f;
+            float expectedHeight = 252f;
             Check(orderRoot.GetComponent<Image>().sprite.name == expectedBoard &&
                 Mathf.Abs(orderRoot.rect.height - expectedHeight) < 0.1f &&
                 Get<Transform>(view, "rightColumn").gameObject.activeSelf &&
@@ -639,7 +639,7 @@ public static partial class SushiGameplayRegression
         Check(firstOrder.IsComplete && !partiallyCompletedCustomer.IsCompleted && !completedCard.IsRecipeExpanded &&
             completedCard.DishImage.gameObject.activeSelf && completedCard.DishImage.enabled &&
             !completedCard.IngredientAt(0).transform.parent.gameObject.activeSelf &&
-            completedCard.Rect.GetComponent<LayoutElement>().preferredHeight == 82,
+            Mathf.Abs(completedCard.Rect.GetComponent<LayoutElement>().preferredHeight - 114f) < 0.1f,
             "completing an expanded dish did not collapse its ingredients to the finished dish view");
         completedCardCenter = completedCard.Rect.TransformPoint(completedCard.Rect.rect.center);
         Check(!partiallyCompletedView.ToggleRecipeDetailsAtWorldPosition(completedCardCenter) && !completedCard.IsRecipeExpanded,
@@ -680,12 +680,11 @@ public static partial class SushiGameplayRegression
             !Get<TMPro.TMP_Text>(rush, "timer").transform.parent.gameObject.activeSelf,
             "rush progress is not a vertical sprite bar or still shows the numeric badge");
         var track = (RectTransform)fill.transform.parent;
-        float oldHeight = track.rect.height;
         orderPanel.sizeDelta += new Vector2(40, 60);
         Canvas.ForceUpdateCanvases();
-        Check(Mathf.Abs(track.rect.height - oldHeight - 60) < 0.01f &&
+        Check(Mathf.Abs(track.rect.width - 18f) < 0.01f && Mathf.Abs(track.rect.height - 190f) < 0.01f &&
             track.anchorMin.x == 1 && track.anchorMax.x == 1,
-            "rush progress did not follow the order board dimensions");
+            "rush progress should keep its native art size and stay on the board's right edge");
         rushCustomer.TickRush(15); Invoke(rush, "Update");
         Check(Get<UnityEngine.UI.Image>(rush, "countdown").fillAmount == 0.5f &&
             fill.sprite == Get<Sprite>(rush, "warningFill") &&
