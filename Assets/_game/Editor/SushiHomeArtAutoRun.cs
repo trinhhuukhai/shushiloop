@@ -36,6 +36,31 @@ internal static class SushiHomeArtAutoRun
                 else if (what == "pages") SushiHomeArtSetup.SetupPages();
                 else if (what == "safearea") SushiHomeArtSetup.PatchSafeArea();
                 else if (what == "swipe") SushiHomeArtSetup.PatchSwipe();
+                else if (what == "reserializelevels")
+                {
+                    var paths = new System.Collections.Generic.List<string>();
+                    foreach (string guid in AssetDatabase.FindAssets("t:SushiLevelData")) paths.Add(AssetDatabase.GUIDToAssetPath(guid));
+                    AssetDatabase.ForceReserializeAssets(paths);
+                    Directory.CreateDirectory("Temp/HomeArt");
+                    File.WriteAllText("Temp/HomeArt/result.txt", "OK reserialize " + paths.Count);
+                    return;
+                }
+                else if (what == "bakeboards")
+                {
+                    int baked = 0;
+                    foreach (string guid in AssetDatabase.FindAssets("t:SushiLevelData"))
+                    {
+                        var level = AssetDatabase.LoadAssetAtPath<SushiLevelData>(AssetDatabase.GUIDToAssetPath(guid));
+                        if (level == null || (level.boardColumns != null && level.boardColumns.Count > 0)) continue;
+                        level.boardColumns = level.CreateBoardData();
+                        EditorUtility.SetDirty(level);
+                        baked++;
+                    }
+                    AssetDatabase.SaveAssets();
+                    Directory.CreateDirectory("Temp/HomeArt");
+                    File.WriteAllText("Temp/HomeArt/result.txt", "OK bake " + baked);
+                    return;
+                }
                 else if (what == "dishcard")
                 {
                     SushiIngameDemoLayout.PatchDishCard();

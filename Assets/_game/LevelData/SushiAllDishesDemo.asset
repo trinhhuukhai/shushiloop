@@ -14,16 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   TypeLevel: 0
   number: 51
-  levelName: All 64 dishes
-  hint: "\u0110\u1EE7 64 m\xF3n trong catalog, m\u1ED7i m\xF3n m\u1ED9t ph\u1EA7n.
-    Nguy\xEAn li\u1EC7u x\u1EBFp theo th\u1EE9 t\u1EF1 kh\xE1ch, kh\xF4ng c\xF3 kh\xE1ch
-    v\u1ED9i ho\u1EB7c ch\u01B0\u1EDBng ng\u1EA1i."
   beltSlots: 14
   loopsPerSecond: 0.08
-  numberColumns: 4
-  boardSeed: 20261102
-  shuffleFoods: 0
-  maxIngredientsPerTile: 1
   customers:
   - rushCustomer: 0
     rushSeconds: 0

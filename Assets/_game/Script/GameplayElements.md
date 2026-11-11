@@ -130,8 +130,8 @@ Kết quả lịch sử trước khi mở rộng/thêm khách vội: ngày 26/10
 ## Cấu hình ô ×n
 
 - `FoodData.amount`: 1–3 nguyên liệu cùng loại trong một ô. Khi tap, toàn bộ số lượng chiếm từng slot riêng, gồm các slot đang giữ cho nguyên liệu đang bay. Thiếu slot thì giữ nguyên board.
-- `SushiLevelData.maxIngredientsPerTile`: sinh ô ×n từ tổng nguyên liệu của `dishes`; giá trị 1 tạo từng nguyên liệu riêng. Level mẫu đã đặt 2 để kiểm tra ×2.
-- `boardColumns`: cấu hình board trực tiếp; phần tử `foods[0]` là hàng 1. Không shuffle board nhập trực tiếp. Để trống để sinh từ `dishes`. Tổng theo từng loại, tính cả amount, phải khớp các món khách gọi.
+- Level không còn các trường `levelName`, `hint`, `numberColumns`, `boardSeed`, `shuffleFoods`, `maxIngredientsPerTile` (11/11/2026). Số cột = số phần tử `boardColumns`. Khi thêm ô hoặc sinh lại board trong Level Editor, "Max ×/ô", trộn và seed là tuỳ chọn của cửa sổ công cụ, không lưu vào level.
+- `boardColumns` (bắt buộc): cấu hình board trực tiếp; phần tử `foods[0]` là hàng 1. Tổng theo từng loại, tính cả amount, phải khớp các món khách gọi. Board ingame có 4 cột cố định; level ít cột hơn được thêm cột trống khi chơi.
 - Cấu hình element trực tiếp bằng `foodState`, `hidden`, `iceLayers`, `linkId`, `trayId` của từng ô trong `boardColumns[].foods[]`. Đã bỏ danh sách `modifiers` và lớp `FoodModifierData` không dùng trong các asset.
 - Vùng hiển thị và vùng băng chịu sát thương chỉ có 4 hàng đầu. Collider tự cập nhật theo số hàng hiện tại.
 

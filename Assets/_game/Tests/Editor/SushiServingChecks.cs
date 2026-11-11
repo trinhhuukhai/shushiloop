@@ -33,7 +33,7 @@ public static class SushiServingChecks
         var levels = DataManager.ins.allLevelData.listAllLevel;
         var original = levels[0];
         var data = ScriptableObject.CreateInstance<SushiLevelData>();
-        data.number = 20; data.levelName = "Plated serving regression"; data.numberColumns = 3;
+        data.number = 20;
         data.beltSlots = 8; data.loopsPerSecond = 0.3f;
         data.customers.Add(Order(SushiDishId.NigiriShrimp, 2));
         data.customers.Add(Order(SushiDishId.NigiriSalmon, 1));

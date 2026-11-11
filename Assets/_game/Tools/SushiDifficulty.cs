@@ -90,7 +90,7 @@ public static class SushiDifficulty
         var r = new Result { targetLoss = TargetLoss(k) };
         var m = Build(level, seats, out string err);
         if (m == null) { r.message = err; return r; }
-        Fill(r, m, level.boardSeed + k * 131);
+        Fill(r, m, level.number * 1000 + k * 131);
         r.ok = true;
         r.message = "Đã chấm điểm board hiện tại.";
         return r;
@@ -139,7 +139,7 @@ public static class SushiDifficulty
         }
 
         // 2) Annealing.
-        int seed = level.boardSeed + k * 131;
+        int seed = level.number * 1000 + k * 131;
         var rnd = new System.Random(seed);
         float target = r.targetLoss;
         float cur = LossRate(m, seed, PlayoutsPerEval);

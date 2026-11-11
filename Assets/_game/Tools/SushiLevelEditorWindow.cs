@@ -16,6 +16,12 @@ using UnityEngine;
 /// </summary>
 public class SushiLevelEditorWindow : EditorWindow
 {
+    // Board ingame có 4 cột cố định.
+    private const int BoardColumnCount = 4;
+    // Tuỳ chọn công cụ khi thêm ô mới / sinh lại board (chỉ trong cửa sổ, không lưu vào level).
+    private int newTileAmount = 2;
+    private bool shuffleOnRebuild = true;
+    private int rebuildSeed = 1;
     private enum Element { Normal, Ice, Hidden, Link, Tray }
     private enum IconKind { Dish, Ingredient }
 
@@ -500,19 +506,16 @@ public class SushiLevelEditorWindow : EditorWindow
         EditorGUILayout.BeginVertical("box");
         level.TypeLevel = (TypeLevel)EditorGUILayout.EnumPopup("Type Level", level.TypeLevel);
         level.number = Mathf.Max(1, EditorGUILayout.IntField("Số level", level.number));
-        level.levelName = EditorGUILayout.TextField("Tên level", level.levelName);
-        EditorGUILayout.LabelField("Hint");
-        level.hint = EditorGUILayout.TextArea(level.hint, GUILayout.MinHeight(34));
         level.beltSlots = Mathf.Max(6, EditorGUILayout.IntField("Belt slots", level.beltSlots));
         level.loopsPerSecond = EditorGUILayout.Slider("Vòng/giây", level.loopsPerSecond, 0.02f, 0.3f);
+        EditorGUILayout.LabelField("Board", BoardColumnCount + " cột cố định");
 
-        EditorGUI.BeginChangeCheck();
-        level.numberColumns = EditorGUILayout.IntSlider("Số cột board", level.numberColumns, 1, 6);
-        if (EditorGUI.EndChangeCheck()) pending.Add(EnsureColumns);
-
-        level.boardSeed = EditorGUILayout.IntField("Board seed", level.boardSeed);
-        level.shuffleFoods = EditorGUILayout.Toggle("Shuffle foods", level.shuffleFoods);
-        level.maxIngredientsPerTile = EditorGUILayout.IntSlider("Max ×/ô (ô mới)", level.maxIngredientsPerTile, 1, 3);
+        // Tuỳ chọn của công cụ khi thêm ô / sinh lại board (không lưu vào level).
+        EditorGUILayout.Space(2);
+        EditorGUILayout.LabelField("Công cụ sinh board (không lưu vào level)", EditorStyles.miniBoldLabel);
+        newTileAmount = EditorGUILayout.IntSlider("Max ×/ô (ô mới)", newTileAmount, 1, 3);
+        shuffleOnRebuild = EditorGUILayout.Toggle("Trộn khi sinh lại", shuffleOnRebuild);
+        rebuildSeed = EditorGUILayout.IntField("Seed sinh lại", rebuildSeed);
         EditorGUILayout.EndVertical();
 
         DrawIconSettings();
@@ -772,7 +775,7 @@ public class SushiLevelEditorWindow : EditorWindow
 
     private bool BoardReady()
     {
-        int n = Mathf.Clamp(level.numberColumns, 1, 6);
+        int n = BoardColumnCount;
         if (level.boardColumns == null || level.boardColumns.Count != n) return false;
         int tiles = 0;
         foreach (var c in level.boardColumns)
@@ -1119,7 +1122,7 @@ public class SushiLevelEditorWindow : EditorWindow
                 add -= take;
             }
             // Bước 2: còn dư thì sinh ô mới vào cột ngắn nhất.
-            int per = Mathf.Clamp(level.maxIngredientsPerTile, 1, 3);
+            int per = Mathf.Clamp(newTileAmount, 1, 3);
             while (add > 0)
             {
                 int amt = Mathf.Min(per, add);
@@ -1303,10 +1306,10 @@ public class SushiLevelEditorWindow : EditorWindow
         return d;
     }
 
-    /// Đảm bảo số cột = numberColumns, dồn ô của cột thừa sang cột khác.
+    /// Đảm bảo board đúng BoardColumnCount cột, dồn ô của cột thừa sang cột khác.
     private void EnsureColumns()
     {
-        int n = Mathf.Clamp(level.numberColumns, 1, 6);
+        int n = BoardColumnCount;
         if (level.boardColumns == null) level.boardColumns = new List<FoodQueueData>();
         for (int i = 0; i < level.boardColumns.Count; i++)
         {
@@ -1355,7 +1358,7 @@ public class SushiLevelEditorWindow : EditorWindow
             int need = expected[t] - have;
             while (need > 0)
             {
-                int amt = Mathf.Min(Mathf.Clamp(level.maxIngredientsPerTile, 1, 3), need);
+                int amt = Mathf.Min(Mathf.Clamp(newTileAmount, 1, 3), need);
                 AddToShortest(new FoodData { typeFood = t, amount = amt });
                 need -= amt;
             }
@@ -1387,7 +1390,7 @@ public class SushiLevelEditorWindow : EditorWindow
         }
     }
 
-    /// Xóa board và sinh lại từ khách (shuffle theo boardSeed, chia đều theo cột như SushiLevelData).
+    /// Xóa board và sinh lại từ khách (trộn theo seed của công cụ, chia đều 4 cột).
     private void RebuildBoard()
     {
         level.boardColumns = new List<FoodQueueData>();
@@ -1396,7 +1399,7 @@ public class SushiLevelEditorWindow : EditorWindow
         var order = new List<PoolType>();
         var expected = Expected(order);
         var tiles = new List<FoodData>();
-        int per = Mathf.Clamp(level.maxIngredientsPerTile, 1, 3);
+        int per = Mathf.Clamp(newTileAmount, 1, 3);
         foreach (var t in order)
         {
             int remaining = expected[t];
@@ -1407,9 +1410,9 @@ public class SushiLevelEditorWindow : EditorWindow
                 remaining -= amt;
             }
         }
-        if (level.shuffleFoods)
+        if (shuffleOnRebuild)
         {
-            var rnd = new System.Random(level.boardSeed);
+            var rnd = new System.Random(rebuildSeed);
             for (int i = tiles.Count - 1; i > 0; i--)
             {
                 int j = rnd.Next(i + 1);

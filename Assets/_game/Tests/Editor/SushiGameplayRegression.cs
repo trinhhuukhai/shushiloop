@@ -1837,7 +1837,7 @@ public static partial class SushiGameplayRegression
     }
     private static SushiLevelData ValidLevel()
     {
-        var data = ScriptableObject.CreateInstance<SushiLevelData>(); data.number = 46; data.numberColumns = 2;
+        var data = ScriptableObject.CreateInstance<SushiLevelData>(); data.number = 46;
         data.customers = new List<CustomerOrderData> { Order(SushiDishId.NigiriEgg, 1), Order(SushiDishId.NigiriEgg, 1) };
         data.boardColumns = new List<FoodQueueData> { new FoodQueueData { foods = new List<FoodData> { Food(amount: 2) } },
             new FoodQueueData { foods = new List<FoodData> { Food(PoolType.Egg, 2) } } };
@@ -1863,7 +1863,6 @@ public static partial class SushiGameplayRegression
     {
         var data = ScriptableObject.CreateInstance<SushiLevelData>();
         data.number = number;
-        data.numberColumns = columns.Length;
         data.boardColumns = new List<FoodQueueData>();
         data.customers = new List<CustomerOrderData>();
         var totals = new Dictionary<PoolType, int>();

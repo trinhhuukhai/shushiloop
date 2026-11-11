@@ -14,15 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   TypeLevel: 0
   number: 6
-  levelName: "Cu\u1ED9n maki \u0111\u1EA7u ti\xEAn"
-  hint: "Maki c\u1EA7n rong bi\u1EC3n, c\u01A1m v\xE0 topping. Quan s\xE1t \xF4 ?
-    v\u1EEBa \u0111\u01B0\u1EE3c m\u1EDF."
   beltSlots: 9
   loopsPerSecond: 0.17
-  numberColumns: 4
-  boardSeed: 6000
-  shuffleFoods: 0
-  maxIngredientsPerTile: 2
   customers:
   - rushCustomer: 0
     rushSeconds: 0

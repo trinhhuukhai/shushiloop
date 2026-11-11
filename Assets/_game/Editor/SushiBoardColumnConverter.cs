@@ -40,24 +40,7 @@ public static class SushiBoardColumnConverter
     private static string Convert(SushiLevelData level, out bool changed)
     {
         changed = false;
-        bool authored = level.boardColumns != null && level.boardColumns.Count > 0;
-        int columns = authored ? level.boardColumns.Count : level.numberColumns;
-        if (columns <= TargetColumns) return null;
-
-        if (!authored)
-        {
-            // Board sinh tự động: chỉ cần đổi số cột.
-            var probe = Object.Instantiate(level);
-            probe.numberColumns = TargetColumns;
-            string error = probe.ValidateData();
-            Object.DestroyImmediate(probe);
-            if (error != null) return error;
-            Undo.RecordObject(level, "Convert board to 4 columns");
-            level.numberColumns = TargetColumns;
-            EditorUtility.SetDirty(level);
-            changed = true;
-            return null;
-        }
+        if (level.ColumnCount <= TargetColumns) return null;
 
         List<List<FoodData>> board = level.boardColumns.Select(c => c.foods.Select(f => f.Copy()).ToList()).ToList();
         var moved = new HashSet<FoodData>();
@@ -92,7 +75,6 @@ public static class SushiBoardColumnConverter
         if (failure != null) return failure;
 
         Undo.RecordObject(level, "Convert board to 4 columns");
-        level.numberColumns = TargetColumns;
         level.boardColumns = board.Select(c => new FoodQueueData { foods = c }).ToList();
         EditorUtility.SetDirty(level);
         changed = true;
@@ -159,7 +141,6 @@ public static class SushiBoardColumnConverter
     private static string Validate(SushiLevelData level, List<List<FoodData>> board)
     {
         var probe = Object.Instantiate(level);
-        probe.numberColumns = TargetColumns;
         probe.boardColumns = board.Select(c => new FoodQueueData { foods = c.Select(f => f.Copy()).ToList() }).ToList();
         string error = probe.ValidateData();
         Object.DestroyImmediate(probe);

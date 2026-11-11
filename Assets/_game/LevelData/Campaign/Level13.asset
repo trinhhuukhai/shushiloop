@@ -14,15 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   TypeLevel: 1
   number: 13
-  levelName: "Hai c\u1EB7p k\u1EBFt n\u1ED1i"
-  hint: "\u01AFu ti\xEAn kh\xE1ch \u0111ang ng\u1ED3i, l\xE0m tan b\u0103ng v\xE0
-    c\u0103n c\u1EB7p n\u1ED1i tr\u01B0\u1EDBc khi l\u1EA5y khay."
   beltSlots: 10
   loopsPerSecond: 0.17
-  numberColumns: 4
-  boardSeed: 13001
-  shuffleFoods: 0
-  maxIngredientsPerTile: 2
   customers:
   - rushCustomer: 0
     rushSeconds: 0

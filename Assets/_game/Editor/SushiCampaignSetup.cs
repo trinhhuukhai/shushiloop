@@ -90,7 +90,7 @@ public static class SushiCampaignSetup
                     if (candidate != null) Object.DestroyImmediate(candidate);
                     candidate = Create(number, attempt);
                     ApplyCheckpointRush(candidate);
-                    if (!ApplyElements(candidate, new System.Random(candidate.boardSeed))) continue;
+                    if (!ApplyElements(candidate, new System.Random(candidate.number * 1000 + attempt))) continue;
                     if (SushiCampaignRegression.TrySolve(candidate, out taps, out detail)) break;
                     taps = null;
                 }
@@ -142,16 +142,13 @@ public static class SushiCampaignSetup
         var level = ScriptableObject.CreateInstance<SushiLevelData>();
         level.number = number;
         level.name = "Level" + number.ToString("00");
-        level.levelName = Names[index];
-        level.hint = Hint(number);
         level.TypeLevel = number > 20 ? (number >= 35 ? TypeLevel.SuperHard : TypeLevel.Hard) :
             number >= 18 ? TypeLevel.SuperHard : number >= 13 ? TypeLevel.Hard : TypeLevel.Normal;
-        level.numberColumns = number <= 3 ? 3 : number <= 8 ? 4 : 5;
+        const int columns = 4; // board ingame cố định 4 cột
         level.beltSlots = number <= 4 ? 8 : number <= 6 ? 9 : number <= 13 ? 10 : number <= 16 ? 9 : 8;
         level.loopsPerSecond = number <= 4 ? 0.075f : number <= 10 ? 0.08f : 0.085f;
-        level.maxIngredientsPerTile = number < 4 ? 1 : number < 31 ? 2 : 3;
-        level.shuffleFoods = false;
-        level.boardSeed = number * 1000 + attempt;
+        int perTile = number < 4 ? 1 : number < 31 ? 2 : 3;
+        int seed = number * 1000 + attempt;
         int customerCount = number <= 20 ? Customers[index] : 12 + (number - 20) / 5;
         int dishCount = number <= 20 ? Dishes[index] : 24 + (number - 20) * 2 / 3;
         int rollCount = number <= 20 ? ThreeIngredientDishes[index] :
@@ -185,7 +182,7 @@ public static class SushiCampaignSetup
             level.customers.Add(customer);
         }
         var sequence = new List<FoodData>();
-        var random = new System.Random(level.boardSeed);
+        var random = new System.Random(seed);
         foreach (CustomerOrderData customer in level.customers)
         {
             var batch = new List<FoodData>();
@@ -194,7 +191,7 @@ public static class SushiCampaignSetup
                 int remaining = ingredient.amount;
                 while (remaining > 0)
                 {
-                    int amount = Math.Min(remaining, level.maxIngredientsPerTile);
+                    int amount = Math.Min(remaining, perTile);
                     batch.Add(new FoodData { typeFood = ingredient.typeFood, amount = amount });
                     remaining -= amount;
                 }
@@ -208,14 +205,14 @@ public static class SushiCampaignSetup
         // Small windows overlap adjacent customer orders without burying every opening ingredient.
         int window = number < 8 ? 0 : number < 13 ? 4 : number < 17 ? 6 : number < 31 ? 8 : number < 41 ? 9 : 10;
         if (window > 0)
-            for (int start = level.numberColumns; start < sequence.Count; start += window)
+            for (int start = columns; start < sequence.Count; start += window)
             {
                 int end = Math.Min(sequence.Count, start + window);
                 for (int i = end - 1; i > start; i--)
                 { int next = random.Next(start, i + 1); var swap = sequence[i]; sequence[i] = sequence[next]; sequence[next] = swap; }
             }
-        for (int c = 0; c < level.numberColumns; c++) level.boardColumns.Add(new FoodQueueData());
-        for (int i = 0; i < sequence.Count; i++) level.boardColumns[i % level.numberColumns].foods.Add(sequence[i]);
+        for (int c = 0; c < columns; c++) level.boardColumns.Add(new FoodQueueData());
+        for (int i = 0; i < sequence.Count; i++) level.boardColumns[i % columns].foods.Add(sequence[i]);
         return level;
     }
 
@@ -311,31 +308,10 @@ public static class SushiCampaignSetup
             customer.rushSeconds = Mathf.Max(55, 95 - level.number) + Mathf.Max(0, ingredients - 6) * 4;
         }
         level.TypeLevel = level.number % 10 == 0 ? TypeLevel.SuperHard : TypeLevel.Hard;
-        level.hint += " Ưu tiên khách có đồng hồ; thời gian chỉ chạy khi khách đã ngồi.";
     }
 
     private static bool Plain(FoodData food) => food.foodState == FoodState.Normal &&
         !food.hidden && food.iceLayers == 0 && food.linkId == 0 && food.trayId == 0;
-
-    private static string Hint(int number)
-    {
-        if (number >= 36) return "Giữ chỗ cho khay lớn, làm tan băng dày bằng các cột bên cạnh và phục vụ món đang chờ.";
-        if (number >= 31) return "Ô ×3 chiếm ba slot. Đọc đủ công thức trước khi lấy cả khay.";
-        if (number >= 26) return "Phân biệt sushi, sashimi và trà; ưu tiên nguyên liệu của hai bàn đang ngồi.";
-        if (number >= 21) return "Hoàn thành món đang phục vụ trước khi lấy nguyên liệu cho khách trong hàng chờ.";
-        if (number <= 3) return "Xem món khách gọi và chọn nguyên liệu ở đầu cột.";
-        if (number == 4) return "Ô ×2 cần hai chỗ trống trên băng chuyền. Ưu tiên món khách đang chờ.";
-        if (number == 5) return "Ô dấu ? tự lật khi lên đầu cột. Lấy ô phía trước để khám phá nguyên liệu.";
-        if (number == 6) return "Maki cần rong biển, cơm và topping. Quan sát ô ? vừa được mở.";
-        if (number == 7) return "Lấy nguyên liệu ở cột sát bên để làm tan một lớp băng.";
-        if (number == 8) return "Dọn cột sát ô băng trước, rồi hoàn thành các món đang phục vụ.";
-        if (number == 9) return "Hai ô nối phải cùng lên đầu cột; chạm một ô sẽ lấy cả cặp.";
-        if (number == 10) return "Căn hai đầu cặp nối và để đủ chỗ cho toàn bộ nguyên liệu.";
-        if (number == 11) return "Khay được lấy trọn trong một lần chạm. Chừa chỗ cho cả khay.";
-        if (number <= 14) return "Ưu tiên khách đang ngồi, làm tan băng và căn cặp nối trước khi lấy khay.";
-        if (number <= 16) return "Khay ba ngăn cần nhiều slot. Dọn các món trên băng chuyền trước.";
-        return "Băng chuyền chỉ có 8 slot. Tính cả ô ×2, cặp nối và khay trước mỗi lượt.";
-    }
 
     private static void WriteDesign(List<SushiLevelData> levels, List<List<int>> solutions, List<string> details)
     {
@@ -349,9 +325,9 @@ public static class SushiCampaignSetup
         foreach (var level in levels)
         {
             var foods = level.boardColumns.SelectMany(c => c.foods).ToList();
-            text.AppendLine("| " + level.number + " | " + level.levelName + " | " + level.CustomerCount +
+            text.AppendLine("| " + level.number + " | " + Names[Math.Min(Names.Length - 1, level.number - 1)] + " | " + level.CustomerCount +
                 " | " + level.customers.Sum(c => c.dishes.Sum(d => d.amount)) + " | " + level.GetTotalFoodCount() +
-                " | " + level.numberColumns + " | " + level.beltSlots + " | " + foods.Count(f => f.hidden) +
+                " | " + level.ColumnCount + " | " + level.beltSlots + " | " + foods.Count(f => f.hidden) +
                 " | " + foods.Count(f => f.iceLayers > 0) + " (" + foods.Max(f => f.iceLayers) + ")" +
                 " | " + foods.Where(f => f.linkId > 0).Select(f => f.linkId).Distinct().Count() +
                 " | " + foods.Where(f => f.trayId > 0).Select(f => f.trayId).Distinct().Count() +
@@ -365,7 +341,7 @@ public static class SushiCampaignSetup
         for (int i = 0; i < levels.Count; i++)
         {
             if (solutions[i] == null) continue;
-            text.AppendLine("- Level " + (i + 1) + " (seed " + levels[i].boardSeed + "): " +
+            text.AppendLine("- Level " + (i + 1) + ": " +
                 string.Join(", ", solutions[i].Select(c => (c + 1).ToString())) + ". " + details[i]);
         }
         File.WriteAllText("Documentation/Campaign50.md", text.ToString());

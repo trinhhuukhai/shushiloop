@@ -14,14 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SushiLevelData
   TypeLevel: 0
   number: 46
-  levelName: Elements demo
-  hint: Demo quantity, hidden, frozen, linked, rigid tray and rush customer.
   beltSlots: 14
   loopsPerSecond: 0.05
-  numberColumns: 4
-  boardSeed: 1
-  shuffleFoods: 0
-  maxIngredientsPerTile: 3
   customers:
   - rushCustomer: 1
     rushSeconds: 0

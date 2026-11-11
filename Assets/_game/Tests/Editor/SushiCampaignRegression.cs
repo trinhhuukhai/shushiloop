@@ -53,12 +53,8 @@ public static class SushiCampaignRegression
             SushiLevelData level = campaign.listAllLevel[index];
             Check(level != null && unique.Add(level), "Campaign has a missing or duplicate level.");
             Check(level.number == index + 1, "Level numbering and active campaign order disagree.");
-            Check(level.numberColumns >= 2 && level.numberColumns <= 5,
-                "Level " + level.number + " must use at most five columns.");
-            Check(level.boardColumns != null && level.boardColumns.Count == level.numberColumns,
-                "Campaign boards must be authored explicitly for predictable progression.");
-            Check(!string.IsNullOrWhiteSpace(level.levelName) && !string.IsNullOrWhiteSpace(level.hint),
-                "Every campaign level needs a name and a play hint.");
+            Check(level.ColumnCount >= 2 && level.ColumnCount <= 4,
+                "Level " + level.number + " must use at most four columns (ingame board has 4 fixed columns).");
             string error = level.ValidateData();
             Check(error == null, "Level " + level.number + ": " + error);
             var board = level.CreateBoardData();
@@ -79,7 +75,7 @@ public static class SushiCampaignRegression
             Check(TrySolve(level, out var taps, out string detail),
                 "Level " + level.number + " cannot be completed normally: " + detail);
             Pass("Level " + level.number.ToString("00") + ": " + level.CustomerCount +
-                " customers, " + foodCount + " ingredients, " + level.numberColumns + " columns; hidden " +
+                " customers, " + foodCount + " ingredients, " + level.ColumnCount + " columns; hidden " +
                 hidden + ", ice " + ice + ", linked cells " + linkedCells + ", tray cells " + trayCells +
                 "; " + detail);
         }

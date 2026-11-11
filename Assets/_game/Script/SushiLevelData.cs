@@ -13,20 +13,17 @@ public class SushiLevelData : ScriptableObject
 {
     public const int MaximumIceLayers = 5;
     public TypeLevel TypeLevel;
+    // Board ingame có 4 vị trí cột cố định; level ít cột hơn được thêm cột trống khi chơi.
+    public const int MaximumColumns = 6;
     [Min(1)] public int number = 1;
-    public string levelName;
-    [TextArea] public string hint;
     [Min(6)] public int beltSlots = 14;
-    [Range(0.02f, 0.3f)] public float loopsPerSecond = 0.08f;                                                                                                                                    
-    [Range(1, 6)] public int numberColumns = 4;
-    public int boardSeed = 1;
-    public bool shuffleFoods = true;
-    [Tooltip("Sinh board từ các món khách gọi: gộp tối đa bao nhiêu nguyên liệu cùng loại vào một ô.")]
-    [Range(1, 3)] public int maxIngredientsPerTile = 1;
+    [Range(0.02f, 0.3f)] public float loopsPerSecond = 0.08f;
     public List<CustomerOrderData> customers = new List<CustomerOrderData>();
-    [Tooltip("Để trống để sinh từ dishes của khách. Khi nhập trực tiếp, tổng nguyên liệu phải khớp các món khách gọi. Phần tử 0 là hàng 1; cấu hình element ngay trên từng ô.")]
+    [Tooltip("Board của level (nên 4 cột). Tổng nguyên liệu phải khớp các món khách gọi. Phần tử 0 là hàng 1; cấu hình element ngay trên từng ô.")]
     public List<FoodQueueData> boardColumns = new List<FoodQueueData>();
     public int CustomerCount => customers == null ? 0 : customers.Count;
+    // Số cột board = số cột đã nhập trong boardColumns.
+    public int ColumnCount => boardColumns == null ? 0 : boardColumns.Count;
 
     // Tính tổng số phần nguyên liệu cần phục vụ cho toàn bộ khách trong màn.
     public int GetTotalFoodCount()
@@ -47,59 +44,15 @@ public class SushiLevelData : ScriptableObject
         return BuildBoard();
     }
 
-    // Sao chép bàn thiết kế sẵn hoặc sinh các cột nguyên liệu theo đơn khách và thiết lập màn.
+    // Sao chép board thiết kế sẵn của level cho lần chơi.
     private List<FoodQueueData> BuildBoard()
     {
         var board = new List<FoodQueueData>();
-        if (boardColumns != null && boardColumns.Count > 0)
+        foreach (var column in boardColumns)
         {
-            foreach (var column in boardColumns)
-            {
-                var copy = new FoodQueueData();
-                foreach (var food in column.foods) copy.foods.Add(food.Copy());
-                board.Add(copy);
-            }
-        }
-        else
-        {
-            var amounts = new Dictionary<PoolType, int>();
-            foreach (var customer in customers)
-                foreach (var order in customer.CreateIngredientOrders())
-                {
-                    amounts.TryGetValue(order.typeFood, out int count);
-                    amounts[order.typeFood] = count + order.amount;
-                }
-            var foods = new List<FoodData>();
-            if (maxIngredientsPerTile == 1)
-            {
-                // Giữ nguyên thứ tự sinh/seed của level ×1 đã có.
-                foreach (var customer in customers)
-                    foreach (var order in customer.CreateIngredientOrders())
-                        for (int i = 0; i < order.amount; i++) foods.Add(new FoodData { typeFood = order.typeFood });
-            }
-            // Duyệt enum theo thứ tự cố định để seed không phụ thuộc Dictionary.
-            foreach (PoolType type in Enum.GetValues(typeof(PoolType)))
-            {
-                if (maxIngredientsPerTile == 1) break;
-                amounts.TryGetValue(type, out int remaining);
-                while (remaining > 0)
-                {
-                    int amount = Mathf.Min(maxIngredientsPerTile, remaining);
-                    foods.Add(new FoodData { typeFood = type, amount = amount });
-                    remaining -= amount;
-                }
-            }
-            if (shuffleFoods)
-            {
-                var random = new System.Random(boardSeed);
-                for (int i = foods.Count - 1; i > 0; i--)
-                {
-                    int j = random.Next(i + 1);
-                    FoodData temp = foods[i]; foods[i] = foods[j]; foods[j] = temp;
-                }
-            }
-            for (int i = 0; i < numberColumns; i++) board.Add(new FoodQueueData());
-            for (int i = 0; i < foods.Count; i++) board[i % numberColumns].foods.Add(foods[i]);
+            var copy = new FoodQueueData();
+            foreach (var food in column.foods) copy.foods.Add(food.Copy());
+            board.Add(copy);
         }
         return board;
     }
@@ -108,11 +61,11 @@ public class SushiLevelData : ScriptableObject
     public string ValidateData()
     {
         if (number < 1) return "Số level phải >= 1.";
-        if (numberColumns < 1 || numberColumns > 6) return "Board cần 1–6 cột.";
+        if (boardColumns == null || boardColumns.Count == 0) return "Level chưa có board (boardColumns).";
+        if (boardColumns.Count > MaximumColumns) return $"Board có tối đa {MaximumColumns} cột (ingame dùng 4 cột).";
         if (beltSlots < 6) return "Băng chuyền cần ít nhất 6 slot.";
         if (float.IsNaN(loopsPerSecond) || float.IsInfinity(loopsPerSecond) || loopsPerSecond < 0.02f || loopsPerSecond > 0.3f)
             return "Tốc độ phải trong khoảng 0.02–0.3 vòng/giây.";
-        if (maxIngredientsPerTile < 1 || maxIngredientsPerTile > 3) return "Mỗi ô chứa ×1–×3.";
         if (customers == null || customers.Count == 0) return "Level chưa có khách.";
         foreach (var customer in customers)
         {
@@ -132,9 +85,7 @@ public class SushiLevelData : ScriptableObject
                     return "rushSeconds phải >= 0, 0 dùng công thức mặc định.";
             }
         }
-        if (boardColumns != null && boardColumns.Count > 0)
         {
-            if (boardColumns.Count != numberColumns) return "boardColumns phải khớp numberColumns.";
             foreach (var column in boardColumns)
             {
                 if (column?.foods == null) return "Dữ liệu cột không hợp lệ.";
