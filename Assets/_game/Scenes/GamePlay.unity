@@ -691,7 +691,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 9.587338
+  orthographic size: 9.654237
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -716,7 +716,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.1626601, z: -10}
+  m_LocalPosition: {x: 0, y: -0.095762104, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1197,6 +1197,7 @@ MonoBehaviour:
   preparedDishPrefab: {fileID: 2092212452510426463, guid: 3fe78fdc40070cc4f88320e891d9773b, type: 3}
   assemblyDuration: 0.42
   assemblyIngredientStagger: 0.12
+  assemblyJumpHeight: 0.7
   tableHoldDuration: 0.3
   orderJumpDuration: 0.38
   reviveBagPrefab: {fileID: 7989185540484349039, guid: 3e01b214fbf12904dbb0d0f5bc357bfd, type: 3}
@@ -1214,6 +1215,7 @@ MonoBehaviour:
   capacityFullColor: {r: 1, g: 0.15, b: 0.1, a: 1}
   jumpDuration: 0.42
   jumpHeight: 0.95
+  upwardArcBoost: 0.3
   pickupStagger: 0.055
   trayPickupStagger: 0.085
   takeoffDuration: 0.065
@@ -1726,7 +1728,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "<size=65%><color=#3479AD>B\u01AF\u1EDAC 1 / 2 \xB7 XEM ORDER</color></size>\n<b>Kh\xE1ch
     \u0111ang mu\u1ED1n \u0103n g\xEC?</b>\n<size=78%>Ch\u1EA1m v\xE0o m\xF3n \u0111\u1EC3
-    xem nguy\xEAn li\u1EC7u.</size>"
+    xem th\u1EE9 t\u1EF1 nguy\xEAn li\u1EC7u.</size>"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d9321ad2d866e46429747b1edfd56fd0, type: 2}
   m_sharedMaterial: {fileID: 6163888331690649203, guid: d9321ad2d866e46429747b1edfd56fd0, type: 2}
@@ -1735,7 +1737,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4282527780
   m_fontColor: {r: 0.14, g: 0.19, b: 0.26, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3

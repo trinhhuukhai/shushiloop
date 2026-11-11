@@ -38,6 +38,8 @@ public partial class ConveyorManager : MonoBehaviour
     [Header("Food nhảy lên")]
     [SerializeField, Min(0.1f)] private float jumpDuration = 0.42f;
     [SerializeField, Min(0f)] private float jumpHeight = 0.95f;
+    [Tooltip("Độ nảy cộng thêm theo quãng bay lên (0 = bay thẳng; từ 0.25 thì đỉnh cung vượt quá đích rồi rơi xuống).")]
+    [SerializeField, Range(0f, 0.6f)] private float upwardArcBoost = 0.3f;
     [SerializeField, Min(0f)] private float pickupStagger = 0.055f;
     [SerializeField, Min(0f)] private float trayPickupStagger = 0.085f;
     [SerializeField, Min(0f)] private float takeoffDuration = 0.065f;
@@ -658,7 +660,10 @@ public partial class ConveyorManager : MonoBehaviour
         Vector3 origin = subject.position;
         Vector3 startScale = subject.lossyScale;
         Quaternion startRotation = subject.rotation;
-        float lift = Mathf.Max(0, height) + Mathf.Min(0.25f, Mathf.Abs(target.position.x - origin.x) * 0.04f);
+        // Bay lên cao (board -> băng chuyền -> đĩa): cộng thêm độ nảy theo quãng đi lên để đỉnh cung vượt quá đích
+        // rồi rơi xuống, nhìn ra cú nhảy thay vì trượt thẳng lên.
+        float lift = Mathf.Max(0, height) + Mathf.Min(0.25f, Mathf.Abs(target.position.x - origin.x) * 0.04f) +
+            Mathf.Max(0f, target.position.y - origin.y) * upwardArcBoost;
         var sequence = DOTween.Sequence().AppendInterval(Mathf.Max(0, delay));
         if (anticipation > 0)
             sequence.Append(DOVirtual.Float(0, 1, anticipation, t =>

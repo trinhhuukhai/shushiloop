@@ -177,6 +177,13 @@ public sealed class SushiPreparedDish : MonoBehaviour
     }
 
     // Đổi đơn món của đĩa, bổ sung hoặc bỏ điểm nguyên liệu và cập nhật hình ảnh.
+    // Đĩa đổi chủ (chuyển phần nền sang món của khách khác) rồi đổi đơn món.
+    internal void Reassign(Customer owner, SushiDishOrder order)
+    {
+        Owner = owner;
+        ReassignOrder(order);
+    }
+
     internal void ReassignOrder(SushiDishOrder order)
     {
         Order = order;

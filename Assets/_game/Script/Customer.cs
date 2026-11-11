@@ -124,6 +124,45 @@ public class Customer : MonoBehaviour
         return true;
     }
 
+    // Chuyển đĩa chỉ có phần nền (cơm, cơm + rong biển...) đã đáp đủ của món source sang món target của khách khác:
+    // dùng khi topping khách kia cần đang tới mà khách đó chưa có đĩa nền. Ô đĩa trên bàn và tổng nguyên liệu
+    // của cả hai khách được cập nhật; món source quay lại chưa chuẩn bị và sẽ nhận phần nền sau.
+    internal bool TryGiveFoundation(SushiDishOrder source, Customer receiver, SushiDishOrder target)
+    {
+        if (receiver == null || receiver == this || source == null || target == null) return false;
+        if (!CanAssembleDish(source) || !receiver.CanAssembleDish(target)) return false;
+        if (!tableReservations.TryGetValue(source, out int slot) || !SlotAllowed(slot)) return false;
+        if (target.IsPrepared || receiver.tableReservations.ContainsKey(target)) return false;
+        // Đĩa phải chỉ có phần nền và phần nền đã đáp đủ (không có gì đang bay tới).
+        foreach (OrderItem item in source.Ingredients)
+        {
+            if (!source.IsSharedBaseIngredient(item.typeFood))
+            {
+                if (item.receivedAmount + item.incomingAmount > 0) return false;
+                continue;
+            }
+            if (item.incomingAmount > 0 || item.receivedAmount < item.requiredAmount) return false;
+        }
+        if (!source.CanTransferFoundationTo(target)) return false;
+        var moved = new List<KeyValuePair<PoolType, int>>();
+        foreach (OrderItem item in source.Ingredients)
+            if (item.receivedAmount > 0) moved.Add(new KeyValuePair<PoolType, int>(item.typeFood, item.receivedAmount));
+        foreach (var pair in moved)
+            if (receiver.FindOrder(pair.Key) == null || FindOrder(pair.Key) == null) return false;
+        if (!source.TryTransferFoundationTo(target)) return false;
+        foreach (var pair in moved)
+        {
+            OrderItem mine = FindOrder(pair.Key);
+            mine.receivedAmount = Mathf.Max(0, mine.receivedAmount - pair.Value);
+            receiver.FindOrder(pair.Key).receivedAmount += pair.Value;
+        }
+        ReleaseTable(source);
+        receiver.ClaimTable(target, slot);
+        OnOrderChanged?.Invoke(this);
+        receiver.OnOrderChanged?.Invoke(receiver);
+        return true;
+    }
+
     // Hủy một nguyên liệu đang tới và giải phóng đĩa nếu món không còn nguyên liệu nào.
     public bool CancelPreparedIngredientReservation(SushiDishOrder dish, PoolType type)
     {

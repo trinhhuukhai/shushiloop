@@ -119,6 +119,7 @@ public sealed class SushiDishCardView : MonoBehaviour
         dishName.text = dish.Recipe.Name;
         for (int i = 0; i < ingredients.Length; i++)
             ingredients[i].gameObject.SetActive(i < dish.Ingredients.Count);
+        OrderIngredientsByAssembly(dish);
         SetRecipeExpanded(false);
         RefreshArtwork(customer, dish, art);
         Refresh(dish, false);
@@ -297,6 +298,29 @@ public sealed class SushiDishCardView : MonoBehaviour
         ingredientDetails.SetActive(expanded);
         if (expanded && ingredientDetailsRect != null)
             LayoutRebuilder.ForceRebuildLayoutImmediate(ingredientDetailsRect);
+    }
+
+    // Xếp các ô nguyên liệu theo đúng thứ tự lên đĩa (vd. maki/gunkan: rong biển → cơm → topping;
+    // nigiri: cơm → topping; trà: cốc → trà/đá). Chỉ đổi vị trí hiển thị trong layout,
+    // chỉ số ingredients[i] vẫn ứng với dish.Ingredients[i] (điểm nhận khi giao món không đổi).
+    private void OrderIngredientsByAssembly(SushiDishOrder dish)
+    {
+        int count = Mathf.Min(dish.Ingredients.Count, ingredients.Length);
+        if (count <= 1) return;
+        var order = new List<int>(count);
+        for (int i = 0; i < count; i++) order.Add(i);
+        // Sắp xếp ổn định: cùng bước ghép thì giữ thứ tự công thức.
+        order.Sort((a, b) =>
+        {
+            int stage = dish.AssemblyStage(dish.Ingredients[a].typeFood)
+                .CompareTo(dish.AssemblyStage(dish.Ingredients[b].typeFood));
+            return stage != 0 ? stage : a.CompareTo(b);
+        });
+        // Giữ nguyên vị trí bắt đầu của nhóm ô trong layout, chỉ đổi thứ tự bên trong.
+        int first = int.MaxValue;
+        for (int i = 0; i < count; i++) first = Mathf.Min(first, ingredients[i].transform.GetSiblingIndex());
+        for (int rank = 0; rank < order.Count; rank++)
+            ingredients[order[rank]].transform.SetSiblingIndex(first + rank);
     }
 
     // Khi xem chi tiết: nền thẻ đổi sang ô fr_order_inside; thu gọn thì trả nền gốc.

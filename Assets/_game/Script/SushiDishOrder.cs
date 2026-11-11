@@ -164,16 +164,7 @@ internal static class SushiDishSelection
         {
             SushiDishOrder dish = dishes[(start + offset) % dishes.Count];
             if (!canReceive(dish)) continue;
-            int missing = 0, remaining = 0;
-            SushiDishOrder shared = foundationSource?.Invoke(dish);
-            foreach (OrderItem item in dish.Ingredients)
-            {
-                OrderItem progress = dish.ProjectedIngredient(item.typeFood, shared);
-                int suppliedAmount = item.typeFood == supplied ? 1 : 0;
-                int left = Math.Max(0, item.requiredAmount - progress.receivedAmount - progress.incomingAmount - suppliedAmount);
-                remaining += left;
-                missing += Math.Max(0, left - Math.Max(0, available(item.typeFood) - suppliedAmount));
-            }
+            Score(dish, supplied, available, foundationSource?.Invoke(dish), out int missing, out int remaining);
             if (missing > bestMissing || (missing == bestMissing && remaining > bestRemaining)) continue;
             if (missing == bestMissing && remaining == bestRemaining && best != null &&
                 (dish.Recipe.Key != best.Recipe.Key || dish.Index >= best.Index)) continue;
@@ -182,5 +173,22 @@ internal static class SushiDishSelection
             bestRemaining = remaining;
         }
         return best;
+    }
+
+    // Chấm điểm một món khi nhận thêm nguyên liệu supplied:
+    // missing = phần còn thiếu mà băng chuyền/túi chưa có; remaining = tổng phần còn thiếu.
+    internal static void Score(SushiDishOrder dish, PoolType supplied, Func<PoolType, int> available,
+        SushiDishOrder shared, out int missing, out int remaining)
+    {
+        missing = 0;
+        remaining = 0;
+        foreach (OrderItem item in dish.Ingredients)
+        {
+            OrderItem progress = dish.ProjectedIngredient(item.typeFood, shared);
+            int suppliedAmount = item.typeFood == supplied ? 1 : 0;
+            int left = Math.Max(0, item.requiredAmount - progress.receivedAmount - progress.incomingAmount - suppliedAmount);
+            remaining += left;
+            missing += Math.Max(0, left - Math.Max(0, available(item.typeFood) - suppliedAmount));
+        }
     }
 }

@@ -9,6 +9,8 @@ public partial class ConveyorManager
     [SerializeField] private SushiPreparedDish preparedDishPrefab;
     [SerializeField, Min(0.05f)] private float assemblyDuration = 0.3f;
     [SerializeField, Min(0f)] private float assemblyIngredientStagger = 0.12f;
+    [Tooltip("Độ cao cú nhảy khi nguyên liệu bay từ băng chuyền lên đĩa trên bàn.")]
+    [SerializeField, Min(0f)] private float assemblyJumpHeight = 0.7f;
     [SerializeField, Min(0f)] private float tableHoldDuration = 0.3f;
     [SerializeField, Min(0.05f)] private float orderJumpDuration = 0.38f;
     private readonly Dictionary<Transform, SushiPreparedDish> slotDishes = new Dictionary<Transform, SushiPreparedDish>();
@@ -90,19 +92,103 @@ public partial class ConveyorManager
             Customer.ServingSlotFilter = k => nearServingSlots.Contains(k);
             try
             {
-                foreach (Customer customer in customerManager.FulfillmentPriority())
+                // Chọn trên cả hai khách đang ngồi: món còn thiếu ít nhất so với nguyên liệu đang có trên băng
+                // (ngang nhau thì khách đến trước). Không ai nhận được thì thử chuyển đĩa nền của khách kia.
+                Customer receiver = BestSeatedCustomer(food.Type);
+                if (receiver == null) receiver = HandOverFoundation(counter, food.Type);
+                if (receiver != null &&
+                    TryReserveAvailablePreparedIngredient(receiver, food.Type, out SushiDishOrder order, out Transform destination))
                 {
-                    if (customer == null || !customer.IsSeated) continue;
-                    if (!TryReserveAvailablePreparedIngredient(customer, food.Type, out SushiDishOrder order, out Transform destination)) continue;
-                    SushiPreparedDish plated = GetOrCreatePreparedDish(customer, order, destination);
+                    SushiPreparedDish plated = GetOrCreatePreparedDish(receiver, order, destination);
                     slotFoods.Remove(slot);
                     StartPreparedIngredientFlight(plated, food, destination);
                     NotifyOccupancy();
-                    break;
                 }
             }
             finally { Customer.ServingSlotFilter = null; }
         }
+    }
+
+    // Khách đang ngồi có món tốt nhất cho nguyên liệu này (thiếu ít nhất so với băng chuyền, rồi còn lại ít nhất);
+    // ngang nhau thì giữ thứ tự ưu tiên (khách đến trước).
+    private Customer BestSeatedCustomer(PoolType type)
+    {
+        Dictionary<PoolType, int> available = BeltAvailability();
+        Customer best = null;
+        int bestMissing = int.MaxValue, bestRemaining = int.MaxValue;
+        foreach (Customer customer in customerManager.FulfillmentPriority())
+        {
+            if (customer == null || !customer.IsSeated) continue;
+            if (!PeekPreparedDish(customer, type, available, out int missing, out int remaining)) continue;
+            if (missing > bestMissing || (missing == bestMissing && remaining >= bestRemaining)) continue;
+            best = customer;
+            bestMissing = missing;
+            bestRemaining = remaining;
+        }
+        return best;
+    }
+
+    // Món khách sẽ chọn cho nguyên liệu này (chưa giữ chỗ) cùng điểm thiếu/còn lại.
+    private bool PeekPreparedDish(Customer customer, PoolType type, Dictionary<PoolType, int> available,
+        out int missing, out int remaining)
+    {
+        missing = remaining = int.MaxValue;
+        int Count(PoolType ingredient) => available.TryGetValue(ingredient, out int count) ? count : 0;
+        var reusable = new Dictionary<SushiDishOrder, SushiDishOrder>();
+        foreach (SushiDishOrder dish in customer.Dishes)
+        {
+            SushiPreparedDish plated = FindReusableFoundation(customer, dish, type);
+            if (plated != null) reusable.Add(dish, plated.Order);
+        }
+        SushiDishOrder Foundation(SushiDishOrder dish) => reusable.TryGetValue(dish, out var source) ? source : null;
+        SushiDishOrder order = SushiDishSelection.Select(customer.Dishes, type,
+            dish => reusable.ContainsKey(dish) || customer.CanReceivePreparedIngredient(dish, type), Count, 0, Foundation);
+        if (order == null) return false;
+        SushiDishSelection.Score(order, type, Count, Foundation(order), out missing, out remaining);
+        return true;
+    }
+
+    // Không khách nào nhận được (vd. bạch tuộc tới nhưng khách cần nó chưa có đĩa cơm, còn đĩa cơm trên bàn
+    // đang thuộc khách kia): chuyển đĩa chỉ có phần nền ở ô gần đó sang món cần nguyên liệu này.
+    // Trả về khách nhận đĩa, null nếu không chuyển được.
+    private Customer HandOverFoundation(SushiServingCounter counter, PoolType type)
+    {
+        foreach (int k in nearServingSlots)
+        {
+            Transform servingSlot = counter.Slot(k);
+            if (servingSlot == null || !slotDishes.TryGetValue(servingSlot, out SushiPreparedDish plated) ||
+                plated == null || plated.Owner == null || plated.IsReady) continue;
+            Customer giver = plated.Owner;
+            SushiDishOrder source = plated.Order;
+            foreach (Customer receiver in customerManager.FulfillmentPriority())
+            {
+                if (receiver == null || receiver == giver || !receiver.IsSeated) continue;
+                foreach (SushiDishOrder target in receiver.Dishes)
+                {
+                    if (target.IsPrepared || target.IsComplete || target.IsOnTable) continue;
+                    if (type == target.LeadType || target.FindAvailableIngredient(type) == null) continue;
+                    if (!giver.TryGiveFoundation(source, receiver, target)) continue;
+                    plated.Reassign(receiver, target);
+                    if (assemblyFoods.TryGetValue(plated, out var flights))
+                        foreach (FoodShushi flying in flights) plated.ApplyIngredientArtwork(flying, true);
+                    return receiver;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Số nguyên liệu từng loại đang có trên băng chuyền (kể cả đang nhảy lên băng).
+    private Dictionary<PoolType, int> BeltAvailability()
+    {
+        var available = new Dictionary<PoolType, int>();
+        foreach (FoodShushi food in BeltIngredients())
+        {
+            if (food == null || (food.Location != FoodLocation.Conveyor && food.Location != FoodLocation.MovingToConveyor)) continue;
+            available.TryGetValue(food.Type, out int count);
+            available[food.Type] = count + 1;
+        }
+        return available;
     }
 
     // Đoạn băng vừa đi qua của ô có chạm điểm gần ô đĩa trên bàn nhất hay không.
@@ -265,7 +351,7 @@ public partial class ConveyorManager
         // Nguyên liệu đầu tiên (rong biển của maki/gunkan, bát cơm của nigiri) bay được nửa đường thì đĩa đen mờ dần hiện ra để đón.
         plated.RevealPlate(delay + assemblyDuration * 0.4f);
         Transform destination = plated.IngredientTarget(food.Type);
-        AnimateFlight(food, destination, assemblyDuration, 0.3f, 1f, delay, 0, dishTweenId, () =>
+        AnimateFlight(food, destination, assemblyDuration, assemblyJumpHeight, 1f, delay, 0, dishTweenId, () =>
         {
             flights.Remove(food);
             food.ArriveAtCustomerPlate();
