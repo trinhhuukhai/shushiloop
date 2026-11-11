@@ -310,11 +310,30 @@ public class FoodShushi : GameUnit
         Sprite element = catalog != null ? (hidden ? catalog.hiddenTile : catalog.frozenTile) : null;
         cover.sprite = element != null ? element : SushiWorldVisual.WhiteSprite;
         cover.color = element != null ? Color.white : hidden ? new Color(0.68f, 0.37f, 0.14f) : new Color(0.3f, 0.8f, 1f, 0.55f);
+        FitCoverToTray(element);
         stateLabel.text = hidden ? (element == null ? "?" : "") : iceLayers > 0 ? iceLayers.ToString() : "";
         stateLabel.transform.localPosition = !hidden && element != null ? frozenStatePosition : statePosition;
         stateLabel.fontSize = !hidden && element != null ? frozenStateFontSize : stateFontSize;
         stateLabel.color = !hidden && element != null ? Color.white : new Color(0.2f, 0.1f, 0.04f);
         stateLabel.gameObject.SetActive(showCover && stateLabel.text.Length > 0);
+    }
+
+    // Nắp ô ẩn / băng khít khay: kích thước theo đúng tỉ lệ pixel của art so với ảnh khay
+    // (băng 213px phủ kín khay 193px, nắp 199px khít khay), căn giữa khay.
+    private void FitCoverToTray(Sprite element)
+    {
+        if (element == null || tileBackground == null || tileBackground.sprite == null) return;
+        Sprite tray = tileBackground.sprite;
+        Vector3 trayScale = tileBackground.transform.localScale;
+        // Đơn vị local trên mỗi pixel art của khay (theo trục ngang và dọc).
+        float perPixelX = tray.bounds.size.x * trayScale.x / Mathf.Max(1f, tray.rect.width);
+        float perPixelY = tray.bounds.size.y * trayScale.y / Mathf.Max(1f, tray.rect.height);
+        Vector2 size = element.bounds.size;
+        coverScale = new Vector3(element.rect.width * perPixelX / Mathf.Max(0.0001f, size.x),
+            element.rect.height * perPixelY / Mathf.Max(0.0001f, size.y), 1f);
+        cover.transform.localPosition = new Vector3(tileBackground.transform.localPosition.x,
+            tileBackground.transform.localPosition.y, cover.transform.localPosition.z);
+        if (revealTween == null) cover.transform.localScale = coverScale;
     }
 
     // Làm mới sprite nguyên liệu và cập nhật hình ảnh trạng thái khi đang chơi.

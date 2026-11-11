@@ -25,6 +25,8 @@ public sealed class SushiDishCardView : MonoBehaviour
     [SerializeField, Min(8f)] private float maxRecipeIngredientSize = 58f;
     [Tooltip("Khi xem chi tiết, panel nền của ô thu vào từng này mỗi cạnh để các ô không dính sát nhau và sát viền bảng.")]
     [SerializeField, Min(0f)] private float recipeCellInset = 4f;
+    [Tooltip("Lề dưới riêng của panel nền khi xem chi tiết (lớn hơn để mép dưới ô ngắn lại, không chạm viền bảng).")]
+    [SerializeField, Min(0f)] private float recipeCellBottomInset = 14f;
     private Sprite defaultBackgroundSprite;
     private Image.Type defaultBackgroundType;
     private bool hasDefaultBackground;
@@ -311,7 +313,8 @@ public sealed class SushiDishCardView : MonoBehaviour
         background.type = expanded ? Image.Type.Sliced : defaultBackgroundType;
         // Panel nền nhỏ hơn ô một chút khi xem chi tiết; thu gọn thì trả về phủ kín thẻ như prefab.
         float inset = expanded ? recipeCellInset : 0f;
-        background.rectTransform.offsetMin = new Vector2(inset, inset);
+        float bottomInset = expanded ? recipeCellBottomInset : 0f;
+        background.rectTransform.offsetMin = new Vector2(inset, bottomInset);
         background.rectTransform.offsetMax = new Vector2(-inset, -inset);
         background.color = expanded ? recipeCellColor : orderComplete ? completedColor : pendingColor;
     }

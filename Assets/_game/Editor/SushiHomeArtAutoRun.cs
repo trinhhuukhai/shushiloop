@@ -36,6 +36,13 @@ internal static class SushiHomeArtAutoRun
                 else if (what == "pages") SushiHomeArtSetup.SetupPages();
                 else if (what == "safearea") SushiHomeArtSetup.PatchSafeArea();
                 else if (what == "swipe") SushiHomeArtSetup.PatchSwipe();
+                else if (what == "dishcard")
+                {
+                    SushiIngameDemoLayout.PatchDishCard();
+                    Directory.CreateDirectory("Temp/HomeArt");
+                    File.WriteAllText("Temp/HomeArt/result.txt", "OK dishcard");
+                    return;
+                }
                 else if (what == "ingame")
                 {
                     SushiBoardColumnConverter.ConvertAll();

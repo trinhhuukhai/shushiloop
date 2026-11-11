@@ -57,6 +57,8 @@ public class CanvasProfile : UICanvas
             return;
         }
         base.Open();
+
+
         SetShowEdit(false);
     }
 
@@ -65,8 +67,8 @@ public class CanvasProfile : UICanvas
     {
         if (panel == null) return;
         popTween?.Kill();
-        panel.localScale = Vector3.one * 0.6f;
-        popTween = panel.DOScale(Vector3.one, 0.24f).SetUpdate(true).SetEase(Ease.OutBack);
+        mainPanelRect.localScale = Vector3.zero;
+        popTween = mainPanelRect.DOScale(Vector3.one, .24f).SetUpdate(true).SetEase(Ease.OutSine);
     }
 
     // Đồng bộ avatar, tên, ngày tham gia, ID, level và thống kê.

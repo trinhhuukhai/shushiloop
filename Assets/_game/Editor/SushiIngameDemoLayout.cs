@@ -75,6 +75,41 @@ public static class SushiIngameDemoLayout
 
     private static Sprite Art(string name) => AssetDatabase.LoadAssetAtPath<Sprite>(NewArt + name);
 
+    // Ảnh món trên thẻ order nhỏ lại (chiếm DishImageFraction thẻ, căn giữa); dấu "!" đặt ở góc trên phải của ảnh món.
+    private const float DishImageFraction = 0.72f;
+    private static readonly Vector2 NotificationSize = new Vector2(24f, 27f);
+
+    [MenuItem("SushiKhai/Art/Patch Dish Card Image Size")]
+    public static void PatchDishCard()
+    {
+        foreach (string name in new[] { "DishCard", "Customer" })
+            EditPrefab(name, root =>
+            {
+                foreach (SushiDishCardView card in root.GetComponentsInChildren<SushiDishCardView>(true))
+                {
+                    float margin = (1f - DishImageFraction) * 0.5f;
+                    if (card.DishImage != null)
+                    {
+                        RectTransform image = card.DishImage.rectTransform;
+                        image.anchorMin = new Vector2(margin, margin);
+                        image.anchorMax = new Vector2(1f - margin, 1f - margin);
+                        image.offsetMin = image.offsetMax = Vector2.zero;
+                        card.DishImage.preserveAspect = true;
+                    }
+                    if (card.transform.Find("Incomplete notification") is RectTransform badge)
+                    {
+                        badge.anchorMin = badge.anchorMax = new Vector2(1f - margin, 1f - margin);
+                        badge.pivot = new Vector2(0.5f, 0.5f);
+                        badge.anchoredPosition = Vector2.zero;
+                        badge.sizeDelta = NotificationSize;
+                    }
+                    EditorUtility.SetDirty(card);
+                }
+            });
+        AssetDatabase.SaveAssets();
+        Debug.Log("[DishCard] Ảnh món " + DishImageFraction * 100 + "% thẻ, dấu ! ở góc ảnh.");
+    }
+
     private static void SetPixelsPerUnit(string name, float ppu)
     {
         var importer = (TextureImporter)AssetImporter.GetAtPath(NewArt + name);

@@ -277,6 +277,7 @@ public class CustomerManager : MonoBehaviour
     }
 
     // Hàng khách dồn từ trái sang phải: ghế phải trống thì khách ghế trái dời sang, rồi khách đầu hàng vào ghế trái.
+    // Không còn ai chờ (vd. 2 khách cuối, khách phải xong trước) thì khách ghế trái đứng yên nhận order.
     private void AdvanceLine()
     {
         if (activeCustomers[1] == null && movingCustomers[1] == null)
@@ -285,7 +286,7 @@ public class CustomerManager : MonoBehaviour
             if (left != null)
             {
                 // Khách ghế trái đang chờ rời bàn thì để họ tự đi ra, không dời ghế.
-                if (!finishingCustomers.Contains(left)) ShiftToSecondSeat(left);
+                if (!finishingCustomers.Contains(left) && waitingCustomers.Count > 0) ShiftToSecondSeat(left);
             }
             else if (movingCustomers[0] == null) MoveNextCustomerToSeat(1);
         }

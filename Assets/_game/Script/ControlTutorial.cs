@@ -553,13 +553,8 @@ public class ControlTutorial : SingletonMonoBehaviour<ControlTutorial>
             ? TargetOrder.DishImage.rectTransform.TransformPoint(TargetOrder.DishImage.rectTransform.rect.center)
             : TargetFood.transform.position;
         float pulse = Mathf.Sin(Time.unscaledTime * pointerSpeed);
+        // Bàn tay luôn đúng chiều (không lật dọc nữa): board nằm thấp theo bố cục mới nên lật sẽ thành tay ngược.
         hand.transform.localScale = (Step == TutorialStep.Order ? orderHandScale : foodHandScale) * (1 + 0.035f * pulse);
-        if (Step == TutorialStep.Food && camera.WorldToViewportPoint(target).y < 0.22f)
-        {
-            Vector3 scale = hand.transform.localScale;
-            scale.y = -scale.y;
-            hand.transform.localScale = scale;
-        }
         if (Step == TutorialStep.Food && Lesson != TutorialLesson.LevelOne && objDesFood != null)
         {
             SpriteRenderer panel = objDesFood.GetComponent<SpriteRenderer>();

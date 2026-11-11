@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -476,9 +477,14 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
             // Chỉ tính tiến trình spin khi lưu progress (test level / scene dev không tính).
             if (SpinDataFragment.cur != null) SpinDataFragment.cur.PassedLevel();
         }
-        if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasVictory>();
 
         conveyorManager.SetPaused(true);
+
+        DOVirtual.DelayedCall(1f, () =>
+        {
+            if (showGameplayHud && UIManager.Ins != null) UIManager.Ins.OpenUI<CanvasVictory>();
+
+        });
         Debug.Log("WIN: Tất cả khách đã nhận đủ món.");
     }
 

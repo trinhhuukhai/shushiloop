@@ -223,7 +223,7 @@ Transform:
   m_GameObject: {fileID: 35034842}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.41666675, z: 0}
+  m_LocalPosition: {x: 0, y: -0.88, z: 0}
   m_LocalScale: {x: 1.2444444, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -691,7 +691,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 9.75
+  orthographic size: 9.587338
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -716,7 +716,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: -0.1626601, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -852,7 +852,7 @@ Transform:
   m_GameObject: {fileID: 573110024}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -3.8316667, z: 0}
+  m_LocalPosition: {x: 0, y: -4, z: 0}
   m_LocalScale: {x: 1.25, y: 1.25, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1282,7 +1282,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 6.9874997, z: 0}
-  m_LocalScale: {x: 0.6518151, y: 0.6518151, z: 1}
+  m_LocalScale: {x: 0.83, y: 0.83, z: 1.2733672}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1029476200}
@@ -1362,6 +1362,10 @@ MonoBehaviour:
   cam: {fileID: 519420031}
   playfieldSize: {x: 9, y: 19.5}
   playfieldCenter: {x: 0, y: 0}
+  reservedTopCanvas: 150
+  contentTop: 8.05
+  canvasReference: {x: 1080, y: 1920}
+  canvasMatch: 0.5
 --- !u!1 &1029476199
 GameObject:
   m_ObjectHideFlags: 0
