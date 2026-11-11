@@ -163,6 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949718f8be5658244ac6181d22d2bbc4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SushiUISafeArea
+  applyTop: 1
 --- !u!1 &851987094957636868
 GameObject:
   m_ObjectHideFlags: 0
@@ -654,7 +655,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7675826601332790545, guid: 78fd0d2c510e207408d7da812113f70b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6afec8d5b1a0c9b4391959b9b7460459, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -6339,6 +6340,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ConfettiBurst (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5476149695428531946, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
+      propertyPath: _bursts.Array.data[0].used
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8805784165914375672, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -6455,7 +6460,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5476149695428531946, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: _bursts.Array.data[0].used
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8805784165914375672, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: m_Pivot.x
@@ -6573,7 +6578,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5476149695428531946, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: _bursts.Array.data[0].used
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8805784165914375672, guid: bb818bcd1f8fc4170ad421ddfa84c1e9, type: 3}
       propertyPath: m_Pivot.x

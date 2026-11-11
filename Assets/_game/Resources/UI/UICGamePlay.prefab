@@ -758,6 +758,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7532255773139396339}
+  - component: {fileID: 5041845949765252379}
   m_Layer: 5
   m_Name: Boosters
   m_TagString: Untagged
@@ -795,6 +796,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 95}
   m_SizeDelta: {x: 990, y: 162}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &5041845949765252379
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 870701350459421959}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &875907127587003129
 GameObject:
   m_ObjectHideFlags: 0
@@ -1066,7 +1079,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2071347019979931921
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6253,7 +6266,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8426661457351871088
 RectTransform:
   m_ObjectHideFlags: 0

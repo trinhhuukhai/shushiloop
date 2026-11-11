@@ -25,7 +25,7 @@ public class CanvasGamePlay : UICanvas
     [SerializeField] private Button nextLevel;
     [SerializeField] private TMP_Text customerProgress;
     [SerializeField] private Image customerProgressFill;
-    [SerializeField] private TMP_Text difficulty;
+    //[SerializeField] private TMP_Text difficulty;
     [SerializeField] private Image levelBadge;
     [SerializeField] private Sprite normalLevelBadge;
     [SerializeField] private Sprite hardLevelBadge;
@@ -380,11 +380,11 @@ public class CanvasGamePlay : UICanvas
             customerProgress.text = customers.CompletedCustomers + "/" + customers.TotalCustomers;
             customerProgressFill.fillAmount = customers.TotalCustomers > 0 ? (float)customers.CompletedCustomers / customers.TotalCustomers : 0;
         }
-        if (difficulty != null)
-        {
-            difficulty.gameObject.SetActive(level.CurrentLevel.TypeLevel != TypeLevel.Normal);
-            difficulty.text = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? "SUPER HARD" : "HARD";
-        }
+        //if (difficulty != null)
+        //{
+        //    difficulty.gameObject.SetActive(level.CurrentLevel.TypeLevel != TypeLevel.Normal);
+        //    difficulty.text = level.CurrentLevel.TypeLevel == TypeLevel.SuperHard ? "SUPER HARD" : "HARD";
+        //}
         if (occupancy != null)
         {
             occupancy.text = level.Conveyor.OccupiedSlotCount + "/" + level.Conveyor.Capacity;
@@ -400,6 +400,8 @@ public class CanvasGamePlay : UICanvas
         boosterHint.text = guidedBooster ? "" : mode == FoodPickMode.Chopsticks ? "Chọn nguyên liệu đang thấy · không gắp ô băng" :
             mode == FoodPickMode.Magnet ? "Chọn một món trong order để hút đủ nguyên liệu" : "";
         cancelBooster.gameObject.SetActive(mode != FoodPickMode.Tap && !guidedBooster);
+        // Đang chọn ô bằng Cây gắp: ẩn 3 nút booster, chỉ còn hướng dẫn + nút Hủy; dùng xong/hủy thì hiện lại.
+        SetBoosterButtonsHidden(mode == FoodPickMode.Chopsticks && !guidedBooster);
         levelSelector.SetActive(level.ShowLevelSelector);
         previousLevel.interactable = level.HasPreviousLevel;
         nextLevel.interactable = level.HasNextLevel;
@@ -542,6 +544,39 @@ public class CanvasGamePlay : UICanvas
     public void RefeshCoountAllBooster() => Refresh();
     // Làm mới HUD sau thay đổi booster đũa.
     public void UpdateBoosterClick() => Refresh();
+
+    private bool boosterButtonsHidden;
+    private CanvasGroup[] boosterGroupParts;
+
+    // Đang chọn ô bằng Cây gắp: ẩn cả BoosterGroup (3 nút booster, nền xanh, các ảnh nền),
+    // chỉ giữ dòng hướng dẫn và nút Hủy để người chơi vẫn thoát được. Dùng CanvasGroup nên không đổi
+    // trạng thái bật/tắt hay khoá/mở của từng phần.
+    private void SetBoosterButtonsHidden(bool hidden)
+    {
+        if (BoosterGroup == null) return;
+        if (boosterGroupParts == null)
+        {
+            var parts = new System.Collections.Generic.List<CanvasGroup>();
+            foreach (Transform child in BoosterGroup)
+            {
+                if (boosterHint != null && child == boosterHint.transform) continue;
+                if (cancelBooster != null && child == cancelBooster.transform) continue;
+                var group = child.GetComponent<CanvasGroup>();
+                if (group == null) group = child.gameObject.AddComponent<CanvasGroup>();
+                parts.Add(group);
+            }
+            boosterGroupParts = parts.ToArray();
+            boosterButtonsHidden = !hidden;
+        }
+        if (boosterButtonsHidden == hidden) return;
+        boosterButtonsHidden = hidden;
+        foreach (CanvasGroup group in boosterGroupParts)
+        {
+            if (group == null) continue;
+            group.alpha = hidden ? 0f : 1f;
+            group.interactable = group.blocksRaycasts = !hidden;
+        }
+    }
     // Làm mới HUD sau thay đổi booster hoán đổi.
     public void UpdateBoosterSuffle() => Refresh();
     // Làm mới HUD sau thay đổi booster nam châm.

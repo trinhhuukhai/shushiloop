@@ -1,0 +1,546 @@
+fileFormatVersion: 2
+guid: cd57ec773b5384549a214d85e9ade08e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5560552398551713746
+    second: newcoin-removebg-preview_0
+  - first:
+      213: 524407234804299084
+    second: newcoin-removebg-preview_1
+  - first:
+      213: 7397954243630472399
+    second: newcoin-removebg-preview_2
+  - first:
+      213: -1175405281696281348
+    second: newcoin-removebg-preview_3
+  - first:
+      213: 1887886813867720242
+    second: newcoin-removebg-preview_4
+  - first:
+      213: -3152651873999897788
+    second: newcoin-removebg-preview_5
+  - first:
+      213: 2415159332887994002
+    second: newcoin-removebg-preview_6
+  - first:
+      213: 2117109003636036433
+    second: newcoin-removebg-preview_7
+  - first:
+      213: 4949194991924242517
+    second: newcoin-removebg-preview_8
+  - first:
+      213: 3521573435134915279
+    second: newcoin-removebg-preview_9
+  - first:
+      213: -2612317885780506057
+    second: newcoin-removebg-preview_10
+  - first:
+      213: -3254374908907909507
+    second: newcoin-removebg-preview_11
+  - first:
+      213: 3608556737607015517
+    second: newcoin-removebg-preview_12
+  - first:
+      213: 5372352403757112044
+    second: newcoin-removebg-preview_13
+  - first:
+      213: -3204089162404843838
+    second: newcoin-removebg-preview_14
+  - first:
+      213: 3321690481580587984
+    second: newcoin-removebg-preview_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_0
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 389
+        width: 96
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e28f069fd03f4d2b0800000000000000
+      internalID: -5560552398551713746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_1
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 385
+        width: 81
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c45b7240a91174700800000000000000
+      internalID: 524407234804299084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_2
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 383
+        width: 52
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcc10344030daa660800000000000000
+      internalID: 7397954243630472399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_3
+      rect:
+        serializedVersion: 2
+        x: 412
+        y: 383
+        width: 50
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfc0065bf1f10bfe0800000000000000
+      internalID: -1175405281696281348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_4
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 263
+        width: 85
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23ebab40e0f133a10800000000000000
+      internalID: 1887886813867720242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_5
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 265
+        width: 99
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44b34c5f2d78f34d0800000000000000
+      internalID: -3152651873999897788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_6
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 265
+        width: 109
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29e12c00e9e548120800000000000000
+      internalID: 2415159332887994002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_7
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 265
+        width: 107
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 153d1800c6b716d10800000000000000
+      internalID: 2117109003636036433
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_8
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 138
+        width: 96
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55869c98f921fa440800000000000000
+      internalID: 4949194991924242517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_9
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 136
+        width: 83
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc23ba391642fd030800000000000000
+      internalID: 3521573435134915279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_10
+      rect:
+        serializedVersion: 2
+        x: 286
+        y: 133
+        width: 53
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73a47a939be2fbbd0800000000000000
+      internalID: -2612317885780506057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_11
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 133
+        width: 51
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7e8994434326d2d0800000000000000
+      internalID: -3254374908907909507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_12
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 15
+        width: 85
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5c98e0eb3b241230800000000000000
+      internalID: 3608556737607015517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_13
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 17
+        width: 98
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cea982a1c0e6e8a40800000000000000
+      internalID: 5372352403757112044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_14
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 17
+        width: 109
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ce2e2ef1e9c883d0800000000000000
+      internalID: -3204089162404843838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: newcoin-removebg-preview_15
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 17
+        width: 108
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0db3868d4e3091e20800000000000000
+      internalID: 3321690481580587984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      newcoin-removebg-preview_0: -5560552398551713746
+      newcoin-removebg-preview_1: 524407234804299084
+      newcoin-removebg-preview_10: -2612317885780506057
+      newcoin-removebg-preview_11: -3254374908907909507
+      newcoin-removebg-preview_12: 3608556737607015517
+      newcoin-removebg-preview_13: 5372352403757112044
+      newcoin-removebg-preview_14: -3204089162404843838
+      newcoin-removebg-preview_15: 3321690481580587984
+      newcoin-removebg-preview_2: 7397954243630472399
+      newcoin-removebg-preview_3: -1175405281696281348
+      newcoin-removebg-preview_4: 1887886813867720242
+      newcoin-removebg-preview_5: -3152651873999897788
+      newcoin-removebg-preview_6: 2415159332887994002
+      newcoin-removebg-preview_7: 2117109003636036433
+      newcoin-removebg-preview_8: 4949194991924242517
+      newcoin-removebg-preview_9: 3521573435134915279
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
