@@ -471,6 +471,8 @@ public class LevelManager : SingletonMonoBehaviour<LevelManager>
             var player = GameDataFragment.cur.dataPlayer;
             if (!player.completedLevels.Contains(currentLevelIndex)) player.completedLevels.Add(currentLevelIndex);
             player.cur_level = Mathf.Max(player.cur_level, Mathf.Min(currentLevelIndex + 1, LevelCount - 1));
+            // Cộng điểm xếp hạng; chưa thua lần nào trước khi thắng thì được thưởng first try.
+            if (RankDataFragment.cur != null) RankDataFragment.cur.AddLevelWin(player.loseStreak == 0);
             player.loseStreak = 0;
             GameDataFragment.cur.Save();
             DataManager.ins.SetLevelHigest(currentLevelIndex + 1);

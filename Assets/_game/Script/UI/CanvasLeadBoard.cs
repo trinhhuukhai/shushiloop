@@ -5,17 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Trang Ranking: tab Weekly (bục top 3 + danh sách) và tab Rank (World / Country).
-// Chưa có server bảng xếp hạng: đối thủ được sinh cố định theo tuần/khu vực, điểm người chơi lấy từ số màn đã qua.
+// Dữ liệu lấy từ RankDataFragment: điểm thật của người chơi, đối thủ giả lập điểm tăng dần như một cuộc đua.
 public sealed class CanvasLeadBoard : CanvasHomePage
 {
-    private struct Entry
-    {
-        public string name;
-        public int score;
-        public Sprite avatar;
-        public bool isPlayer;
-    }
-
     [Header("Tab Weekly / Rank")]
     public Image weeklyTab;
     public Image rankTab;
@@ -44,9 +36,10 @@ public sealed class CanvasLeadBoard : CanvasHomePage
     [Min(3)] public int listedPlayers = 30;
     [Tooltip("Ảnh huy chương hạng 1, 2, 3 cho danh sách.")]
     public Sprite[] medals = new Sprite[3];
+    [Tooltip("Avatar cho đối thủ; để trống thì dùng avatar trong Profile Fragment.")]
     public Sprite[] avatars = Array.Empty<Sprite>();
-    [Tooltip("Điểm mỗi màn đã hoàn thành.")]
-    [Min(1)] public int scorePerLevel = 10;
+    [Tooltip("Chu kỳ (giây) làm mới bảng khi đang mở để thấy đối thủ tăng điểm.")]
+    [Min(5f)] public float liveRefreshInterval = 30f;
 
     // Giữ tương thích với bố cục cũ.
     [HideInInspector] public TMP_Text progressValue;
@@ -55,6 +48,10 @@ public sealed class CanvasLeadBoard : CanvasHomePage
     private bool showWeekly = true;
     private bool showWorld = true;
     private float nextTimerUpdate;
+    private float nextListUpdate;
+    // Vị trí thật của người chơi trong bảng (dòng danh sách hoặc ô trên bục); null nếu ngoài danh sách.
+    private RectTransform playerTarget;
+    private readonly Vector3[] corners = new Vector3[4];
 
     protected override void Refresh()
     {
@@ -65,9 +62,34 @@ public sealed class CanvasLeadBoard : CanvasHomePage
     protected override void Update()
     {
         base.Update();
+        if (Time.unscaledTime >= nextListUpdate) ApplyTab();
         if (Time.unscaledTime < nextTimerUpdate) return;
         nextTimerUpdate = Time.unscaledTime + 1f;
         if (timerText != null) timerText.text = WeeklyRemaining();
+    }
+
+    // Sau khi ScrollRect cập nhật vị trí: ẩn/hiện dòng ghim của người chơi theo vị trí cuộn.
+    private void LateUpdate()
+    {
+        UpdatePinnedRow(showWeekly ? weeklyPlayerRow : rankPlayerRow);
+    }
+
+    // Dòng ghim (ô xanh) chỉ hiện khi dòng thật của người chơi còn nằm bên dưới chỗ ghim;
+    // cuộn tới (hoặc quá) vị trí đó thì ẩn, để dòng thật trong danh sách thay chỗ như các game khác.
+    private void UpdatePinnedRow(SushiLeaderboardRow pinned)
+    {
+        if (pinned == null) return;
+        bool show = true;
+        if (playerTarget != null && playerTarget.gameObject.activeInHierarchy)
+        {
+            playerTarget.GetWorldCorners(corners);
+            float targetBottom = corners[0].y;
+            ((RectTransform)pinned.transform).GetWorldCorners(corners);
+            float pinnedBottom = corners[0].y;
+            // Ngưỡng nhỏ để không nhấp nháy khi dòng thật đứng đúng chỗ ghim.
+            show = targetBottom < pinnedBottom - 1f;
+        }
+        if (pinned.gameObject.activeSelf != show) pinned.gameObject.SetActive(show);
     }
 
     // Nút tab Weekly.
@@ -82,6 +104,7 @@ public sealed class CanvasLeadBoard : CanvasHomePage
     // Đổi hình tab, bật đúng phần nội dung và dựng lại danh sách.
     private void ApplyTab()
     {
+        nextListUpdate = Time.unscaledTime + liveRefreshInterval;
         SetTab(weeklyTab, showWeekly);
         SetTab(rankTab, !showWeekly);
         if (weeklyView != null) weeklyView.SetActive(showWeekly);
@@ -90,20 +113,25 @@ public sealed class CanvasLeadBoard : CanvasHomePage
         if (countrySelected != null) countrySelected.SetActive(!showWorld);
         if (timerText != null) timerText.text = WeeklyRemaining();
 
-        int playerScore = PlayerScore();
+        playerTarget = null;
+        var rank = RankDataFragment.cur;
+        if (rank == null || rank.gameData == null) return;
         if (showWeekly)
         {
-            List<Entry> weekly = Generate(WeekSeed(), 900, playerScore);
+            List<RankDataFragment.RankEntry> weekly = rank.GetWeekly(out int playerRank);
             for (int i = 0; i < 3; i++) ShowPodium(i, i < weekly.Count ? weekly[i] : default);
+            // Người chơi ở top 3: vị trí thật là ô trên bục.
+            if (playerRank >= 1 && playerRank <= 3 && playerRank <= podiumAvatars.Length && podiumAvatars[playerRank - 1] != null)
+                playerTarget = podiumAvatars[playerRank - 1].rectTransform;
             // Bục đã hiện top 3, danh sách bắt đầu từ hạng 4.
             Fill(weeklyList, weekly, 3);
-            ShowPlayer(weeklyPlayerRow, weekly, playerScore);
+            ShowPlayer(weeklyPlayerRow, playerRank, rank.WeeklyScore);
         }
         else
         {
-            List<Entry> ranking = Generate(showWorld ? 7001 : 7002, showWorld ? 5200 : 2600, playerScore);
+            List<RankDataFragment.RankEntry> ranking = rank.GetRanking(showWorld, out int playerRank);
             Fill(rankList, ranking, 0);
-            ShowPlayer(rankPlayerRow, ranking, playerScore);
+            ShowPlayer(rankPlayerRow, playerRank, rank.TotalScore);
         }
     }
 
@@ -118,15 +146,19 @@ public sealed class CanvasLeadBoard : CanvasHomePage
     }
 
     // Hiển thị một vị trí trên bục top 3.
-    private void ShowPodium(int index, Entry entry)
+    private void ShowPodium(int index, RankDataFragment.RankEntry entry)
     {
         if (index < podiumNames.Length && podiumNames[index] != null) podiumNames[index].text = entry.name ?? "";
         if (index < podiumScores.Length && podiumScores[index] != null) podiumScores[index].text = "Score\n" + entry.score;
-        if (index < podiumAvatars.Length && podiumAvatars[index] != null && entry.avatar != null) podiumAvatars[index].sprite = entry.avatar;
+        if (index < podiumAvatars.Length && podiumAvatars[index] != null && entry.name != null)
+        {
+            Sprite sprite = Avatar(entry);
+            if (sprite != null) podiumAvatars[index].sprite = sprite;
+        }
     }
 
     // Dựng các dòng của danh sách từ vị trí start, tái sử dụng dòng đã tạo.
-    private void Fill(RectTransform list, List<Entry> entries, int start)
+    private void Fill(RectTransform list, List<RankDataFragment.RankEntry> entries, int start)
     {
         if (list == null || rowTemplate == null) return;
         if (!rows.TryGetValue(list, out var pool)) rows[list] = pool = new List<SushiLeaderboardRow>();
@@ -143,56 +175,33 @@ public sealed class CanvasLeadBoard : CanvasHomePage
             pool[i].gameObject.SetActive(visible);
             if (!visible) continue;
             int rank = start + i + 1;
-            Entry entry = entries[start + i];
+            RankDataFragment.RankEntry entry = entries[start + i];
             var rect = (RectTransform)pool[i].transform;
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
             rect.pivot = new Vector2(0.5f, 1f);
             rect.anchoredPosition = new Vector2(0, -i * rowSpacing);
-            pool[i].Show(rank.ToString(), Medal(rank), entry.avatar, entry.name, entry.score);
+            pool[i].Show(rank.ToString(), Medal(rank), Avatar(entry), entry.name, entry.score);
+            if (entry.isPlayer) playerTarget = rect;
         }
         list.sizeDelta = new Vector2(list.sizeDelta.x, count * rowSpacing + rowSpacing * 0.6f);
     }
 
-    // Dòng của người chơi ghim cuối danh sách; ngoài top hiển thị "999+".
-    private void ShowPlayer(SushiLeaderboardRow row, List<Entry> entries, int score)
+    // Dòng của người chơi ghim cuối danh sách, luôn hiện hạng thật (kể cả ngoài top).
+    private void ShowPlayer(SushiLeaderboardRow row, int rank, int score)
     {
         if (row == null) return;
-        int rank = entries.FindIndex(entry => entry.isPlayer) + 1;
-        string label = rank > 0 && rank <= listedPlayers ? rank.ToString() : "999+";
-        row.Show(label, null, PlayerAvatar(), PlayerName(), score);
+        row.Show(rank > 0 ? rank.ToString() : "-", null, PlayerAvatar(), PlayerName(), score);
     }
 
     private Sprite Medal(int rank) => rank >= 1 && rank <= medals.Length ? medals[rank - 1] : null;
 
-    // Sinh đối thủ cố định theo seed (giảm dần điểm) rồi chèn người chơi vào đúng thứ hạng.
-    private List<Entry> Generate(int seed, int topScore, int playerScore)
+    // Avatar của một dòng: người chơi dùng avatar Profile, đối thủ chọn theo chỉ số cố định.
+    private Sprite Avatar(RankDataFragment.RankEntry entry)
     {
-        var random = new System.Random(seed);
-        IReadOnlyList<string> names = ProfileDataFragment.cur != null && ProfileDataFragment.cur.names != null &&
-            ProfileDataFragment.cur.names.Count > 0 ? ProfileDataFragment.cur.names : (IReadOnlyList<string>)new[] { "William" };
-        var result = new List<Entry>(listedPlayers + 1);
-        int score = topScore;
-        for (int i = 0; i < listedPlayers; i++)
-        {
-            result.Add(new Entry
-            {
-                name = names[random.Next(names.Count)],
-                score = Mathf.Max(0, score),
-                avatar = avatars.Length > 0 ? avatars[random.Next(avatars.Length)] : null
-            });
-            score -= 1 + random.Next(Mathf.Max(2, topScore / listedPlayers));
-        }
-        int index = result.FindIndex(entry => playerScore > entry.score);
-        // Điểm thấp hơn cả danh sách: người chơi nằm ngoài top (hiện "999+").
-        if (index >= 0)
-            result.Insert(index, new Entry { name = PlayerName(), score = playerScore, avatar = PlayerAvatar(), isPlayer = true });
-        return result;
-    }
-
-    private int PlayerScore()
-    {
-        var player = GameDataFragment.cur != null ? GameDataFragment.cur.dataPlayer : null;
-        return (player?.completedLevels?.Count ?? 0) * scorePerLevel;
+        if (entry.isPlayer) return PlayerAvatar();
+        Sprite[] pool = avatars.Length > 0 ? avatars : ProfileDataFragment.cur != null ? ProfileDataFragment.cur.spr_avatars : null;
+        if (pool == null || pool.Length == 0) return null;
+        return pool[Mathf.Abs(entry.avatar) % pool.Length];
     }
 
     private static string PlayerName()
@@ -209,24 +218,11 @@ public sealed class CanvasLeadBoard : CanvasHomePage
         return avatars.Length > 0 ? avatars[0] : null;
     }
 
-    // Seed đổi theo tuần để đối thủ tuần mới khác tuần cũ.
-    private static int WeekSeed()
-    {
-        DateTime monday = NextMonday().AddDays(-7);
-        return monday.Year * 1000 + monday.DayOfYear;
-    }
-
-    private static DateTime NextMonday()
-    {
-        DateTime now = DateTime.Now;
-        int days = ((int)DayOfWeek.Monday - (int)now.DayOfWeek + 7) % 7;
-        return now.Date.AddDays(days == 0 ? 7 : days);
-    }
-
-    // Thời gian còn lại tới hết tuần, dạng "5d21h".
+    // Thời gian còn lại tới hết tuần đua, dạng "5d21h".
     private static string WeeklyRemaining()
     {
-        TimeSpan left = NextMonday() - DateTime.Now;
+        if (RankDataFragment.cur == null || RankDataFragment.cur.gameData == null) return "";
+        TimeSpan left = RankDataFragment.cur.WeeklyRemaining();
         return left.Days > 0 ? $"{left.Days}d{left.Hours}h" : $"{left.Hours}h{left.Minutes}m";
     }
 }

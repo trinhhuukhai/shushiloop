@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0aea91beb72141b3a2b19b7a98e7c503, type: 3}
+  m_Name: Rank Fragment
+  m_EditorClassIdentifier: Assembly-CSharp::RankDataFragment
+  key: RankFragment
+  scorePerLevel: 10
+  firstTryBonus: 5
+  weeklyRivalCount: 30
+  defaultWeeklyPace: 400
+  weeklyLeaderFactor: 1.8
+  weeklyPopulation: 500
+  rankRivalCount: 30
+  worldTopScore: 5200
+  worldDailyGrowth: 120
+  worldPopulation: 50000
+  countryTopScore: 2600
+  countryDailyGrowth: 60
+  countryPopulation: 3000
