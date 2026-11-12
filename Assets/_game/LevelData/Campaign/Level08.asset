@@ -26,12 +26,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
     - recipeKind: 0
       dish: 6
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -41,12 +47,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 4
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -56,12 +68,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 20
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -71,12 +89,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 5
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -86,12 +110,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 2
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -101,12 +131,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 14
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
   boardColumns:
   - foods:
     - tutFood: 1
@@ -264,6 +300,15 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 22
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 1
@@ -304,6 +349,15 @@ MonoBehaviour:
     - tutFood: 0
       typeFood: 1
       amount: 2
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
