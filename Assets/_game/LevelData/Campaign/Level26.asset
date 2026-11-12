@@ -20,18 +20,24 @@ MonoBehaviour:
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
-    - recipeKind: 0
+    - recipeKind: 3
       dish: 8
-      firstIngredient: 2
-      secondIngredient: 14
+      firstIngredient: 12
+      secondIngredient: 16
       thirdIngredient: 10
       amount: 1
-    - recipeKind: 0
+      lemon: 0
+      wasabi: 1
+      perilla: 1
+    - recipeKind: 3
       dish: 30
-      firstIngredient: 2
-      secondIngredient: 14
+      firstIngredient: 10
+      secondIngredient: 17
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -41,12 +47,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 7
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -56,12 +68,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 27
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -71,12 +89,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 46
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -86,12 +110,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
     - recipeKind: 0
       dish: 19
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -101,12 +131,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
     - recipeKind: 0
       dish: 20
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -116,12 +152,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 1
     - recipeKind: 0
       dish: 25
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -131,12 +173,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
     - recipeKind: 0
       dish: 22
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -146,12 +194,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 33
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -161,12 +215,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 1
     - recipeKind: 0
       dish: 31
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 1
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -176,12 +236,18 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 1
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 1
+      wasabi: 0
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -191,18 +257,27 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 0
     - recipeKind: 0
       dish: 17
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
     - recipeKind: 0
       dish: 6
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
   - rushCustomer: 0
     rushSeconds: 0
     dishes:
@@ -212,18 +287,27 @@ MonoBehaviour:
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
     - recipeKind: 0
       dish: 19
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 0
+      perilla: 1
     - recipeKind: 0
       dish: 20
       firstIngredient: 2
       secondIngredient: 14
       thirdIngredient: 10
       amount: 1
+      lemon: 0
+      wasabi: 1
+      perilla: 0
   boardColumns:
   - foods:
     - tutFood: 1
@@ -352,6 +436,78 @@ MonoBehaviour:
       linkId: 0
       trayId: 2
       lockId: 0
+    - tutFood: 0
+      typeFood: 22
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 22
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 22
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 14
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 1
@@ -464,6 +620,15 @@ MonoBehaviour:
     - tutFood: 0
       typeFood: 3
       amount: 1
+      foodState: 1
+      hidden: 1
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
@@ -471,10 +636,73 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
     - tutFood: 0
-      typeFood: 3
+      typeFood: 22
       amount: 1
-      foodState: 1
-      hidden: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 22
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 22
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 2
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 12
+      amount: 1
+      foodState: 0
+      hidden: 0
       iceLayers: 0
       linkId: 0
       trayId: 0
@@ -606,6 +834,78 @@ MonoBehaviour:
       linkId: 0
       trayId: 0
       lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 17
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
   - foods:
     - tutFood: 0
       typeFood: 16
@@ -636,7 +936,7 @@ MonoBehaviour:
       lockId: 0
     - tutFood: 0
       typeFood: 2
-      amount: 2
+      amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
@@ -654,7 +954,7 @@ MonoBehaviour:
       lockId: 0
     - tutFood: 0
       typeFood: 18
-      amount: 2
+      amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
@@ -707,17 +1007,8 @@ MonoBehaviour:
       trayId: 0
       lockId: 0
     - tutFood: 0
-      typeFood: 14
-      amount: 1
-      foodState: 0
-      hidden: 0
-      iceLayers: 0
-      linkId: 0
-      trayId: 0
-      lockId: 0
-    - tutFood: 0
       typeFood: 1
-      amount: 2
+      amount: 1
       foodState: 0
       hidden: 0
       iceLayers: 0
@@ -750,4 +1041,58 @@ MonoBehaviour:
       iceLayers: 0
       linkId: 0
       trayId: 3
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 24
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 23
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 1
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
+      lockId: 0
+    - tutFood: 0
+      typeFood: 10
+      amount: 1
+      foodState: 0
+      hidden: 0
+      iceLayers: 0
+      linkId: 0
+      trayId: 0
       lockId: 0

@@ -30,6 +30,10 @@ public sealed class SushiDishCardView : MonoBehaviour
     [Tooltip("Hình món ghép lớp (không đĩa) chiếm tối đa bấy nhiêu phần bề ngang và chiều cao của ô order, giữ tỉ lệ.")]
     [SerializeField, Range(0.3f, 1f)] private float dishCellFill = 0.8f;
     private Vector2 dishContentSize = Vector2.one;
+    // Lưới nguyên liệu khi xem chi tiết món từ 4 nguyên liệu trở lên (0 = xếp một cột như prefab).
+    private int gridColumns;
+    private int gridRows;
+    private float gridItemSize;
     private Sprite defaultBackgroundSprite;
     private Image.Type defaultBackgroundType;
     private bool hasDefaultBackground;
@@ -70,11 +74,15 @@ public sealed class SushiDishCardView : MonoBehaviour
     public Transform DeliverySlot(int index) => ingredients[index].DeliverySlot;
     public bool IsRecipeExpanded => recipeExpanded;
     public bool IsOrderComplete => orderComplete;
+    // Số loại nguyên liệu của công thức trên thẻ (từ 4 trở lên thì xem chi tiết dạng lưới 2 cột).
+    public int RecipeIngredientCount => recipeIngredientCount;
 
     // Tạo nhịp phóng to và lắc cho biểu tượng nhắc xem món chưa hoàn thành.
     private void LateUpdate()
     {
         FitDishLayers();
+        // Lưới nguyên liệu khi xem chi tiết bám theo kích thước ô sau khi bảng order dựng xong bố cục.
+        if (recipeExpanded && gridColumns > 1) ArrangeIngredientGrid();
         if (incompleteNotification == null || !incompleteNotification.gameObject.activeSelf) return;
         float phase = Time.unscaledTime * 5f;
         incompleteNotification.localScale = Vector3.one * (1f + 0.1f * Mathf.Sin(phase));
@@ -357,6 +365,7 @@ public sealed class SushiDishCardView : MonoBehaviour
     {
         if (expanded && orderComplete) return;
         recipeExpanded = expanded;
+        if (!expanded) gridColumns = 0;
         RefreshNotification();
         ApplyRecipeCell(expanded);
         dishName.gameObject.SetActive(!expanded && originalDishNameActive);
@@ -411,7 +420,16 @@ public sealed class SushiDishCardView : MonoBehaviour
                 ingredientsColumnLayout.spacing = Mathf.Max(0f, slot - layoutHeight);
                 ingredientsColumnLayout.enabled = columns == 1;
             }
-            if (columns > 1) ArrangeIngredientGrid(columns, rows, layoutHeight);
+            gridColumns = columns > 1 ? columns : 0;
+            gridRows = rows;
+            gridItemSize = -1f;
+            if (gridColumns > 1)
+            {
+                // Lưới nằm gọn trong panel nền (mép dưới panel thu vào nhiều hơn) rồi tự co theo bề ngang ô.
+                if (ingredientDetailsRect != null)
+                    ingredientDetailsRect.offsetMin = new Vector2(4 + recipeCellInset, recipeCellBottomInset + 3);
+                ArrangeIngredientGrid();
+            }
             if (ingredientDetailsLayout != null)
                 ingredientDetailsLayout.preferredHeight = available;
             if (cardLayout != null)
@@ -435,8 +453,23 @@ public sealed class SushiDishCardView : MonoBehaviour
 
     // Xem chi tiết món nhiều nguyên liệu: xếp các ô nguyên liệu thành lưới (trái sang phải, trên xuống dưới)
     // theo thứ tự hiển thị hiện có. Khi thu gọn, layout hàng ngang của prefab tự xếp lại các ô.
-    private void ArrangeIngredientGrid(int columns, int rows, float itemHeight)
+    private void ArrangeIngredientGrid()
     {
+        if (ingredientDetails == null || ingredientDetailsRect == null || gridColumns < 2) return;
+        // Ô order hẹp (bảng 2 cột) hay thấp (nhiều hàng) đều được: ảnh nguyên liệu co theo cạnh nhỏ hơn của một ô lưới.
+        Rect area = ingredientDetailsRect.rect;
+        if (area.width <= 1f || area.height <= 1f) return;
+        int columns = gridColumns, rows = gridRows;
+        float itemScale = ingredients.Length > 0 ? Mathf.Abs(ingredients[0].transform.localScale.y) : 1f;
+        if (itemScale < 0.01f) itemScale = 1f;
+        float visual = Mathf.Min(Mathf.Min(area.width / columns, area.height / rows) * 0.9f, maxRecipeIngredientSize);
+        float itemHeight = Mathf.Max(4f, visual) / itemScale;
+        if (Mathf.Abs(itemHeight - gridItemSize) > 0.1f)
+        {
+            gridItemSize = itemHeight;
+            for (int i = 0; i < recipeIngredientCount && i < ingredients.Length; i++)
+                ingredients[i].SetRecipeDisplay(true, itemHeight);
+        }
         Transform parent = ingredientDetails.transform;
         int index = 0;
         for (int i = 0; i < parent.childCount; i++)
@@ -448,7 +481,7 @@ public sealed class SushiDishCardView : MonoBehaviour
                 new Vector2((index % columns + 0.5f) / columns, 1f - (index / columns + 0.5f) / rows);
             item.pivot = Vector2.one * 0.5f;
             item.anchoredPosition = Vector2.zero;
-            item.sizeDelta = new Vector2(itemHeight * 1.3f, itemHeight);
+            item.sizeDelta = new Vector2(itemHeight, itemHeight);
             index++;
         }
     }

@@ -20,6 +20,8 @@ public class CustomerRecipeView : MonoBehaviour
     [SerializeField, Min(0f)] private float wideBoardWidth = 210f;
     [Tooltip("Lề phải của bảng khi khách vội: chừa chỗ cho thanh thời gian nằm trong bảng, hình món dồn sang trái.")]
     [SerializeField, Min(0)] private int rushRightPadding = 32;
+    [Tooltip("Xem chi tiết món từ 4 nguyên liệu trở lên: bề ngang tối thiểu của mỗi ô món (2 cột nguyên liệu). Bảng tự nới rộng cho đủ. 0 = không nới.")]
+    [SerializeField, Min(0f)] private float detailGridCellWidth = 130f;
     private Customer customer;
     private SushiDishArtLibrary art;
     private readonly List<SushiDishCardView> cards = new List<SushiDishCardView>();
@@ -332,6 +334,26 @@ public class CustomerRecipeView : MonoBehaviour
             size = new Vector2(wideBoardWidth, Mathf.Min(size.y, maxBoardHeight));
         }
         else if (size.y > maxBoardHeight) size *= maxBoardHeight / size.y;
+        // Xem chi tiết món nhiều nguyên liệu (xếp lưới 2 cột trong mỗi ô): nới bảng theo bề ngang để ảnh nguyên liệu đủ to.
+        if (detail && detailGridCellWidth > 0)
+        {
+            bool grid = false;
+            foreach (SushiDishCardView card in cards)
+                grid |= !card.IsOrderComplete && card.RecipeIngredientCount > 3;
+            int columns = wideBoard ? 2 : 1;
+            float padding = orderLayout != null
+                ? orderLayout.padding.left + Mathf.Max(orderLayout.padding.left, customer != null && customer.IsRush ? rushRightPadding : 0) +
+                    orderLayout.spacing * (columns - 1)
+                : 0f;
+            float wanted = columns * detailGridCellWidth + padding;
+            if (grid && wanted > size.x)
+            {
+                if (board.border.sqrMagnitude > 0) orderBoardImage.type = Image.Type.Sliced;
+                size.x = wanted;
+                // Bảng rộng hơn bình thường: giữ trong màn hình như bảng 2 cột.
+                wideBoard = true;
+            }
+        }
         orderRoot.sizeDelta = size;
         orderRoot.anchoredPosition = defaultOrderPosition;
         collapsedOrderHeight = size.y;
