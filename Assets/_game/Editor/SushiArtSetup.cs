@@ -12,6 +12,7 @@ public sealed class SushiArtSetup : AssetPostprocessor
     private const string ArtRoot = "Assets/_game/Art/";
     private const string CatalogPath = "Assets/_game/Resources/SushiArtCatalog.asset";
     internal const string SourceArtRoot = ArtRoot + "nguyenLieu_monAn/asset-20261102T044738Z-1-001/asset/";
+    internal const string FixArtRoot = ArtRoot + "nguyenLieu_monAn/fix/";
     private static readonly string[] SourceToppings = { "ca_ngu", "ca_hoi", "ca_bon", "ca_thu", "tom", "bach_tuoc", "bo", "trung" };
     private static bool queued;
     private static bool repairing;
@@ -63,6 +64,10 @@ public sealed class SushiArtSetup : AssetPostprocessor
             case PoolType.TeaPot: source = "tea_pot/am_tra"; break;
             case PoolType.EmptyCup: source = "tea_pot/tach_tra"; break;
             case PoolType.IceCube: source = "tea_pot/da"; break;
+            // Ba nguyên liệu trang trí nằm trong bộ ảnh fix.
+            case PoolType.Lemon: return FixArtRoot + "nguyen_lieu/raw_lemon.png";
+            case PoolType.Wasabi: return FixArtRoot + "nguyen_lieu/raw_wasabi.png";
+            case PoolType.Perilla: return FixArtRoot + "nguyen_lieu/raw_perilla_leaf.png";
             default: return ArtRoot + "Ingredients/" + type + ".png";
         }
         return SourceArtRoot + source + ".png";

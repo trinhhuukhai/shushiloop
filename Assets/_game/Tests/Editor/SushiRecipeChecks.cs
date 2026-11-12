@@ -19,12 +19,12 @@ public static class SushiRecipeChecks
     public static void Run()
     {
         assertions = 0;
-        Check(SushiRecipeCatalog.All.Count == 64, "Expected exactly the 64 supplied dishes");
+        Check(SushiRecipeCatalog.All.Count == 68, "Expected exactly the 68 supplied dishes");
         var ids = new HashSet<SushiDishId>();
         for (int i = 0; i < SushiRecipeCatalog.All.Count; i++)
         {
             SushiRecipe recipe = SushiRecipeCatalog.All[i];
-            Check((int)recipe.Id == (i < 8 ? i + 1 : i + 5) && ids.Add(recipe.Id), "Unstable or duplicate recipe ID");
+            Check((int)recipe.Id == i + 1 && ids.Add(recipe.Id), "Unstable or duplicate recipe ID");
             Check(SushiRecipeCatalog.Get(recipe.Id) == recipe, "Catalog lookup mismatch");
             Check(!string.IsNullOrEmpty(recipe.Name) && !string.IsNullOrEmpty(recipe.BaseName), "Missing recipe presentation");
             foreach (PoolType ingredient in recipe.Ingredients)
@@ -33,10 +33,9 @@ public static class SushiRecipeChecks
         PoolType[] toppings = { PoolType.Tuna, PoolType.Salmon, PoolType.Mackerel, PoolType.Flounder,
             PoolType.Shrimp, PoolType.Octopus, PoolType.Avocado, PoolType.Egg, PoolType.Mayonnaise,
             PoolType.FishRoe, PoolType.BlackFishRoe, PoolType.GreenFishRoe };
-        for (int i = 0; i < 8; i++) Expect(i + 1, PoolType.SushiRice, toppings[i]);
-        for (int id = 9; id <= 12; id++)
-            Check(!SushiRecipeCatalog.TryGet((SushiDishId)id, out _) && !Enum.IsDefined(typeof(SushiDishId), id),
-                "A retired dish is still available");
+        // IDs 9–12 (nigiri mayonnaise và ba loại trứng cá) dùng lại mã cũ theo bộ ảnh fix.
+        for (int i = 0; i < 12; i++) Expect(i + 1, PoolType.SushiRice, toppings[i]);
+        Garnishes();
         for (int i = 0; i < 8; i++) Expect(13 + i, PoolType.SushiRice, PoolType.Seaweed, toppings[i]);
         for (int i = 0; i < 8; i++) Expect(21 + i, PoolType.SushiRice, PoolType.Seaweed, toppings[i]);
         for (int i = 0; i < 3; i++) Expect(29 + i, PoolType.SushiRice, PoolType.Seaweed, toppings[9 + i]);
@@ -98,9 +97,9 @@ public static class SushiRecipeChecks
         SharedWrappedBases();
 #if UNITY_EDITOR
         SourceArtwork();
-        UnityEngine.Debug.Log("SUSHI_RECIPES_OK: 64 presets and custom combinations, " + assertions + " assertions passed");
+        UnityEngine.Debug.Log("SUSHI_RECIPES_OK: 68 presets and custom combinations, " + assertions + " assertions passed");
 #else
-        Console.WriteLine("SUSHI_RECIPES_OK: 64 presets and custom combinations, " + assertions + " assertions passed");
+        Console.WriteLine("SUSHI_RECIPES_OK: 68 presets and custom combinations, " + assertions + " assertions passed");
 #endif
     }
 
@@ -126,47 +125,48 @@ public static class SushiRecipeChecks
                     SushiRecipeCatalog.AssetName(type) == System.IO.Path.GetFileNameWithoutExtension(path),
                     "Ingredient source/name mismatch: " + type);
             }
-        int layers = 0;
+        // Bộ ảnh fix: nigiri/maki/gunkan/sashimi dựng từ đĩa riêng và các lớp ảnh; chỉ trà còn dùng ảnh món hoàn chỉnh.
+        var plated = art.platedIngredientImages;
+        var buffer = new List<SushiPlatedIngredientArtLibrary.Layer>();
+        var garnishes = new[] { PoolType.Lemon, PoolType.Wasabi, PoolType.Perilla };
+        int layered = 0;
         foreach (SushiRecipe recipe in SushiRecipeCatalog.All)
         {
-            var plate = art.platedIngredientImages.GetPlate(recipe);
-            if (recipe.Family == SushiDishFamily.Sashimi)
+            var plate = plated.GetPlate(recipe);
+            if (recipe.Family == SushiDishFamily.Tea)
             {
-                string folder = recipe.Ingredients.Count == 2 ? "sashimi_x2" : "sashimi_x3";
-                Check(plate != null && UnityEditor.AssetDatabase.GetAssetPath(plate.sprite) ==
-                    SushiArtSetup.SourceArtRoot + folder + "/dia_setup.png" && plate.size.x > 0 && plate.size.y > 0,
-                    "Wrong decorated plate for " + recipe.Name);
+                Check(plate == null && !plated.IsLayered(recipe) && art.dishImages.GetSprite(recipe) != null,
+                    "Tea must keep its finished dish artwork: " + recipe.Name);
+                continue;
             }
-            else Check(plate == null, "A non-sashimi dish replaced its original plate: " + recipe.Name);
-            var sprite = art.dishImages.GetSprite(recipe);
-            string path = SushiArtSetup.DishPath(recipe.Id);
-            Check(sprite != null, "Missing dish artwork: " + recipe.Name);
-            if (!path.StartsWith(SushiArtSetup.SourceArtRoot, StringComparison.Ordinal)) continue;
-            string assetName = SushiRecipeCatalog.AssetName(recipe.Id);
-            string spritePath = UnityEditor.AssetDatabase.GetAssetPath(sprite);
-            Check(spritePath == path &&
-                path.EndsWith("/" + assetName.Substring(assetName.LastIndexOf('/') + 1) + ".png", StringComparison.Ordinal),
-                "Dish source/name mismatch: " + recipe.Name);
-            foreach (PoolType type in recipe.Ingredients)
+            layered++;
+            Check(plated.IsLayered(recipe) && plate != null && plate.size.x > 0 && plate.size.y > 0 &&
+                UnityEditor.AssetDatabase.GetAssetPath(plate.sprite).StartsWith(SushiArtSetup.FixArtRoot, StringComparison.Ordinal),
+                "Missing finished plate for " + recipe.Name);
+            string plateName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(plate.sprite));
+            Check(plateName == (recipe.Family == SushiDishFamily.Sashimi ? "ice_tray" : "plate"), "Wrong plate kind for " + recipe.Name);
+            SushiRecipe full = SushiRecipeCatalog.WithGarnish(recipe, true, true, true);
+            foreach (PoolType type in full.Ingredients)
             {
-                var entry = art.platedIngredientImages.Find(type, recipe);
-                Check(entry is SushiPlatedIngredientArtLibrary.DishEntry && entry.sprite != null &&
-                    UnityEditor.AssetDatabase.GetAssetPath(entry.sprite).StartsWith(SushiArtSetup.SourceArtRoot, StringComparison.Ordinal) &&
-                    entry.size.x > 0 && entry.size.y > 0, "Missing source layer: " + recipe.Name + "/" + type);
-                layers++;
+                Check(plated.HasLayers(full, type), "Missing layer artwork: " + recipe.Name + "/" + type);
+                buffer.Clear();
+                plated.GetLayers(full, type, null, buffer);
+                // Trong maki/gunkan hoàn chỉnh, cơm nằm sẵn trong ảnh cuộn rong biển nên không có lớp riêng.
+                bool merged = type == PoolType.SushiRice && full.Ingredients.Contains(PoolType.Seaweed);
+                Check(merged ? buffer.Count == 0 : buffer.Count > 0, "Wrong layer count: " + recipe.Name + "/" + type);
+                foreach (var layer in buffer)
+                    Check(layer.sprite != null && layer.size.x > 0 && layer.size.y > 0 &&
+                        UnityEditor.AssetDatabase.GetAssetPath(layer.sprite).StartsWith(SushiArtSetup.FixArtRoot, StringComparison.Ordinal),
+                        "Layer does not use the fix artwork: " + recipe.Name + "/" + type);
             }
+            foreach (PoolType type in garnishes)
+                Check(!plated.HasLayers(recipe, type) || recipe.ToppingSlot(type) == 0, "Garnish took a topping position");
         }
-        Check(layers == 168, "New dishes must have all 168 plated layers");
-        Check(art.platedIngredientImages.sashimiTwoIngredientPlate.sprite !=
-            art.platedIngredientImages.sashimiThreeIngredientPlate.sprite, "The two sashimi plates were merged");
-        var sharedLayers = art.platedIngredientImages.ingredients
-            .Concat(art.platedIngredientImages.familyOverrides)
-            .Concat(art.platedIngredientImages.recipeOverrides);
-        foreach (var entry in sharedLayers)
-            if (SushiArtSetup.HasSourceArtwork(SushiArtSetup.IngredientPath(entry.type)))
-                Check(entry.sprite != null && UnityEditor.AssetDatabase.GetAssetPath(entry.sprite)
-                    .StartsWith(SushiArtSetup.SourceArtRoot, StringComparison.Ordinal),
-                    "Shared plated layer still uses old artwork: " + entry.type);
+        Check(layered == 66, "Every non-tea dish must use the layered artwork");
+        Check(plated.FindStyle(SushiRecipeCatalog.Get(SushiDishId.SashimiTunaSalmon)).plate !=
+            plated.FindStyle(SushiRecipeCatalog.Get(SushiDishId.SashimiTunaSalmonShrimp)).plate ||
+            plated.FindStyle(SushiRecipeCatalog.Get(SushiDishId.SashimiTunaSalmon)).style !=
+            plated.FindStyle(SushiRecipeCatalog.Get(SushiDishId.SashimiTunaSalmonShrimp)).style, "The two sashimi styles were merged");
     }
 #endif
 
@@ -289,7 +289,7 @@ public static class SushiRecipeChecks
                 }
             }
         }
-        Check(keys.Count == 285, "Expected 13 rice pairs, 136 rice-free pairs and 136 rice triples");
+        Check(keys.Count == 288, "Expected 16 rice pairs, 136 rice-free pairs and 136 rice triples");
         foreach (PoolType invalid in new[] { PoolType.None, PoolType.SushiRice, PoolType.TeaPot, PoolType.EmptyCup, PoolType.IceCube, (PoolType)99 })
         {
             Check(!SushiRecipeCatalog.TryCreate(SushiRecipeKind.TwoWithRice, invalid, PoolType.Shrimp, out _, out _), "Invalid food topping accepted");
@@ -302,6 +302,44 @@ public static class SushiRecipeChecks
             ReferenceEquals(maki, SushiRecipeCatalog.Get(SushiDishId.MakiShrimp)), "Mixed custom/catalog orders must share ingredient-slot order");
         Check(SushiRecipeCatalog.TryCreate(SushiRecipeKind.TwoWithoutRice, PoolType.Shrimp, PoolType.Tuna, out var sashimi, out _) &&
             ReferenceEquals(sashimi, SushiRecipeCatalog.Get(SushiDishId.SashimiTunaShrimp)), "Rice-free preset slot order changed in a mixed group");
+    }
+
+    // Đồ trang trí (chanh, wasabi, lá tía tô) và nigiri phủ trứng cá.
+    private static void Garnishes()
+    {
+        Check((int)PoolType.IceCube == 21 && (int)PoolType.Lemon == 22 && (int)PoolType.Wasabi == 23 &&
+            (int)PoolType.Perilla == 24, "Garnish ingredients must be appended after the legacy IDs");
+        var plain = new DishOrderData { dish = SushiDishId.NigiriSalmon };
+        var full = new DishOrderData { dish = SushiDishId.NigiriSalmon, lemon = true, wasabi = true, perilla = true, amount = 2 };
+        SushiRecipe recipe = full.GetRecipe();
+        Check(ReferenceEquals(plain.GetRecipe(), SushiRecipeCatalog.Get(SushiDishId.NigiriSalmon)), "Plain order changed its catalog recipe");
+        Check(recipe.Id == SushiDishId.NigiriSalmon && recipe.Ingredients.Count == 5 && recipe.CoreCount == 2 &&
+            recipe.Kind == SushiRecipeKind.TwoWithRice && recipe.Key != plain.GetRecipe().Key &&
+            ReferenceEquals(recipe, full.GetRecipe()), "Garnished dish must keep its base recipe and group separately");
+        Check(recipe.ToppingSlot(PoolType.Salmon) == 1 && recipe.ToppingSlot(PoolType.Lemon) == 0 &&
+            recipe.ToppingSlot(PoolType.SushiRice) == 0, "Garnish or base took a topping position");
+        var customer = new CustomerOrderData { dishes = new List<DishOrderData> { plain, full } };
+        List<FoodOrderData> totals = customer.CreateIngredientOrders();
+        Check(customer.ValidateOrders() == null && Count(totals, PoolType.SushiRice) == 3 && Count(totals, PoolType.Salmon) == 3 &&
+            Count(totals, PoolType.Lemon) == 2 && Count(totals, PoolType.Wasabi) == 2 && Count(totals, PoolType.Perilla) == 2,
+            "Garnish quantities were not added to the board requirement");
+        var dish = new SushiDishOrder(0, recipe);
+        Check(!dish.CanStartIngredient(PoolType.Lemon) && dish.CanStartIngredient(PoolType.SushiRice), "Garnish started before rice");
+        dish.FindAvailableIngredient(PoolType.SushiRice).receivedAmount = 1;
+        Check(dish.CanStartIngredient(PoolType.Lemon) && dish.CanStartIngredient(PoolType.Salmon), "Rice did not unlock garnish");
+        Check(!new DishOrderData { dish = SushiDishId.GreenTea, lemon = true }.TryGetRecipe(out _, out string teaError) &&
+            teaError != null, "Tea accepted a garnish");
+        var sashimi = new DishOrderData { dish = SushiDishId.SashimiTunaSalmonShrimp, perilla = true }.GetRecipe();
+        Check(sashimi.Kind == SushiRecipeKind.ThreeWithoutRice && sashimi.ToppingSlot(PoolType.Shrimp) == 3, "Garnish changed sashimi positions");
+
+        Check(SushiRecipeCatalog.TryCreate(SushiRecipeKind.ThreeWithRice, PoolType.BlackFishRoe, PoolType.Tuna, out var roeTop, out _) &&
+            roeTop.Family == SushiDishFamily.Nigiri && roeTop.Ingredients[1] == PoolType.Tuna &&
+            roeTop.ToppingSlot(PoolType.Tuna) == 1 && roeTop.ToppingSlot(PoolType.BlackFishRoe) == 2,
+            "Rice + fish + roe must be a roe-topped nigiri with the fish first");
+        foreach (PoolType type in new[] { PoolType.Lemon, PoolType.Wasabi, PoolType.Perilla })
+            Check(SushiRecipeCatalog.IsGarnish(type) && !SushiRecipeCatalog.IsFoodTopping(type) &&
+                !SushiRecipeCatalog.TryCreate(SushiRecipeKind.TwoWithRice, type, PoolType.None, out _, out _),
+                "A garnish was accepted as a main topping");
     }
 
     private static void Expect(int id, params PoolType[] expected)

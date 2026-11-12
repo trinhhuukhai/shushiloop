@@ -85,7 +85,7 @@ MonoBehaviour:
   ingredientRoot: {fileID: 78403798261742}
   rawFoundationSize: 0.9
   rawToppingSize: 0.7
-  rawFoundationPosition: {x: 0, y: 0.1}
+  rawFoundationPosition: {x: 0, y: -0.05}
   rawToppingSpacing: {x: 0.2, y: 0.2}
   rawIngredientOverrides: []
   plateFadeDuration: 0.1

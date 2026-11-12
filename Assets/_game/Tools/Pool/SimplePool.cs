@@ -371,5 +371,9 @@ public enum PoolType
     [InspectorName("nori")] Seaweed,
     [InspectorName("am_tra")] TeaPot,
     [InspectorName("tach_tra")] EmptyCup,
-    [InspectorName("da")] IceCube
+    [InspectorName("da")] IceCube,
+    // Đồ trang trí thêm vào món (bộ ảnh nguyenLieu_monAn/fix).
+    [InspectorName("lemon")] Lemon,
+    [InspectorName("wasabi")] Wasabi,
+    [InspectorName("perilla_leaf")] Perilla
 }

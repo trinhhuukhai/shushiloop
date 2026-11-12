@@ -78,6 +78,9 @@ public sealed class SushiPreparedDish : MonoBehaviour
     private Sequence mergeSequence;
     private Tween plateTween;
     private static Sprite glowSprite;
+    // Món ghép lớp: lớp ảnh thứ hai trở đi của một nguyên liệu (miếng nigiri thứ hai, lát chanh thứ hai, củ cải bào...).
+    private readonly Dictionary<FoodShushi, List<SpriteRenderer>> extraLayers = new Dictionary<FoodShushi, List<SpriteRenderer>>();
+    private readonly List<SushiPlatedIngredientArtLibrary.Layer> layerBuffer = new List<SushiPlatedIngredientArtLibrary.Layer>();
 
     public IReadOnlyList<FoodShushi> AssemblyIngredients => assemblyIngredients;
     public Transform IngredientRoot => ingredientRoot;
@@ -215,9 +218,15 @@ public sealed class SushiPreparedDish : MonoBehaviour
     {
         if (!combinedLayout)
         {
-            Vector2 raw = RawPosition(type, out _) + (FindRawOverride(type)?.offset ?? Vector2.zero);
+            RawStyle(out Vector2 styleOffset, out float styleScale);
+            Vector2 raw = styleOffset + (RawPosition(type, out _) + (FindRawOverride(type)?.offset ?? Vector2.zero)) * styleScale;
             target.localPosition = new Vector3(raw.x, raw.y, -0.1f);
             target.localRotation = Quaternion.identity;
+            return;
+        }
+        if (TryGetLayers(type))
+        {
+            PlaceLayerTarget(target);
             return;
         }
         var artwork = ingredientArt != null ? ingredientArt.Find(type, Order.Recipe) : null;
@@ -249,6 +258,14 @@ public sealed class SushiPreparedDish : MonoBehaviour
         float x = foundation == PoolType.SushiRice ? 0f : (index - (count - 1) * 0.5f) * rawToppingSpacing.x;
         float y = foundation != PoolType.None ? rawFoundationPosition.y + rawToppingSpacing.y : 0f;
         return new Vector2(x, y);
+    }
+
+    // Chỗ đặt và tỉ lệ thu nhỏ của nguyên liệu gốc trên đĩa theo kiểu món (không có kiểu món thì giữ bố cục prefab).
+    private void RawStyle(out Vector2 offset, out float scale)
+    {
+        var style = ingredientArt != null && Order != null ? ingredientArt.FindStyle(Order.Recipe) : null;
+        offset = style != null ? style.position + style.rawPosition * style.size : Vector2.zero;
+        scale = style != null ? style.rawSize * style.size / Mathf.Max(0.01f, rawFoundationSize) : 1f;
     }
 
     // Nguyên liệu làm nền trên đĩa: cơm/cốc, và rong biển với maki/gunkan.
@@ -298,6 +315,9 @@ public sealed class SushiPreparedDish : MonoBehaviour
     public void ApplyIngredientArtwork(FoodShushi food, bool flying)
     {
         int baseOrder = flying ? 31 : 18;
+        if (combinedIngredients.Contains(food) && ApplyLayeredArtwork(food, baseOrder)) return;
+        food.SetPlatedHidden(false);
+        ClearExtraLayers(food);
         if (!combinedIngredients.Contains(food))
         {
             Sprite raw = food.IngredientSprite;
@@ -305,6 +325,9 @@ public sealed class SushiPreparedDish : MonoBehaviour
             bool isFoundation = IsRawBase(food.Type);
             RawIngredientOverride custom = FindRawOverride(food.Type);
             float maxSize = custom != null && custom.size > 0f ? custom.size : isFoundation ? rawFoundationSize : rawToppingSize;
+            // Đĩa theo kiểu món: nguyên liệu gốc thu nhỏ và nằm lệch để vẫn thấy đôi đũa.
+            RawStyle(out _, out float styleScale);
+            maxSize *= styleScale;
             // Nguyên liệu gốc mới đáp luôn nằm trên các lớp đã ghép.
             int rawOrder = baseOrder + layer + (combinedLayout ? RawLayerOffset : 0);
             food.SetPlatedArtwork(raw, FitInside(raw, Vector2.one * maxSize), rawOrder);
@@ -315,6 +338,82 @@ public sealed class SushiPreparedDish : MonoBehaviour
         Vector2 size = artwork != null ? artwork.size : imageSize;
         int order = baseOrder + (ingredientArt != null ? ingredientArt.GetSortingOrder(food.Type, Order.Recipe) : 0);
         food.SetPlatedArtwork(sprite, size, order);
+    }
+
+    // Lấy các lớp ảnh của nguyên liệu trong món ghép lớp vào layerBuffer (lớp dưới cùng đứng trước).
+    // Trả về false khi món hoặc nguyên liệu không dùng bộ ảnh ghép lớp. Danh sách rỗng = nguyên liệu
+    // đã nằm trong lớp ảnh của nguyên liệu khác (vd. cơm trong cuộn rong biển).
+    private bool TryGetLayers(PoolType type)
+    {
+        layerBuffer.Clear();
+        if (ingredientArt == null || Order == null || !ingredientArt.HasLayers(Order.Recipe, type)) return false;
+        ingredientArt.GetLayers(Order.Recipe, type, other => other == type || IsCombinedType(other), layerBuffer);
+        return true;
+    }
+
+    // Loại nguyên liệu đã chuyển sang lớp ảnh ghép trên đĩa.
+    private bool IsCombinedType(PoolType type)
+    {
+        foreach (FoodShushi food in combinedIngredients)
+            if (food != null && food.Type == type) return true;
+        return false;
+    }
+
+    // Điểm đặt nguyên liệu trùng tâm lớp ảnh đầu tiên của nó (layerBuffer vừa được lấy).
+    private void PlaceLayerTarget(Transform target)
+    {
+        Vector2 anchor = layerBuffer.Count > 0 ? layerBuffer[0].position : Vector2.zero;
+        target.localPosition = new Vector3(anchor.x, anchor.y, -0.1f);
+        target.localRotation = Quaternion.identity;
+    }
+
+    // Vẽ nguyên liệu đã ghép bằng các lớp ảnh của kiểu món: lớp đầu dùng renderer của nguyên liệu,
+    // các lớp còn lại dùng renderer phụ nằm trong nhóm Ingredients của đĩa.
+    private bool ApplyLayeredArtwork(FoodShushi food, int baseOrder)
+    {
+        if (!TryGetLayers(food.Type)) return false;
+        if (ingredientTargets.TryGetValue(food.Type, out Transform target)) PlaceLayerTarget(target);
+        food.SetPlatedHidden(layerBuffer.Count == 0);
+        if (layerBuffer.Count > 0)
+            food.SetPlatedArtwork(layerBuffer[0].sprite, layerBuffer[0].size, baseOrder + layerBuffer[0].sortingOrder);
+
+        int needed = Mathf.Max(0, layerBuffer.Count - 1);
+        extraLayers.TryGetValue(food, out List<SpriteRenderer> extras);
+        if (needed > 0 && extras == null) extraLayers.Add(food, extras = new List<SpriteRenderer>());
+        for (int i = 0; i < needed; i++)
+        {
+            SushiPlatedIngredientArtLibrary.Layer layer = layerBuffer[i + 1];
+            if (extras.Count <= i)
+            {
+                var created = new GameObject(food.Type + " layer " + (i + 2)).AddComponent<SpriteRenderer>();
+                created.gameObject.layer = ingredientRoot.gameObject.layer;
+                created.transform.SetParent(ingredientRoot, false);
+                created.sharedMaterial = SushiWorldVisual.SpriteMaterial;
+                extras.Add(created);
+            }
+            SpriteRenderer renderer = extras[i];
+            Bounds bounds = layer.sprite.bounds;
+            var scale = new Vector3(layer.size.x / Mathf.Max(0.01f, bounds.size.x),
+                layer.size.y / Mathf.Max(0.01f, bounds.size.y), 1f);
+            renderer.sprite = layer.sprite;
+            renderer.transform.localScale = scale;
+            renderer.transform.localPosition = new Vector3(layer.position.x, layer.position.y, -0.1f) -
+                Vector3.Scale(bounds.center, scale);
+            renderer.sortingOrder = baseOrder + layer.sortingOrder;
+            renderer.enabled = true;
+        }
+        if (extras != null)
+            for (int i = needed; i < extras.Count; i++) extras[i].enabled = false;
+        return true;
+    }
+
+    // Bỏ các renderer lớp phụ của một nguyên liệu (khi nó quay về ảnh gốc hoặc rời đĩa).
+    private void ClearExtraLayers(FoodShushi food)
+    {
+        if (!extraLayers.TryGetValue(food, out List<SpriteRenderer> extras)) return;
+        foreach (SpriteRenderer renderer in extras)
+            if (renderer != null) Destroy(renderer.gameObject);
+        extraLayers.Remove(food);
     }
 
     // Tìm thông số chỉnh riêng của nguyên liệu khi nằm trên đĩa.
@@ -378,6 +477,10 @@ public sealed class SushiPreparedDish : MonoBehaviour
             food.transform.SetParent(null, true);
             SimplePool.Despawn(food);
         }
+        foreach (List<SpriteRenderer> extras in extraLayers.Values)
+            foreach (SpriteRenderer renderer in extras)
+                if (renderer != null) Destroy(renderer.gameObject);
+        extraLayers.Clear();
         assemblyIngredients.Clear();
         combinedIngredients.Clear();
     }

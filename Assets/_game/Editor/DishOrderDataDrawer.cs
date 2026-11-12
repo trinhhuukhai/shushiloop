@@ -19,8 +19,9 @@ public sealed class DishOrderDataDrawer : PropertyDrawer
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         var kind = (SushiRecipeKind)property.FindPropertyRelative("recipeKind").intValue;
-        int rows = kind == SushiRecipeKind.Catalog ? 4 :
-            kind == SushiRecipeKind.ThreeWithRice || kind == SushiRecipeKind.ThreeWithoutRice ? 6 : 5;
+        // Thêm một hàng cho ba ô chọn đồ trang trí (chanh, wasabi, lá tía tô).
+        int rows = (kind == SushiRecipeKind.Catalog ? 4 :
+            kind == SushiRecipeKind.ThreeWithRice || kind == SushiRecipeKind.ThreeWithoutRice ? 6 : 5) + 1;
         return rows * RowHeight;
     }
 
@@ -63,10 +64,29 @@ public sealed class DishOrderDataDrawer : PropertyDrawer
             }
         }
         position.y += RowHeight;
+        DrawGarnish(position, property);
+        position.y += RowHeight;
         var amount = property.FindPropertyRelative("amount");
         EditorGUI.PropertyField(position, amount, new GUIContent("Số phần"));
         amount.intValue = Mathf.Max(1, amount.intValue);
         EditorGUI.EndProperty();
+    }
+
+    // Ba ô chọn đồ trang trí trên cùng một hàng; mỗi ô bật thêm 1 nguyên liệu vào công thức.
+    private static void DrawGarnish(Rect position, SerializedProperty property)
+    {
+        Rect row = EditorGUI.PrefixLabel(position, new GUIContent("Trang trí"));
+        string[] fields = { "lemon", "wasabi", "perilla" };
+        string[] labels = { "Chanh", "Wasabi", "Lá tía tô" };
+        float width = row.width / fields.Length;
+        int indent = EditorGUI.indentLevel;
+        EditorGUI.indentLevel = 0;
+        for (int i = 0; i < fields.Length; i++)
+        {
+            SerializedProperty flag = property.FindPropertyRelative(fields[i]);
+            flag.boolValue = EditorGUI.ToggleLeft(new Rect(row.x + i * width, row.y, width, row.height), labels[i], flag.boolValue);
+        }
+        EditorGUI.indentLevel = indent;
     }
 
     private static void DrawTopping(Rect position, SerializedProperty property, string label, bool nigiriOnly = false)

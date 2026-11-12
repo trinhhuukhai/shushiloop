@@ -27,15 +27,36 @@ public class DishOrderData
     public PoolType secondIngredient = PoolType.Avocado;
     public PoolType thirdIngredient = PoolType.Tuna;
     [Min(1)] public int amount = 1;
+    [Header("Trang trí thêm (khách cần đủ các nguyên liệu này)")]
+    [Tooltip("Thêm 1 chanh vào món.")] public bool lemon;
+    [Tooltip("Thêm 1 wasabi vào món.")] public bool wasabi;
+    [Tooltip("Thêm 1 lá tía tô vào món.")] public bool perilla;
 
-    // Tra món có sẵn hoặc tạo công thức tùy chỉnh, trả thông báo nếu dữ liệu không hợp lệ.
+    public bool HasGarnish => lemon || wasabi || perilla;
+
+    // Tra món có sẵn hoặc tạo công thức tùy chỉnh rồi thêm đồ trang trí, trả thông báo nếu dữ liệu không hợp lệ.
     public bool TryGetRecipe(out SushiRecipe recipe, out string error)
     {
         if (recipeKind != SushiRecipeKind.Catalog)
-            return SushiRecipeCatalog.TryCreate(recipeKind, firstIngredient, secondIngredient, thirdIngredient, out recipe, out error);
-        bool valid = SushiRecipeCatalog.TryGet(dish, out recipe);
-        error = valid ? null : "Mã món trong catalog không hợp lệ.";
-        return valid;
+        {
+            if (!SushiRecipeCatalog.TryCreate(recipeKind, firstIngredient, secondIngredient, thirdIngredient, out recipe, out error))
+                return false;
+        }
+        else if (!SushiRecipeCatalog.TryGet(dish, out recipe))
+        {
+            error = "Mã món trong catalog không hợp lệ.";
+            return false;
+        }
+        error = null;
+        if (!HasGarnish) return true;
+        if (recipe.Family == SushiDishFamily.Tea)
+        {
+            error = "Trà không dùng chanh, wasabi hay lá tía tô.";
+            recipe = null;
+            return false;
+        }
+        recipe = SushiRecipeCatalog.WithGarnish(recipe, lemon, wasabi, perilla);
+        return true;
     }
 
     // Lấy công thức món và phát sinh lỗi nếu cấu hình đơn món không hợp lệ.

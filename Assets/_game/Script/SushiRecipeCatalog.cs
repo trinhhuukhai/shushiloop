@@ -15,6 +15,10 @@ public enum SushiDishId
     [InspectorName("nigiri_muc")] NigiriOctopus = 6,
     [InspectorName("nigiri_bo")] NigiriAvocado = 7,
     [InspectorName("nigiri_trung")] NigiriEgg = 8,
+    [InspectorName("nigiri_mayo")] NigiriMayonnaise = 9,
+    [InspectorName("nigiri_roe_vang")] NigiriOrangeRoe = 10,
+    [InspectorName("nigiri_roe_den")] NigiriBlackRoe = 11,
+    [InspectorName("nigiri_roe_xanh")] NigiriGreenRoe = 12,
     [InspectorName("maiki_ca_ngu")] MakiTuna = 13,
     [InspectorName("maiki_ca_hoi")] MakiSalmon = 14,
     [InspectorName("maiki_ca_bon")] MakiMackerel = 15,
@@ -88,10 +92,29 @@ public sealed class SushiRecipe
     public string ToppingStyle { get; }
     public bool HasRice => Ingredients.Contains(PoolType.SushiRice);
     public bool IsCustom => Id == SushiDishId.None;
+    // Số nguyên liệu chính, không tính đồ trang trí (chanh, wasabi, lá tía tô).
+    public int CoreCount { get; }
     public SushiRecipeKind Kind => Family == SushiDishFamily.Tea ? SushiRecipeKind.Catalog :
-        Ingredients.Count == 3 ? (HasRice ? SushiRecipeKind.ThreeWithRice : SushiRecipeKind.ThreeWithoutRice) :
-        Ingredients.Count == 2 ? (HasRice ? SushiRecipeKind.TwoWithRice : SushiRecipeKind.TwoWithoutRice) : SushiRecipeKind.Catalog;
+        CoreCount == 3 ? (HasRice ? SushiRecipeKind.ThreeWithRice : SushiRecipeKind.ThreeWithoutRice) :
+        CoreCount == 2 ? (HasRice ? SushiRecipeKind.TwoWithRice : SushiRecipeKind.TwoWithoutRice) : SushiRecipeKind.Catalog;
     public string Key { get; }
+
+    // Vị trí topping trên đĩa (1, 2, 3...) theo thứ tự công thức; 0 = phần nền hoặc đồ trang trí.
+    // Nigiri: 1 = lát chính, 2 = trứng cá phủ thêm. Sashimi: 1–3 = vị trí lát cá trên khay đá.
+    public int ToppingSlot(PoolType type)
+    {
+        if (Family == SushiDishFamily.Tea) return 0;
+        bool wrapped = Family == SushiDishFamily.Maki || Family == SushiDishFamily.Gunkan;
+        int slot = 0;
+        foreach (PoolType ingredient in Ingredients)
+        {
+            if (ingredient == PoolType.SushiRice || SushiRecipeCatalog.IsGarnish(ingredient) ||
+                (wrapped && ingredient == PoolType.Seaweed)) continue;
+            slot++;
+            if (ingredient == type) return slot;
+        }
+        return 0;
+    }
 
     // Lưu công thức bất biến và tạo khóa theo nhóm món cùng tập nguyên liệu đã sắp xếp.
     internal SushiRecipe(SushiDishId id, SushiDishFamily family, string name, string baseName,
@@ -99,13 +122,14 @@ public sealed class SushiRecipe
     {
         Id = id; Family = family; Name = name; BaseName = baseName; ToppingStyle = toppingStyle;
         Ingredients = Array.AsReadOnly((PoolType[])ingredients.Clone());
+        CoreCount = ingredients.Count(type => !SushiRecipeCatalog.IsGarnish(type));
         var sorted = (PoolType[])ingredients.Clone();
         Array.Sort(sorted);
         Key = ((int)family) + ":" + string.Join(",", Array.ConvertAll(sorted, type => ((int)type).ToString()));
     }
 }
 
-// IDs 9–12 are retired. Keep every remaining ID aligned with existing assets and source filenames.
+// Keep every ID aligned with existing assets and source filenames. IDs 9–12 (nigiri mayo/trứng cá) dùng lại mã cũ.
 public static class SushiRecipeCatalog
 {
     private static readonly ReadOnlyCollection<SushiRecipe> recipes = CreateRecipes().AsReadOnly();
@@ -124,9 +148,33 @@ public static class SushiRecipeCatalog
     // Kiểm tra nguyên liệu có thuộc khoảng topping món ăn được catalog hỗ trợ.
     public static bool IsFoodTopping(PoolType type) => type >= PoolType.Shrimp && type <= PoolType.Seaweed;
 
-    // Kiểm tra topping hợp lệ cho Nigiri, loại các loại sốt và trứng cá không phù hợp.
-    public static bool IsNigiriTopping(PoolType type) => IsFoodTopping(type) && type != PoolType.Mayonnaise &&
-        type != PoolType.FishRoe && type != PoolType.BlackFishRoe && type != PoolType.GreenFishRoe;
+    // Kiểm tra topping hợp lệ cho Nigiri: mọi topping trừ rong biển (cơm + rong biển là nền maki/gunkan).
+    public static bool IsNigiriTopping(PoolType type) => IsFoodTopping(type) && type != PoolType.Seaweed;
+
+    // Ba loại trứng cá: làm topping chính của nigiri/gunkan hoặc phủ thêm lên lát cá của nigiri.
+    public static bool IsRoe(PoolType type) =>
+        type == PoolType.FishRoe || type == PoolType.BlackFishRoe || type == PoolType.GreenFishRoe;
+
+    // Đồ trang trí thêm vào món: chanh, wasabi, lá tía tô. Không tính vào kiểu công thức 2/3 nguyên liệu.
+    public static bool IsGarnish(PoolType type) =>
+        type == PoolType.Lemon || type == PoolType.Wasabi || type == PoolType.Perilla;
+
+    private static readonly Dictionary<string, SushiRecipe> garnished = new Dictionary<string, SushiRecipe>();
+
+    // Thêm đồ trang trí vào công thức gốc. Món cùng nguyên liệu và cùng đồ trang trí dùng chung một công thức.
+    public static SushiRecipe WithGarnish(SushiRecipe recipe, bool lemon, bool wasabi, bool perilla)
+    {
+        if (recipe == null || recipe.Family == SushiDishFamily.Tea || !(lemon || wasabi || perilla)) return recipe;
+        string key = recipe.Key + (perilla ? "|p" : "") + (lemon ? "|l" : "") + (wasabi ? "|w" : "");
+        if (garnished.TryGetValue(key, out SushiRecipe result)) return result;
+        var items = new List<PoolType>(recipe.Ingredients.Where(type => !IsGarnish(type)));
+        if (perilla) items.Add(PoolType.Perilla);
+        if (lemon) items.Add(PoolType.Lemon);
+        if (wasabi) items.Add(PoolType.Wasabi);
+        result = new SushiRecipe(recipe.Id, recipe.Family, recipe.Name, recipe.BaseName, recipe.ToppingStyle, items.ToArray());
+        garnished.Add(key, result);
+        return result;
+    }
 
     // Tạo công thức từ hai lựa chọn nguyên liệu bằng biến thể không có nguyên liệu thứ ba.
     public static bool TryCreate(SushiRecipeKind kind, PoolType first, PoolType second,
@@ -159,8 +207,12 @@ public static class SushiRecipeCatalog
             kind == SushiRecipeKind.ThreeWithRice ? new[] { PoolType.SushiRice, first, second } :
             threeWithoutRice ? new[] { first, second, third } : new[] { first, second };
         Array.Sort(items, withoutRice ? 0 : 1, items.Length - (withoutRice ? 0 : 1));
+        // Cơm + lát chính + trứng cá (không rong biển) là nigiri phủ trứng cá: lát chính đứng trước để giữ đúng lớp ảnh.
+        bool roeTopped = kind == SushiRecipeKind.ThreeWithRice && first != PoolType.Seaweed && second != PoolType.Seaweed &&
+            IsRoe(first) != IsRoe(second);
+        if (roeTopped && IsRoe(items[1])) { PoolType roe = items[1]; items[1] = items[2]; items[2] = roe; }
         SushiDishFamily family = withoutRice ? SushiDishFamily.Sashimi :
-            kind == SushiRecipeKind.ThreeWithRice ? SushiDishFamily.Maki : SushiDishFamily.Nigiri;
+            kind == SushiRecipeKind.ThreeWithRice && !roeTopped ? SushiDishFamily.Maki : SushiDishFamily.Nigiri;
         recipe = new SushiRecipe(SushiDishId.None, family,
             family + " " + string.Join(" + ", items.Where(type => type != PoolType.SushiRice)
                 .Select(type => IngredientName(type).ToLowerInvariant())),
@@ -210,6 +262,9 @@ public static class SushiRecipeCatalog
             case PoolType.CrabStick: return "Thanh cua";
             case PoolType.Cucumber: return "Dưa leo";
             case PoolType.GrilledEel: return "Lươn nướng";
+            case PoolType.Lemon: return "Chanh";
+            case PoolType.Wasabi: return "Wasabi";
+            case PoolType.Perilla: return "Lá tía tô";
             default: return type.ToString();
         }
     }
@@ -226,6 +281,11 @@ public static class SushiRecipeCatalog
         foreach (PoolType topping in toppings)
             Add(result, SushiDishFamily.Nigiri, "Nigiri " + (topping == PoolType.Octopus ? "mực" : IngredientName(topping).ToLowerInvariant()),
                 "Đế nigiri", "Lớp lát", PoolType.SushiRice, topping);
+        // IDs 9–12: nigiri mayonnaise và ba loại trứng cá (theo ảnh món hoàn thành trong bộ fix).
+        Add(result, SushiDishFamily.Nigiri, "Nigiri mayonnaise", "Đế nigiri", "Lớp phủ", PoolType.SushiRice, PoolType.Mayonnaise);
+        foreach (PoolType topping in roe)
+            Add(result, SushiDishFamily.Nigiri, "Nigiri " + IngredientName(topping).ToLowerInvariant(),
+                "Đế nigiri", "Trứng cá", PoolType.SushiRice, topping);
         foreach (PoolType topping in toppings)
             Add(result, SushiDishFamily.Maki, "Maki " + IngredientName(topping).ToLowerInvariant(),
                 "Đế maki", "Hạt lựu", PoolType.SushiRice, PoolType.Seaweed, topping);
@@ -280,7 +340,6 @@ public static class SushiRecipeCatalog
     private static void Add(List<SushiRecipe> result, SushiDishFamily family, string name, string baseName,
         string toppingStyle, params PoolType[] ingredients)
     {
-        int id = result.Count < 8 ? result.Count + 1 : result.Count + 5;
-        result.Add(new SushiRecipe((SushiDishId)id, family, name, baseName, toppingStyle, ingredients));
+        result.Add(new SushiRecipe((SushiDishId)(result.Count + 1), family, name, baseName, toppingStyle, ingredients));
     }
 }

@@ -51,6 +51,8 @@ public class FoodShushi : GameUnit
     private Sprite defaultBoardBase;
     private Vector2 platedSize;
     private int platedSortingOrder;
+    // Nguyên liệu đã nằm trong lớp ảnh của nguyên liệu khác trên đĩa (vd. cơm trong cuộn rong biển) thì không vẽ riêng.
+    private bool platedHidden;
     // Lưu thông số hình ảnh ban đầu của nguyên liệu để phục hồi khi đổi trạng thái.
     private void Awake()
     {
@@ -147,6 +149,7 @@ public class FoodShushi : GameUnit
         revealTween = null;
         foodLocation = FoodLocation.Board;
         platedSprite = null;
+        platedHidden = false;
         Owner = null;
         poolType = data.typeFood;
         TutorialType = data.tutFood;
@@ -213,6 +216,14 @@ public class FoodShushi : GameUnit
         platedSize = size;
         platedSortingOrder = sortingOrder;
         ApplyIngredientArt();
+        RefreshVisual();
+    }
+
+    // Ẩn/hiện ảnh riêng của nguyên liệu trên đĩa khi phần hình của nó do lớp ảnh khác đảm nhận.
+    public void SetPlatedHidden(bool hide)
+    {
+        if (platedHidden == hide) return;
+        platedHidden = hide;
         RefreshVisual();
     }
 
@@ -286,7 +297,7 @@ public class FoodShushi : GameUnit
         bool visible = !onBoard || boardVisible;
         if (foodRenderer != null)
         {
-            foodRenderer.enabled = visible && !hidden && amount > 0;
+            foodRenderer.enabled = visible && !hidden && amount > 0 && !platedHidden;
             foodRenderer.sortingOrder = platedSprite != null ? platedSortingOrder :
                 foodLocation == FoodLocation.MovingToCustomerPlate || foodLocation == FoodLocation.MovingToConveyor ? 30 :
                 foodLocation == FoodLocation.CustomerPlate ? 18 : 1;

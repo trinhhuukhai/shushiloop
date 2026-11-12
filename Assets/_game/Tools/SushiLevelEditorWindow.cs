@@ -694,6 +694,13 @@ public class SushiLevelEditorWindow : EditorWindow
             if (order.recipeKind == SushiRecipeKind.ThreeWithoutRice)
                 order.thirdIngredient = ToppingPopup("Nguyên liệu 3", order.thirdIngredient);
         }
+        // Đồ trang trí: mỗi ô bật thêm 1 nguyên liệu vào công thức (board được cân lại theo order).
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.PrefixLabel("Trang trí");
+        order.lemon = GUILayout.Toggle(order.lemon, "Chanh");
+        order.wasabi = GUILayout.Toggle(order.wasabi, "Wasabi");
+        order.perilla = GUILayout.Toggle(order.perilla, "Lá tía tô");
+        EditorGUILayout.EndHorizontal();
         if (!order.TryGetRecipe(out _, out string error)) EditorGUILayout.HelpBox(error, MessageType.Warning);
     }
 
@@ -707,12 +714,26 @@ public class SushiLevelEditorWindow : EditorWindow
 
     private void DrawDishIcon(DishOrderData order)
     {
-        if (order.recipeKind == SushiRecipeKind.Catalog) LayoutIcon(order.dish.ToString(), IconKind.Dish, 28f, order.amount);
+        if (order.recipeKind == SushiRecipeKind.Catalog)
+        {
+            LayoutIcon(order.dish.ToString(), IconKind.Dish, 28f, order.amount);
+            // Ảnh món có sẵn không vẽ đồ trang trí: hiện thêm icon chanh/wasabi/lá tía tô đã chọn.
+            if (order.HasGarnish && order.TryGetRecipe(out var garnished, out _))
+                foreach (PoolType type in garnished.Ingredients.Where(SushiRecipeCatalog.IsGarnish))
+                    LayoutIcon(type.ToString(), IconKind.Ingredient, 22f);
+        }
         else if (order.TryGetRecipe(out var recipe, out _))
             foreach (PoolType type in recipe.Ingredients) LayoutIcon(type.ToString(), IconKind.Ingredient, 22f);
     }
 
-    private static string DishLabel(DishOrderData order) => order.TryGetRecipe(out var recipe, out _) ? recipe.Name : "Công thức chưa hợp lệ";
+    // Tên món kèm đồ trang trí đã chọn (chanh, wasabi, lá tía tô).
+    private static string DishLabel(DishOrderData order)
+    {
+        if (!order.TryGetRecipe(out var recipe, out _)) return "Công thức chưa hợp lệ";
+        string garnish = string.Join(", ", recipe.Ingredients.Where(SushiRecipeCatalog.IsGarnish)
+            .Select(type => SushiRecipeCatalog.IngredientName(type).ToLowerInvariant()));
+        return garnish.Length > 0 ? recipe.Name + " + " + garnish : recipe.Name;
+    }
 
     private void DrawIngredientIcons(CustomerOrderData cu)
     {
