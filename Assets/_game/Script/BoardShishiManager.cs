@@ -439,10 +439,8 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             Vector3 last = VisiblePosition(members[members.Count - 1]);
             if (isLink)
             {
-                line.loop = false;
-                line.positionCount = 2;
-                line.SetPosition(0, first);
-                line.SetPosition(1, last);
+                UpdateLinkRope(line, first, last);
+                continue;
             }
             else
             {
@@ -454,7 +452,7 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
                 line.SetPosition(3, last + new Vector3(-0.55f, -0.45f, 0));
             }
             SushiArtCatalog catalog = SushiArtCatalog.Default;
-            Sprite sprite = catalog != null ? (isLink ? catalog.linkedTile : catalog.rigidTray) : null;
+            Sprite sprite = catalog != null ? catalog.rigidTray : null;
             if (sprite == null) continue;
             if (!groupArt.TryGetValue(group.Key, out SpriteRenderer artwork))
             {
@@ -465,25 +463,76 @@ public class BoardShishiManager : SingletonMonoBehaviour<BoardShishiManager>
             }
             artwork.gameObject.SetActive(visible);
             artwork.sprite = sprite;
-            artwork.color = isLink && Time.unscaledTime < linkFlashUntil ? Color.yellow : Color.white;
+            artwork.color = Color.white;
             artwork.transform.position = (first + last) / 2;
-            if (isLink)
-            {
-                Vector3 direction = last - first;
-                artwork.sortingOrder = 4;
-                artwork.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
-                artwork.transform.localScale = new Vector3(Mathf.Max(0.4f, direction.magnitude - 0.9f) / sprite.bounds.size.x, 0.35f / sprite.bounds.size.y, 1);
-            }
-            else
-            {
-                artwork.sortingOrder = -1;
-                artwork.transform.rotation = Quaternion.identity;
-                // Khoảng cách phải tính trong hệ toạ độ của bàn (bàn đang scale 1.25); dùng khoảng cách thế giới
-                // rồi gán vào localScale làm khung dài quá và lòi ra hai đầu. Ô khay cao ~1.08; ảnh khung có ~4% viền trong suốt.
-                float span = artwork.transform.parent.InverseTransformVector(last - first).magnitude;
-                artwork.transform.localScale = new Vector3(1.3f / sprite.bounds.size.x, (span + 1.1f) / 0.96f / sprite.bounds.size.y, 1);
-            }
+            artwork.sortingOrder = -1;
+            artwork.transform.rotation = Quaternion.identity;
+            // Khoảng cách phải tính trong hệ toạ độ của bàn (bàn đang scale 1.25); dùng khoảng cách thế giới
+            // rồi gán vào localScale làm khung dài quá và lòi ra hai đầu. Ô khay cao ~1.08; ảnh khung có ~4% viền trong suốt.
+            float span = artwork.transform.parent.InverseTransformVector(last - first).magnitude;
+            artwork.transform.localScale = new Vector3(1.3f / sprite.bounds.size.x, (span + 1.1f) / 0.96f / sprite.bounds.size.y, 1);
             line.gameObject.SetActive(false);
+        }
+    }
+
+    private const float LinkRopeWidth = 0.075f;
+    private const float LinkOutlineWidth = 0.125f;
+    private const float LinkKnobSize = 0.24f;
+    private static readonly Color LinkOutlineColor = new Color(0.36f, 0.33f, 0.36f, 0.75f);
+
+    // Dây nối kiểu ref: sợi dây trắng mảnh có viền tối, hai đầu là nút tròn trắng nằm ở mép ô, hướng về ô còn lại.
+    private void UpdateLinkRope(LineRenderer rope, Vector3 first, Vector3 last)
+    {
+        Transform root = rope.transform;
+        if (root.childCount == 0)
+        {
+            rope.loop = false;
+            rope.positionCount = 2;
+            rope.numCapVertices = 6;
+            rope.sortingOrder = 5;
+            rope.startWidth = rope.endWidth = LinkRopeWidth;
+            var outline = new GameObject("Outline").AddComponent<LineRenderer>();
+            outline.transform.SetParent(root, false);
+            outline.material = SushiWorldVisual.LineMaterial;
+            outline.useWorldSpace = true;
+            outline.positionCount = 2;
+            outline.numCapVertices = 6;
+            outline.sortingOrder = 4;
+            outline.startWidth = outline.endWidth = LinkOutlineWidth;
+            outline.startColor = outline.endColor = LinkOutlineColor;
+            for (int i = 0; i < 2; i++)
+            {
+                var knob = new GameObject("Knob " + (i + 1)).AddComponent<SpriteRenderer>();
+                knob.transform.SetParent(root, false);
+                knob.sprite = SushiWorldVisual.KnobSprite;
+                knob.sharedMaterial = SushiWorldVisual.SpriteMaterial;
+                knob.sortingOrder = 6;
+            }
+        }
+        // Đầu dây đặt ở mép ô (ô vuông cạnh ~1 trong hệ toạ độ bàn) và không bao giờ vượt quá giữa hai ô.
+        Vector3 direction = last - first;
+        Vector3 half = transform.lossyScale * 0.5f;
+        float reach = Mathf.Min(
+            Mathf.Abs(direction.x) > 0.001f ? half.x / Mathf.Abs(direction.x) : float.MaxValue,
+            Mathf.Abs(direction.y) > 0.001f ? half.y / Mathf.Abs(direction.y) : float.MaxValue);
+        reach = Mathf.Min(reach, 0.42f);
+        Vector3 start = first + direction * reach;
+        Vector3 end = last - direction * reach;
+        Color color = Time.unscaledTime < linkFlashUntil ? Color.yellow : Color.white;
+        rope.startColor = rope.endColor = color;
+        rope.SetPosition(0, start);
+        rope.SetPosition(1, end);
+        var outlineLine = root.GetChild(0).GetComponent<LineRenderer>();
+        outlineLine.SetPosition(0, start);
+        outlineLine.SetPosition(1, end);
+        Vector3 rootScale = root.lossyScale;
+        float knobScale = LinkKnobSize / SushiWorldVisual.KnobSprite.bounds.size.x;
+        for (int i = 0; i < 2; i++)
+        {
+            Transform knob = root.GetChild(i + 1);
+            knob.position = i == 0 ? start : end;
+            knob.localScale = new Vector3(knobScale / rootScale.x, knobScale / rootScale.y, 1f);
+            knob.GetComponent<SpriteRenderer>().color = color;
         }
     }
 

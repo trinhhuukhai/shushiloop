@@ -47,11 +47,19 @@ public sealed class SushiDishOrder
     // Bước ghép của nguyên liệu: nguyên liệu bước sau chỉ lên đĩa khi các bước trước đã đủ.
     public int AssemblyStage(PoolType type)
     {
+        // Trứng cá phủ trên lát chính (vd. cơm -> cá -> trứng cá) phải đợi lát chính lên đĩa xong.
+        int roeStep = IsRoeOverTopping && SushiRecipeCatalog.IsRoe(type) ? 1 : 0;
         if (IsSeaweedWrapped)
-            return type == PoolType.Seaweed ? 0 : type == PoolType.SushiRice ? 1 : 2;
+            return type == PoolType.Seaweed ? 0 : type == PoolType.SushiRice ? 1 : 2 + roeStep;
         PoolType foundation = FoundationType;
-        return foundation == PoolType.None || type == foundation ? 0 : 1;
+        return foundation == PoolType.None || type == foundation ? 0 : 1 + roeStep;
     }
+
+    // Món nền cơm có cả trứng cá lẫn một lát chính khác (cá, tôm, bơ...): trứng cá là lớp trên cùng.
+    public bool IsRoeOverTopping => FoundationType == PoolType.SushiRice &&
+        ingredients.Exists(item => SushiRecipeCatalog.IsRoe(item.typeFood)) &&
+        ingredients.Exists(item => !SushiRecipeCatalog.IsRoe(item.typeFood) && !IsSharedBaseIngredient(item.typeFood) &&
+            !SushiRecipeCatalog.IsGarnish(item.typeFood));
 
     // Kiểm tra các bước ghép trước đã đủ để ghép nguyên liệu này, tùy chọn tính cả phần đang bay tới.
     public bool CanStartIngredient(PoolType type, bool includeIncomingFoundation = false)
@@ -91,27 +99,58 @@ public sealed class SushiDishOrder
         OrderItem targetBase = target.ingredients.Find(item => item.typeFood == lead);
         if (sourceBase == null || targetBase == null || !sourceBase.IsComplete || sourceBase.incomingAmount != 0 ||
             sourceBase.requiredAmount != targetBase.requiredAmount) return false;
-        int sourceProgress = 0, targetProgress = 0;
-        foreach (OrderItem item in ingredients)
-        {
-            int progress = item.receivedAmount + item.incomingAmount;
-            if (progress == 0) continue;
-            OrderItem matching = target.ingredients.Find(other => other.typeFood == item.typeFood);
-            if (!IsSharedBaseIngredient(item.typeFood) || !target.IsSharedBaseIngredient(item.typeFood) ||
-                matching == null || matching.requiredAmount != item.requiredAmount) return false;
-            sourceProgress += progress;
-        }
-        foreach (OrderItem item in target.ingredients)
-        {
-            int progress = item.receivedAmount + item.incomingAmount;
-            if (progress == 0) continue;
-            OrderItem matching = ingredients.Find(other => other.typeFood == item.typeFood);
-            if (!IsSharedBaseIngredient(item.typeFood) || !target.IsSharedBaseIngredient(item.typeFood) ||
-                matching == null || matching.requiredAmount != item.requiredAmount) return false;
-            targetProgress += progress;
-        }
+        // Đĩa đã ghép thành kiểu món (vd. rong biển + cơm đã thành maki) thì không đổi sang kiểu khác (gunkan).
+        if (target.Recipe.Family != Recipe.Family && (HasLandedBeyondLead() || target.HasLandedBeyondLead())) return false;
+        // Mọi thứ đang có trên đĩa (kể cả wasabi, chanh, topping) phải dùng được cho món kia, và ngược lại khi đổi chỗ.
+        if (!target.CanHold(this) || !CanHold(target)) return false;
+        int sourceProgress = Progress(), targetProgress = target.Progress();
         if (target.IsPrepared != (targetProgress > 0)) return false;
         return sourceProgress > targetProgress;
+    }
+
+    private int Progress()
+    {
+        int progress = 0;
+        foreach (OrderItem item in ingredients) progress += item.receivedAmount + item.incomingAmount;
+        return progress;
+    }
+
+    // Đã có nguyên liệu ngoài nguyên liệu đầu tiên đáp lên đĩa: đĩa đã ghép thành kiểu món của công thức.
+    private bool HasLandedBeyondLead()
+    {
+        PoolType lead = LeadType;
+        return ingredients.Exists(item => item.typeFood != lead && item.receivedAmount > 0);
+    }
+
+    // Phần đang có (đã đáp + đang bay tới) của món content đặt được vào món này: đúng nguyên liệu, không thừa,
+    // phần nền cùng số lượng và không phá thứ tự ghép của món này.
+    private bool CanHold(SushiDishOrder content)
+    {
+        foreach (OrderItem item in content.ingredients)
+        {
+            int progress = item.receivedAmount + item.incomingAmount;
+            if (progress == 0) continue;
+            OrderItem mine = ingredients.Find(other => other.typeFood == item.typeFood);
+            if (mine == null || progress > mine.requiredAmount) return false;
+            bool sharedBase = IsSharedBaseIngredient(item.typeFood);
+            if (sharedBase != content.IsSharedBaseIngredient(item.typeFood) ||
+                (sharedBase && mine.requiredAmount != item.requiredAmount)) return false;
+            if (!CanStartWith(item.typeFood, content)) return false;
+        }
+        return true;
+    }
+
+    // Sau khi nhận phần đang có của món content, các bước ghép trước nguyên liệu này đã đủ hay chưa (tính cả phần đang bay).
+    internal bool CanStartWith(PoolType type, SushiDishOrder content)
+    {
+        int stage = AssemblyStage(type);
+        foreach (OrderItem earlier in ingredients)
+        {
+            if (AssemblyStage(earlier.typeFood) >= stage) continue;
+            OrderItem have = content.ingredients.Find(other => other.typeFood == earlier.typeFood);
+            if (have == null || have.receivedAmount + have.incomingAmount < earlier.requiredAmount) return false;
+        }
+        return true;
     }
 
     // Xác định nguyên liệu thuộc phần nền dùng chung, gồm cơm và rong biển ở nhóm món phù hợp.
@@ -121,7 +160,7 @@ public sealed class SushiDishOrder
     // Lấy tiến độ nguyên liệu dự kiến sau khi dùng phần nền từ món nguồn.
     internal OrderItem ProjectedIngredient(PoolType type, SushiDishOrder foundationSource)
     {
-        if (foundationSource != null && IsSharedBaseIngredient(type) && foundationSource.IsSharedBaseIngredient(type))
+        if (foundationSource != null)
         {
             OrderItem shared = foundationSource.ingredients.Find(item => item.typeFood == type);
             if (shared != null) return shared;
@@ -129,13 +168,12 @@ public sealed class SushiDishOrder
         return ingredients.Find(item => item.typeFood == type);
     }
 
-    // Trao đổi bộ đếm nguyên liệu phần nền giữa hai món và đồng bộ trạng thái chuẩn bị.
+    // Trao đổi bộ đếm của mọi nguyên liệu hai món cùng có (phần nền lẫn topping đã lên đĩa) và đồng bộ trạng thái chuẩn bị.
     internal bool TryTransferFoundationTo(SushiDishOrder target)
     {
         if (!CanTransferFoundationTo(target)) return false;
         foreach (OrderItem item in ingredients)
         {
-            if (!IsSharedBaseIngredient(item.typeFood) || !target.IsSharedBaseIngredient(item.typeFood)) continue;
             OrderItem matching = target.ingredients.Find(other => other.typeFood == item.typeFood);
             if (matching == null) continue;
             int received = item.receivedAmount, incoming = item.incomingAmount;

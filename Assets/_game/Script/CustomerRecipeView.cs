@@ -110,6 +110,12 @@ public class CustomerRecipeView : MonoBehaviour
         if (changed) RefreshOrderLayout();
     }
 
+    // Khách đã nhận đủ món và rời bàn: ẩn bảng order để chỉ còn khách đi ra.
+    public void HideOrder()
+    {
+        if (orderRoot != null) orderRoot.gameObject.SetActive(false);
+    }
+
     // Tìm phần món chưa hoàn thành tại vị trí chạm, ưu tiên phần chưa bắt đầu chuẩn bị.
     public SushiDishOrder DishAtWorldPosition(Vector3 position)
     {

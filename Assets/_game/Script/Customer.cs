@@ -124,7 +124,7 @@ public class Customer : MonoBehaviour
         return true;
     }
 
-    // Chuyển đĩa chỉ có phần nền (cơm, cơm + rong biển...) đã đáp đủ của món source sang món target của khách khác:
+    // Chuyển đĩa đang ghép dở (cơm, cơm + rong biển, cơm + wasabi...) của món source sang món target của khách khác:
     // dùng khi topping khách kia cần đang tới mà khách đó chưa có đĩa nền. Ô đĩa trên bàn và tổng nguyên liệu
     // của cả hai khách được cập nhật; món source quay lại chưa chuẩn bị và sẽ nhận phần nền sau.
     internal bool TryGiveFoundation(SushiDishOrder source, Customer receiver, SushiDishOrder target)
@@ -133,15 +133,11 @@ public class Customer : MonoBehaviour
         if (!CanAssembleDish(source) || !receiver.CanAssembleDish(target)) return false;
         if (!tableReservations.TryGetValue(source, out int slot) || !SlotAllowed(slot)) return false;
         if (target.IsPrepared || receiver.tableReservations.ContainsKey(target)) return false;
-        // Đĩa phải chỉ có phần nền và phần nền đã đáp đủ (không có gì đang bay tới).
+        // Không có gì đang bay tới đĩa và phần nền đã đáp đủ; topping/đồ trang trí đã đáp thì đi theo đĩa.
         foreach (OrderItem item in source.Ingredients)
         {
-            if (!source.IsSharedBaseIngredient(item.typeFood))
-            {
-                if (item.receivedAmount + item.incomingAmount > 0) return false;
-                continue;
-            }
-            if (item.incomingAmount > 0 || item.receivedAmount < item.requiredAmount) return false;
+            if (item.incomingAmount > 0) return false;
+            if (source.IsSharedBaseIngredient(item.typeFood) && item.receivedAmount < item.requiredAmount) return false;
         }
         if (!source.CanTransferFoundationTo(target)) return false;
         var moved = new List<KeyValuePair<PoolType, int>>();
@@ -473,6 +469,12 @@ public class Customer : MonoBehaviour
         GetComponent<CustomerRecipeView>()?.SetSeated(true);
         // Có bàn chung thì không hiện các ô đĩa riêng dưới chân khách.
         if (servingRoot != null) servingRoot.gameObject.SetActive(SharedCounter == null);
+    }
+
+    // Ẩn bảng order khi khách bắt đầu rời bàn.
+    public void HideOrder()
+    {
+        if (recipeView != null) recipeView.HideOrder();
     }
 
     // Giảm thời gian chờ của khách vội đang ngồi và phát sự kiện khi hết giờ.

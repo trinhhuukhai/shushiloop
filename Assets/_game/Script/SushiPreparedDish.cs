@@ -53,6 +53,10 @@ public sealed class SushiPreparedDish : MonoBehaviour
     [SerializeField, Min(0.02f)] private float hopDownDuration = 0.19f;
     [Tooltip("Thời gian nhún khi rơi chạm đĩa.")]
     [SerializeField, Min(0.02f)] private float landSquashDuration = 0.14f;
+    [Tooltip("Nigiri: khoảng cách thời gian giữa các miếng (cục cơm 1, cục cơm 2, lát 1, lát 2...) lần lượt rơi xuống đĩa.")]
+    [SerializeField, Min(0f)] private float pieceDropInterval = 0.09f;
+    [Tooltip("Nigiri: thời gian miếng nảy nhẹ sau khi chạm đĩa.")]
+    [SerializeField, Min(0f)] private float pieceBounceDuration = 0.1f;
     [SerializeField] private Vector2 finishedDishOffset = new Vector2(0f, 0.06f);
     [Tooltip("Ảnh món hoàn chỉnh đặt đúng vị trí tâm các nguyên liệu đã ghép (Ingredients), kích thước vẫn theo imageSize. Tắt để dùng finishedDishOffset.")]
     [SerializeField] private bool matchIngredientLayout = true;
@@ -76,6 +80,9 @@ public sealed class SushiPreparedDish : MonoBehaviour
     private Vector2 dishRestPosition;
     private bool plateShown;
     private Sequence mergeSequence;
+    // Nigiri: từng miếng (lớp ảnh) rơi riêng xuống đúng vị trí sau khi đổi hình ở đỉnh cú nảy.
+    private struct DropPiece { public Transform transform; public Vector3 rest; public float delay; }
+    private readonly List<DropPiece> dropPieces = new List<DropPiece>();
     private Tween plateTween;
     private static Sprite glowSprite;
     // Món ghép lớp: lớp ảnh thứ hai trở đi của một nguyên liệu (miếng nigiri thứ hai, lát chanh thứ hai, củ cải bào...).
@@ -348,7 +355,32 @@ public sealed class SushiPreparedDish : MonoBehaviour
         layerBuffer.Clear();
         if (ingredientArt == null || Order == null || !ingredientArt.HasLayers(Order.Recipe, type)) return false;
         ingredientArt.GetLayers(Order.Recipe, type, other => other == type || IsCombinedType(other), layerBuffer);
+        ExpandLayerPieces(type);
         return true;
+    }
+
+    // Sashimi: mỗi lớp ảnh cá vẽ 2–3 lát chung một ảnh; tách thành từng lát (cùng vị trí, cùng kích thước)
+    // để mỗi lát rơi riêng xuống đĩa. Lớp không tách được (củ cải, chanh...) giữ nguyên.
+    // Maki: chỉ tách lớp nền (3 cuộn cơm rong biển vẽ chung một ảnh); topping maki vốn đã là 3 ảnh riêng.
+    // Gunkan: nền chỉ có một cuộn nên giữ nguyên; topping là một đống miếng nhỏ, chia thành 3 cụm.
+    private void ExpandLayerPieces(PoolType type)
+    {
+        if (Order == null) return;
+        SushiDishFamily family = Order.Recipe.Family;
+        bool chunked = family == SushiDishFamily.Gunkan && IsGunkanTopping(type);
+        if (!chunked && family != SushiDishFamily.Sashimi && !(family == SushiDishFamily.Maki && type == PoolType.Seaweed)) return;
+        for (int i = layerBuffer.Count - 1; i >= 0; i--)
+        {
+            SushiPlatedIngredientArtLibrary.Layer layer = layerBuffer[i];
+            Sprite[] pieces = chunked ? SushiSpritePieces.GetChunks(layer.sprite, 3) : SushiSpritePieces.GetSlices(layer.sprite);
+            if (pieces == null) continue;
+            layerBuffer.RemoveAt(i);
+            for (int p = 0; p < pieces.Length; p++)
+            {
+                layer.sprite = pieces[p];
+                layerBuffer.Insert(i + p, layer);
+            }
+        }
     }
 
     // Loại nguyên liệu đã chuyển sang lớp ảnh ghép trên đĩa.
@@ -489,13 +521,13 @@ public sealed class SushiPreparedDish : MonoBehaviour
     // Trả về thời lượng hiệu ứng, 0 nếu chưa cần ghép (vd. mới chỉ có rong biển hoặc bát cơm).
     public float CombineLandedIngredients()
     {
-        if (transformed || assemblyIngredients.Count < 2) return 0f;
+        if (transformed || assemblyIngredients.Count < (CombinesEachIngredient ? 1 : 2)) return 0f;
         bool hasRaw = false;
         foreach (FoodShushi food in assemblyIngredients)
             if (food != null && !combinedIngredients.Contains(food)) { hasRaw = true; break; }
         if (!hasRaw) return 0f;
         var landed = new List<FoodShushi>(assemblyIngredients);
-        return PlayMerge(() => CombineIngredients(landed));
+        return PlayMerge(() => CombineIngredients(landed), false);
     }
 
     // Đánh dấu đĩa đã ghép xong, chạy hiệu ứng biến thành món và trả về thời lượng hiệu ứng.
@@ -504,28 +536,159 @@ public sealed class SushiPreparedDish : MonoBehaviour
         IsReady = true;
         dishImage.enabled = false;
         RevealPlate();
-        return PlayMerge(SwapToFinishedDish);
+        // Món thay bằng một ảnh hoàn chỉnh (vd. trà): cả phần trên đĩa đổi thành một ảnh nên nảy cả khối.
+        return PlayMerge(SwapToFinishedDish, FinishedSprite() != null);
     }
 
-    // Nảy nguyên liệu lên, đổi hình ở đỉnh (kèm lóe sáng), rơi xuống rồi nhún đĩa.
-    private float PlayMerge(Action swap)
+    // Chỉ nguyên liệu mới (chưa ghép) nảy lên, đổi hình ở đỉnh (kèm lóe sáng) rồi rơi xuống đúng chỗ.
+    // Phần đã ghép trên đĩa từ trước và cái đĩa đứng yên. wholeDish = nảy cả phần trên đĩa (đổi thành một ảnh món).
+    private float PlayMerge(Action swap, bool wholeDish = false)
     {
         // Lần ghép trước chưa xong thì bỏ; lần ghép mới tự ghép lại toàn bộ nguyên liệu đang có.
         mergeSequence?.Kill();
         ResetMergePose();
-        Vector3 squash = new Vector3(baseScale.x * 1.1f, baseScale.y * 0.9f, baseScale.z);
-        mergeSequence = DOTween.Sequence().SetLink(gameObject)
-            .Append(DOVirtual.Float(0f, hopHeight, hopUpDuration, SetContentHop).SetEase(Ease.OutQuad))
-            .AppendCallback(() =>
+        float fallDuration = hopDownDuration;
+        if (wholeDish)
+        {
+            mergeSequence = DOTween.Sequence().SetLink(gameObject)
+                .Append(DOVirtual.Float(0f, hopHeight, hopUpDuration, SetContentHop).SetEase(Ease.OutQuad))
+                .AppendCallback(() =>
+                {
+                    swap();
+                    PlayFlash();
+                })
+                .Append(DOVirtual.Float(hopHeight, 0f, hopDownDuration, SetContentHop).SetEase(Ease.InQuad));
+        }
+        else
+        {
+            // Miếng rơi từng cái (nigiri, sashimi, maki...) nối tiếp sau phần mới rơi cả khối.
+            int pieces = CountNewPieces(out bool hasBlock);
+            if (pieces > 0)
+                fallDuration += pieceBounceDuration + pieceDropInterval * (pieces - 1 + (hasBlock ? 1 : 0));
+            var before = new HashSet<FoodShushi>(combinedIngredients);
+            mergeSequence = DOTween.Sequence().SetLink(gameObject)
+                .Append(DOVirtual.Float(0f, hopHeight, hopUpDuration, height => SetNewIngredientHop(before, height)).SetEase(Ease.OutQuad))
+                .AppendCallback(() =>
+                {
+                    swap();
+                    // Lóe sáng ở độ cao đỉnh cú nảy.
+                    contentHop = hopHeight;
+                    PlayFlash();
+                    contentHop = 0f;
+                    BeginPieceDrop(before);
+                })
+                .Append(DOVirtual.Float(0f, fallDuration, fallDuration, UpdatePieceDrop).SetEase(Ease.Linear));
+        }
+        mergeSequence.OnKill(() => { if (this != null) ResetMergePose(); });
+        return hopUpDuration + fallDuration;
+    }
+
+    // Nâng các nguyên liệu chưa ghép lên theo độ cao nảy; nguyên liệu đã ghép từ trước đứng yên.
+    private void SetNewIngredientHop(HashSet<FoodShushi> combinedBefore, float height)
+    {
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null && !combinedBefore.Contains(food)) food.transform.localPosition = Vector3.up * height;
+    }
+
+    // Số miếng (lớp ảnh) mới sẽ rơi lần lượt ở lần ghép này; 0 = không có miếng nào rơi riêng.
+    // hasBlock: có nguyên liệu mới khác rơi cả khối trước các miếng này.
+    private int CountNewPieces(out bool hasBlock)
+    {
+        hasBlock = false;
+        if (Order == null) return 0;
+        int count = 0;
+        foreach (FoodShushi food in assemblyIngredients)
+        {
+            if (food == null || combinedIngredients.Contains(food)) continue;
+            if (!DropsPieceByPiece(food, combinedIngredients)) { hasBlock = true; continue; }
+            layerBuffer.Clear();
+            ingredientArt.GetLayers(Order.Recipe, food.Type, IsOnPlate, layerBuffer);
+            ExpandLayerPieces(food.Type);
+            count += layerBuffer.Count;
+        }
+        layerBuffer.Clear();
+        return count;
+    }
+
+    // Nguyên liệu mới ghép ở lần này và rơi từng miếng: mọi nguyên liệu của nigiri và sashimi, và chanh (2 lát) của mọi món ghép lớp.
+    private bool DropsPieceByPiece(FoodShushi food, HashSet<FoodShushi> combinedBefore) =>
+        !combinedBefore.Contains(food) && ingredientArt != null && ingredientArt.IsLayered(Order.Recipe) &&
+        ingredientArt.HasLayers(Order.Recipe, food.Type) &&
+        (Order.Recipe.Family == SushiDishFamily.Nigiri || Order.Recipe.Family == SushiDishFamily.Sashimi ||
+            Order.Recipe.Family == SushiDishFamily.Maki || food.Type == PoolType.Lemon ||
+            (Order.Recipe.Family == SushiDishFamily.Gunkan && IsGunkanTopping(food.Type)));
+
+    // Topping của gunkan: mọi nguyên liệu trừ nền (rong biển, cơm) và đồ trang trí.
+    private static bool IsGunkanTopping(PoolType type) =>
+        type != PoolType.Seaweed && type != PoolType.SushiRice && !SushiRecipeCatalog.IsGarnish(type);
+
+    // Sashimi ghép lớp: nguyên liệu nào đáp xuống cũng tách ngay thành từng lát rơi vào chỗ, không đợi nguyên liệu thứ hai.
+    private bool CombinesEachIngredient => Order != null && ingredientArt != null &&
+        Order.Recipe.Family == SushiDishFamily.Sashimi && ingredientArt.IsLayered(Order.Recipe);
+
+    // Loại nguyên liệu đã đáp lên đĩa (kể cả chưa ghép).
+    private bool IsOnPlate(PoolType type)
+    {
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null && food.Type == type) return true;
+        return false;
+    }
+
+    // Ở đỉnh cú nảy, sau khi đổi hình: các miếng của nguyên liệu mới giữ độ cao rồi rơi xuống.
+    // Nguyên liệu mới không tách miếng rơi cả khối trước; miếng tách rơi theo thứ tự cơm 1, cơm 2, lát 1, lát 2...
+    // Nguyên liệu đã ghép từ trước không nằm trong danh sách nên đứng yên trên đĩa.
+    private void BeginPieceDrop(HashSet<FoodShushi> combinedBefore)
+    {
+        dropPieces.Clear();
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null) food.transform.localPosition = Vector3.zero;
+        int next = 0;
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null && !combinedBefore.Contains(food) && !DropsPieceByPiece(food, combinedBefore))
             {
-                swap();
-                PlayFlash();
-            })
-            .Append(DOVirtual.Float(hopHeight, 0f, hopDownDuration, SetContentHop).SetEase(Ease.InQuad))
-            .Append(transform.DOScale(squash, landSquashDuration * 0.4f).SetEase(Ease.OutQuad))
-            .Append(transform.DOScale(baseScale, landSquashDuration * 0.6f).SetEase(Ease.OutBack))
-            .OnKill(() => { if (this != null) ResetMergePose(); });
-        return TransformDuration;
+                AddDropPieces(food, ref next, false);
+                next = 1;
+            }
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null && DropsPieceByPiece(food, combinedBefore)) AddDropPieces(food, ref next, true);
+        UpdatePieceDrop(0f);
+    }
+
+    // Thêm các lớp ảnh đang hiện của một nguyên liệu vào danh sách rơi.
+    private void AddDropPieces(FoodShushi food, ref int next, bool stagger)
+    {
+        SpriteRenderer main = food.FoodRenderer;
+        if (main != null && main.enabled)
+            dropPieces.Add(new DropPiece { transform = food.transform, rest = food.transform.localPosition,
+                delay = pieceDropInterval * (stagger ? next++ : 0) });
+        if (!extraLayers.TryGetValue(food, out List<SpriteRenderer> extras)) return;
+        foreach (SpriteRenderer extra in extras)
+            if (extra != null && extra.enabled)
+                dropPieces.Add(new DropPiece { transform = extra.transform, rest = extra.transform.localPosition,
+                    delay = pieceDropInterval * (stagger ? next++ : 0) });
+    }
+
+    // Đặt độ cao từng miếng theo thời gian: chờ lượt ở trên cao, rơi nhanh dần, chạm đĩa rồi nảy nhẹ một lần.
+    private void UpdatePieceDrop(float time)
+    {
+        foreach (DropPiece piece in dropPieces)
+        {
+            if (piece.transform == null) continue;
+            float elapsed = time - piece.delay;
+            float height;
+            if (elapsed <= 0f) height = hopHeight;
+            else if (elapsed < hopDownDuration)
+            {
+                float t = elapsed / hopDownDuration;
+                height = hopHeight * (1f - t * t);
+            }
+            else
+            {
+                float t = pieceBounceDuration > 0f ? (elapsed - hopDownDuration) / pieceBounceDuration : 1f;
+                height = t < 1f ? hopHeight * 0.12f * Mathf.Sin(t * Mathf.PI) : 0f;
+            }
+            piece.transform.localPosition = piece.rest + Vector3.up * height;
+        }
     }
 
     // Nâng nhóm nguyên liệu và ảnh món theo độ cao nảy, đĩa đứng yên.
@@ -545,6 +708,12 @@ public sealed class SushiPreparedDish : MonoBehaviour
     {
         if (contentHop != 0f || (ingredientRoot != null && ingredientRoot.localPosition != ingredientRootPosition))
             SetContentHop(0f);
+        foreach (DropPiece piece in dropPieces)
+            if (piece.transform != null) piece.transform.localPosition = piece.rest;
+        dropPieces.Clear();
+        // Nguyên liệu đang nảy dở cũng về đúng điểm đặt của nó.
+        foreach (FoodShushi food in assemblyIngredients)
+            if (food != null) food.transform.localPosition = Vector3.zero;
         transform.localScale = baseScale;
     }
 

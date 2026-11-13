@@ -41,6 +41,8 @@ public class FoodShushi : GameUnit
     [SerializeField] private Vector3 frozenQuantityPosition = new Vector3(-0.28f, 0.32f, -0.1f);
     [SerializeField] private Vector3 frozenStatePosition = new Vector3(0.25f, -0.31f, -0.3f);
     [SerializeField] private float frozenStateFontSize = 2.6f;
+    [Tooltip("Độ lệch của Ingredient image so với tâm ô. Code tự căn tâm ảnh nên chỉnh vị trí ở đây, không chỉnh Transform.")]
+    [SerializeField] private Vector2 ingredientImageOffset = new Vector2(0f, 0.1f);
     private Vector3 quantityPosition;
     private Vector3 statePosition;
     private float stateFontSize;
@@ -192,7 +194,10 @@ public class FoodShushi : GameUnit
         }
         else scale = Vector3.one * (1.05f / Mathf.Max(0.01f, Mathf.Max(bounds.size.x, bounds.size.y)));
         foodRenderer.transform.localScale = scale;
-        foodRenderer.transform.localPosition = -Vector3.Scale(bounds.center, scale);
+        Vector3 position = -Vector3.Scale(bounds.center, scale);
+        // Ảnh nguyên liệu gốc (trên ô bàn, băng chuyền) nhích theo ingredientImageOffset; ảnh đã lên đĩa giữ đúng tâm.
+        if (platedSprite == null) position += (Vector3)ingredientImageOffset;
+        foodRenderer.transform.localPosition = position;
     }
 
     // Renderer hiển thị ảnh nguyên liệu (dùng để đo khung ảnh trên đĩa).

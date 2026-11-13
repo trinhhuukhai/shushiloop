@@ -280,7 +280,16 @@ public static class SushiRecipeChecks
                         }
                         else Check(!dish.CanStartIngredient(first) && !dish.CanStartIngredient(second), "Toppings started before rice");
                         dish.FindAvailableIngredient(PoolType.SushiRice).receivedAmount = 1;
-                        Check(dish.CanStartIngredient(first) && dish.CanStartIngredient(second), "Rice did not unlock both toppings");
+                        if (!nori && SushiRecipeCatalog.IsRoe(first) != SushiRecipeCatalog.IsRoe(second))
+                        {
+                            // Nigiri phủ trứng cá: cơm -> lát chính -> trứng cá.
+                            PoolType roe = SushiRecipeCatalog.IsRoe(first) ? first : second;
+                            PoolType main = roe == first ? second : first;
+                            Check(dish.CanStartIngredient(main) && !dish.CanStartIngredient(roe), "Roe started before the slice under it");
+                            dish.FindAvailableIngredient(main).receivedAmount = 1;
+                            Check(dish.CanStartIngredient(roe), "Slice did not unlock the roe on top");
+                        }
+                        else Check(dish.CanStartIngredient(first) && dish.CanStartIngredient(second), "Rice did not unlock both toppings");
                     }
                     else Check(!recipe.HasRice && dish.FoundationType == PoolType.None && dish.CanStartIngredient(first) && dish.CanStartIngredient(second),
                         "Rice-free pair should accept either ingredient first");
@@ -450,6 +459,13 @@ public static class SushiRecipeChecks
                         target.Ingredients.First(item => item.typeFood == PoolType.Seaweed).receivedAmount = 1;
                     }
                     PoolType topping = other.Ingredients.First(type => type != PoolType.SushiRice && type != PoolType.Seaweed);
+                    // Cơm đã đáp lên rong biển = đĩa đã thành maki/gunkan, không đổi sang kiểu món khác nữa.
+                    if (state % 2 == 0 && recipe.Family != other.Family)
+                    {
+                        Check(!(bool)canTransfer.Invoke(source, new object[] { target }),
+                            "A combined " + recipe.Family + " base turned into " + other.Name);
+                        continue;
+                    }
                     Check((bool)canTransfer.Invoke(source, new object[] { target }), "Rice and nori could not serve " + other.Name);
                     var noriTotals = source.Ingredients.Concat(target.Ingredients).Where(item => item.typeFood == PoolType.Seaweed)
                         .Sum(item => item.receivedAmount + item.incomingAmount);
@@ -463,7 +479,9 @@ public static class SushiRecipeChecks
                             .Sum(item => item.receivedAmount + item.incomingAmount) == noriTotals,
                         "Sharing the base lost or duplicated rice/nori or an incoming reservation");
                     target.FindAvailableIngredient(topping).incomingAmount = 1;
-                    Check(!(bool)canTransfer.Invoke(target, new object[] { source }), "A reserved topping changed its dish");
+                    // Topping đã giữ chỗ chỉ theo đĩa sang món cũng dùng topping đó.
+                    if (!recipe.Ingredients.Contains(topping))
+                        Check(!(bool)canTransfer.Invoke(target, new object[] { source }), "A reserved topping changed its dish");
                 }
 
         var readyBase = new SushiDishOrder(0, SushiRecipeCatalog.Get(SushiDishId.MakiTuna));

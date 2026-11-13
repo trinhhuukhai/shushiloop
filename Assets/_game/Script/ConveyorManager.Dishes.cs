@@ -149,7 +149,8 @@ public partial class ConveyorManager
     }
 
     // Không khách nào nhận được (vd. bạch tuộc tới nhưng khách cần nó chưa có đĩa cơm, còn đĩa cơm trên bàn
-    // đang thuộc khách kia): chuyển đĩa chỉ có phần nền ở ô gần đó sang món cần nguyên liệu này.
+    // đang thuộc khách kia): chuyển đĩa đang ghép dở ở ô gần đó (cơm, cơm + wasabi, cơm + cá...) sang món của
+    // khách kia dùng được mọi thứ đang có trên đĩa và cần nguyên liệu này.
     // Trả về khách nhận đĩa, null nếu không chuyển được.
     private Customer HandOverFoundation(SushiServingCounter counter, PoolType type)
     {
@@ -167,6 +168,8 @@ public partial class ConveyorManager
                 {
                     if (target.IsPrepared || target.IsComplete || target.IsOnTable) continue;
                     if (type == target.LeadType || target.FindAvailableIngredient(type) == null) continue;
+                    // Đĩa phải còn thiếu đúng nguyên liệu này và đã đủ các bước ghép trước nó trong món mới.
+                    if (!target.ProjectedIngredient(type, source).CanReceive || !target.CanStartWith(type, source)) continue;
                     if (!giver.TryGiveFoundation(source, receiver, target)) continue;
                     plated.Reassign(receiver, target);
                     if (assemblyFoods.TryGetValue(plated, out var flights))
@@ -214,7 +217,7 @@ public partial class ConveyorManager
         {
             if (plated.Owner != customer || !customer.CanTransferPreparedFoundation(plated.Order, target)) continue;
             OrderItem projected = target.ProjectedIngredient(type, plated.Order);
-            if (!projected.CanReceive) continue;
+            if (!projected.CanReceive || !target.CanStartWith(type, plated.Order)) continue;
             int landed = plated.Order.Ingredients.Sum(item => item.receivedAmount);
             int progress = landed + plated.Order.Ingredients.Sum(item => item.incomingAmount);
             if (progress < bestProgress || (progress == bestProgress && landed <= bestLanded)) continue;

@@ -66,6 +66,36 @@ public static class SushiWorldVisual
         }
     }
 
+    private static Sprite knobSprite;
+
+    // Nút tròn trắng viền xám ở hai đầu dây nối (linked tile).
+    public static Sprite KnobSprite
+    {
+        get
+        {
+            if (knobSprite != null) return knobSprite;
+            const int size = 64;
+            const float radius = 30f, rim = 5f;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.name = "Link knob";
+            texture.wrapMode = TextureWrapMode.Clamp;
+            var pixels = new Color[size * size];
+            var edge = new Color(0.5f, 0.47f, 0.5f);
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), Vector2.one * (size / 2f));
+                    Color color = Color.Lerp(Color.white, edge, Mathf.Clamp01(distance - (radius - rim)));
+                    color.a = Mathf.Clamp01(radius - distance);
+                    pixels[y * size + x] = color;
+                }
+            texture.SetPixels(pixels);
+            texture.Apply();
+            knobSprite = Sprite.Create(texture, new Rect(0, 0, size, size), Vector2.one * 0.5f, size);
+            return knobSprite;
+        }
+    }
+
     // Gán sprite cùng vật liệu chung và chỉnh tỉ lệ để khớp kích thước yêu cầu.
     public static void FitSprite(SpriteRenderer renderer, Sprite sprite, Vector2 size)
     {

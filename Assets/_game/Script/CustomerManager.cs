@@ -93,7 +93,8 @@ public class CustomerManager : MonoBehaviour
     // Chuyển tiếp sự kiện khách hết giờ chờ cho hệ thống điều phối màn chơi.
     private void HandleRushExpired(Customer customer) => OnRushExpired?.Invoke(customer);
     [Header("Khách hoàn thành")]
-    [SerializeField] private float completedDelay = 0.8f;
+    [Tooltip("Thời gian khách đứng lại sau khi nhận đủ món rồi mới rời bàn. 0 = đi luôn.")]
+    [SerializeField] private float completedDelay = 0f;
     [SerializeField, Min(0f)] private float customerExitDistance = 8f;
 
     private readonly HashSet<Customer> finishingCustomers =
@@ -237,6 +238,8 @@ public class CustomerManager : MonoBehaviour
                     return;
                 }
 
+                // Bảng order ẩn ngay lúc khách bắt đầu đi, chỉ còn khách di chuyển ra.
+                customer.HideOrder();
                 // Mọi khách đều rời bàn về bên phải, qua cùng một điểm ngoài màn hình tính từ ghế phải.
                 Vector3 origin = customer.transform.position;
                 Vector3 exitPosition = origin;
